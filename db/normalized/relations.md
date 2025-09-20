@@ -209,7 +209,7 @@ erDiagram
 erDiagram
 
     TRANSFER {
-        int id PK FK
+        int id PK
         int from_account_id FK
     }
 ```
