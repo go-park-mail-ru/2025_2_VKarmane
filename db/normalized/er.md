@@ -5,9 +5,10 @@ erDiagram
         string name 
         string surname 
         string email 
-        string logo
+        int logo_id
         string login 
-        string password 
+        string hashed_password 
+        string user_description
         timestamptz created_at 
         timestamptz updated_at 
         } 
@@ -37,6 +38,8 @@ erDiagram
         int account_id
         int category_id
         string type
+        string status
+        string description
         string name
         decimal sum
         timestamptz created_at
@@ -48,7 +51,8 @@ erDiagram
         int id
         int user_id 
         string name
-        string logo
+        int logo_id
+        string description
         timestamptz created_at
         timestamptz updated_at
     }
@@ -57,7 +61,7 @@ erDiagram
         int id
         string code
         string name
-        string logo
+        int logo_id
         timestamptz created_at
     }
 
@@ -77,8 +81,7 @@ BUDGET {
     int user_id
     decimal amount
     int currency_id
-    string type
-    bool is_failed
+    string description
     timestamptz created_at
     timestamptz updated_at
     timestamptz closed_at
@@ -86,6 +89,43 @@ BUDGET {
     date period_end
 }
 
+CHAT {
+    int id
+    string name
+    timestamptz created_at
+    timestamptz updated_at
+}
+
+USER_CHAT {
+    int id
+    user_id int
+    chat_id int
+    timestamptz created_at
+    timestamptz updated_at
+}
+
+MESSAGE {
+    int id
+    int user_id
+    int chat_id
+    string message_text
+    timestamptz created_at
+    timestamptz updated_at
+}
+
+RECEIVER {
+    int id
+    int user_id
+    string name
+    timestamptz created_at
+    timestamptz updated_at
+}
+
+
 
 CURRENCY ||--o{ BUDGET : "currency of"
 USER ||--|{ BUDGET : "has"
+USER ||-o{ MESSAGE : "writes"
+USER ||--o{ USER_CHAT : "has"
+USER ||--o{ RECEIVER : "has"
+CHAT || -- { USER_CHAT : "connected to"

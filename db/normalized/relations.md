@@ -8,9 +8,9 @@
 
 <p> Нормальные формы: <p>
 
-- 1 НФ: Атрибуты id, name, surname, email, logo, login, password, created_at, updated_at являются атомарными.
-- 2 НФ: Атрибуты id, name, surname, email, logo, login, password, created_at, updated_at полностью функционально зависят от первичного ключа id.
-- 3 НФ: Атрибуты id, name, surname, email, logo, login, password, created_at, updated_at не зависят от других атрибутов.
+- 1 НФ: Атрибуты id, name, surname, email, logo_id, login, password, created_at, updated_at являются атомарными.
+- 2 НФ: Атрибуты id, name, surname, email, logo_id, login, password, created_at, updated_at полностью функционально зависят от первичного ключа id.
+- 3 НФ: Атрибуты id, name, surname, email, logo_id, login, password, created_at, updated_at не зависят от других атрибутов.
 - НФБК: 3 НФ + в таблице отсутствуют составные ключи.
 
 ```mermaid
@@ -20,9 +20,10 @@ erDiagram
         string name 
         string surname 
         string email 
-        string logo
+        int logo_id
         string login 
-        string password 
+        string hashed_password 
+        strin description
         timestamptz
         created_at 
         timestamptz updated_at 
@@ -88,9 +89,9 @@ erDiagram
 
 <p> Нормальные формы: <p>
 
-- 1 НФ: Атрибуты id, code, name, logo, created_at являются атомарными.
-- 2 НФ: Атрибуты id, code, name, logo, created_at полностью функционально зависят от первичного ключа id.
-- 3 НФ: Атрибуты id, code, name, logo, created_at не зависят от других атрибутов.
+- 1 НФ: Атрибуты id, code, name, logo_id, created_at являются атомарными.
+- 2 НФ: Атрибуты id, code, name, logo_id, created_at полностью функционально зависят от первичного ключа id.
+- 3 НФ: Атрибуты id, code, name, logo_id, created_at не зависят от других атрибутов.
 - НФБК: 3 НФ + в таблице отсутствуют составные ключи.
 
 ```mermaid
@@ -99,7 +100,7 @@ erDiagram
         int id PK
         string code
         string name
-        string logo
+        int logo_id
         timestamptz created_at
     }
 ```
@@ -126,8 +127,7 @@ BUDGET {
     int user_id FK
     decimal amount
     int currency_id FK
-    string type
-    bool is_failed
+    string description
     timestamptz created_at
     timestamptz updated_at
     timestampptz closed_at
@@ -145,9 +145,9 @@ BUDGET {
 
 <p> Нормальные формы: <p>
 
-- 1 НФ: Атрибуты id, user_id, name, logo, created_at, updated_at являются атомарными.
-- 2 НФ: Атрибуты id, user_id, name, logo, created_at, updated_at полностью функционально зависят от первичного ключа id.
-- 3 НФ: Атрибуты id, user_id, name, logo, created_at, updated_at не зависят от других атрибутов.
+- 1 НФ: Атрибуты id, user_id, name, logo_id, created_at, updated_at являются атомарными.
+- 2 НФ: Атрибуты id, user_id, name, logo_id, created_at, updated_at полностью функционально зависят от первичного ключа id.
+- 3 НФ: Атрибуты id, user_id, name, logo_id, created_at, updated_at не зависят от других атрибутов.
 - НФБК: 3 НФ + в таблице отсутствуют составные ключи.
 
 ```mermaid
@@ -157,7 +157,8 @@ erDiagram
         int id PK
         int user_id FK
         string name
-        string logo
+        int logo_id
+        string description
         timestamptz created_at
         timestamptz updated_at
     }
@@ -172,9 +173,9 @@ erDiagram
 
 <p> Нормальные формы: <p>
 
-- 1 НФ: Атрибуты id, account_id, category_id, type, name, sum, created_at, updated_at являются атомарными.
-- 2 НФ: Атрибуты id, account_id, category_id, type, name, sum, created_at, updated_at полностью функционально зависят от первичного ключа id.
-- 3 НФ: Атрибуты id, account_id, category_id, type, name, sum, created_at, updated_at не зависят от других атрибутов.
+- 1 НФ: Атрибуты id, account_id, category_id, type, name, status, sum, created_at, updated_at являются атомарными.
+- 2 НФ: Атрибуты id, account_id, category_id, type, name, status, sum, created_at, updated_at полностью функционально зависят от первичного ключа id.
+- 3 НФ: Атрибуты id, account_id, category_id, type, name, status, sum, created_at, updated_at не зависят от других атрибутов.
 - НФБК: 3 НФ + в таблице отсутствуют составные ключи.
 
 ```mermaid
@@ -186,6 +187,8 @@ erDiagram
         int category_id FK
         string type
         string name
+        string status
+        string description
         decimal sum
         timestampptz created_at
     }
@@ -211,5 +214,109 @@ erDiagram
     TRANSFER {
         int id PK
         int from_account_id FK
+    }
+```
+## Таблица CHAT
+
+Таблица `CHAT` содержит информацию о чате между пользователями.
+
+<p> Функциональные зависимости: </p>
+
+- `{id} -> {created_at, updated_at}`
+
+<p> Нормальные формы: <p>
+
+- 1 НФ: Атрибуты id, created_at, updated_at являются атомарными.
+- 2 НФ: Атрибуты id, created_at, updated_at полностью функционально зависят от первичного ключа id.
+- 3 НФ: Атрибуты id, created_at, updated_at не зависят от других атрибутов.
+- НФБК: 3 НФ + в таблице отсутствуют составные ключи.
+
+```mermaid
+erDiagram
+
+    CHAT {
+        int id PK
+        string name
+        timestamptz created_at
+        timestamptz updated_at
+    }
+```
+## Таблица MESSAGE
+
+Таблица `MESSAGE` содержит информацию о сообщении пользователя.
+
+<p> Функциональные зависимости: </p>
+
+- `{id} -> {user_id, chat_id, message_text, created_at, updated_at}`
+
+<p> Нормальные формы: <p>
+
+- 1 НФ: Атрибуты id, user_id, chat_id, message_text, created_at, updated_at являются атомарными.
+- 2 НФ: Атрибуты id, user_id, chat_id, message_text, created_at, updated_at полностью функционально зависят от первичного ключа id.
+- 3 НФ: Атрибуты id, user_id, chat_id, message_text, created_at, updated_at не зависят от других атрибутов.
+- НФБК: 3 НФ + в таблице отсутствуют составные ключи.
+
+```mermaid
+erDiagram
+
+    MESSAGE {
+        int id PK
+        int user_id FK
+        int chat_id FK
+        string message_text
+        timestamptz created_at
+        timestamptz updated_at
+    }
+```
+## Таблица DIALOGUE
+
+Таблица `DIALOGUE` является связующей между пользователем и чатом, позволяя таким образои нескольким пользователям общаться в одном чате.
+
+<p> Функциональные зависимости: </p>
+
+- `{id} -> {user_id, chat_id, created_at, updated_at}`
+
+<p> Нормальные формы: <p>
+
+- 1 НФ: Атрибуты id, user_id, chat_id, created_at, updated_at являются атомарными.
+- 2 НФ: Атрибуты id, user_id, chat_id, created_at, updated_at полностью функционально зависят от первичного ключа id.
+- 3 НФ: Атрибуты id, user_id, chat_id, created_at, updated_at не зависят от других атрибутов.
+- НФБК: 3 НФ + в таблице отсутствуют составные ключи.
+
+```mermaid
+erDiagram
+
+    DIALOGUE {
+        int id PK
+        user_id int FK
+        chat_id int FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+```
+## Таблица RECEIVER
+
+Таблица `RECEIVER` содержит информацию о не являющихся пользователями получателями средств в результате транзакций.
+
+<p> Функциональные зависимости: </p>
+
+- `{id} -> {user_id, chat_id, created_at, updated_at}`
+
+<p> Нормальные формы: <p>
+
+- 1 НФ: Атрибуты id, user_id, name, created_at, updated_at являются атомарными.
+- 2 НФ: Атрибуты id, user_id, name, created_at, updated_at полностью функционально зависят от первичного ключа id.
+- 3 НФ: Атрибуты id, user_id, name, created_at, updated_at не зависят от других атрибутов.
+- НФБК: 3 НФ + в таблице отсутствуют составные ключи.
+
+```mermaid
+erDiagram
+
+    RECEIVER {
+        int id PK
+        int user_id FK
+        string name
+        timestamptz created_at
+        timestamptz updated_at
     }
 ```
