@@ -40,6 +40,7 @@ erDiagram
         string type
         string status
         string description
+        string receipt_url
         string name
         decimal sum
         timestamptz created_at

@@ -173,9 +173,9 @@ erDiagram
 
 <p> Нормальные формы: <p>
 
-- 1 НФ: Атрибуты id, account_id, category_id, type, name, status, sum, created_at, updated_at являются атомарными.
-- 2 НФ: Атрибуты id, account_id, category_id, type, name, status, sum, created_at, updated_at полностью функционально зависят от первичного ключа id.
-- 3 НФ: Атрибуты id, account_id, category_id, type, name, status, sum, created_at, updated_at не зависят от других атрибутов.
+- 1 НФ: Атрибуты id, account_id, category_id, type, name, status, receipt_url, sum, created_at, updated_at являются атомарными.
+- 2 НФ: Атрибуты id, account_id, category_id, type, name, status, receipt_url, sum, created_at, updated_at полностью функционально зависят от первичного ключа id.
+- 3 НФ: Атрибуты id, account_id, category_id, type, name, status, receipt_url, sum, created_at, updated_at не зависят от других атрибутов.
 - НФБК: 3 НФ + в таблице отсутствуют составные ключи.
 
 ```mermaid
@@ -188,6 +188,7 @@ erDiagram
         string type
         string name
         string status
+        string receipt_url
         string description
         decimal sum
         timestampptz created_at
