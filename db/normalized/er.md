@@ -126,7 +126,7 @@ RECEIVER {
 
 CURRENCY ||--o{ BUDGET : "currency of"
 USER ||--|{ BUDGET : "has"
-USER ||-o{ MESSAGE : "writes"
+USER ||--o{ MESSAGE : "writes"
 USER ||--o{ USER_CHAT : "has"
 USER ||--o{ RECEIVER : "has"
-CHAT || -- { USER_CHAT : "connected to"
+CHAT || --|{ USER_CHAT : "connected to"
