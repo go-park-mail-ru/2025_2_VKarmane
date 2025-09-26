@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/balance"
 	"github.com/gorilla/mux"
 )
@@ -18,9 +19,8 @@ func NewHandler(balanceUC *balance.UseCase) *Handler {
 	return &Handler{balanceUC: balanceUC}
 }
 
-func (h *Handler) getUserID(_ *http.Request) int {
-	// TODO: Extract from JWT token or session
-	return 1
+func (h *Handler) getUserID(r *http.Request) (int, bool) {
+	return middleware.GetUserIDFromContext(r.Context())
 }
 
 func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error) {
@@ -44,7 +44,11 @@ func (h *Handler) sendErrorResponse(w http.ResponseWriter, message string, statu
 }
 
 func (h *Handler) GetListBalance(w http.ResponseWriter, r *http.Request) {
-	userID := h.getUserID(r)
+	userID, ok := h.getUserID(r)
+	if !ok {
+		h.sendErrorResponse(w, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
 
 	accounts, err := h.balanceUC.GetBalanceForUser(userID)
 	if err != nil {
@@ -65,7 +69,11 @@ func (h *Handler) GetBalanceByAccountID(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userID := h.getUserID(r)
+	userID, ok := h.getUserID(r)
+	if !ok {
+		h.sendErrorResponse(w, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
 
 	account, err := h.balanceUC.GetAccountByID(userID, id)
 	if err != nil {

@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/balance"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/budget"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 	"github.com/gorilla/mux"
 )
@@ -15,18 +17,19 @@ import (
 type Handler struct {
 	balanceHandler *balance.Handler
 	budgetHandler  *budget.Handler
+	authHandler    *auth.Handler
 }
 
 func NewHandler(uc *usecase.UseCase) *Handler {
 	return &Handler{
 		balanceHandler: balance.NewHandler(uc.BalanceUC),
 		budgetHandler:  budget.NewHandler(uc.BudgetUC),
+		authHandler:    auth.NewHandler(uc.AuthUC),
 	}
 }
 
-func (h *Handler) getUserID(_ *http.Request) int {
-	// TODO: Extract from JWT token or session
-	return 1
+func (h *Handler) getUserID(r *http.Request) (int, bool) {
+	return middleware.GetUserIDFromContext(r.Context())
 }
 
 func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error) {
@@ -66,4 +69,16 @@ func (h *Handler) GetListBudgets(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetBudgetByID(w http.ResponseWriter, r *http.Request) {
 	h.budgetHandler.GetBudgetByID(w, r)
+}
+
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
+	h.authHandler.Register(w, r)
+}
+
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
+	h.authHandler.Login(w, r)
+}
+
+func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
+	h.authHandler.GetProfile(w, r)
 }

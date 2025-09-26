@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/budget"
 	"github.com/gorilla/mux"
 )
@@ -18,9 +19,8 @@ func NewHandler(budgetUC *budget.UseCase) *Handler {
 	return &Handler{budgetUC: budgetUC}
 }
 
-func (h *Handler) getUserID(_ *http.Request) int {
-	// TODO: Extract from JWT token or session
-	return 1
+func (h *Handler) getUserID(r *http.Request) (int, bool) {
+	return middleware.GetUserIDFromContext(r.Context())
 }
 
 func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error) {
@@ -44,7 +44,11 @@ func (h *Handler) sendErrorResponse(w http.ResponseWriter, message string, statu
 }
 
 func (h *Handler) GetListBudgets(w http.ResponseWriter, r *http.Request) {
-	userID := h.getUserID(r)
+	userID, ok := h.getUserID(r)
+	if !ok {
+		h.sendErrorResponse(w, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
 
 	budgets, err := h.budgetUC.GetBudgetsForUser(userID)
 	if err != nil {
@@ -65,7 +69,11 @@ func (h *Handler) GetBudgetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := h.getUserID(r)
+	userID, ok := h.getUserID(r)
+	if !ok {
+		h.sendErrorResponse(w, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
 
 	budget, err := h.budgetUC.GetBudgetByID(userID, id)
 	if err != nil {
