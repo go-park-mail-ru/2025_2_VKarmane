@@ -27,8 +27,8 @@ type Store struct {
 func NewStore() *Store {
 	now := time.Now()
 	users := []dto.UserDB{
-		{ID: 1, Name: "Vlad", Surname: "Sigma", Email: "example@example.com", Login: "hello", CreatedAt: now, UpdatedAt: now},
-		{ID: 2, Name: "Nikita", Surname: "Go", Email: "example@example.com", Login: "goodbye", CreatedAt: now, UpdatedAt: now},
+		{ID: 1, Name: "Vlad", Surname: "Sigma", Email: "vlad@example.com", Login: "hello", Password: "$argon2id$v=19$m=65536,t=3,p=2$IMY6j3oazwHeNWnntoZdxg$yxCwXAdjmmdyUJpON/40sAIFuLZ35p6l9TulUGiepDM", CreatedAt: now, UpdatedAt: now},
+		{ID: 2, Name: "Nikita", Surname: "Go", Email: "nikita@example.com", Login: "goodbye", Password: "$argon2id$v=19$m=65536,t=3,p=2$IMY6j3oazwHeNWnntoZdxg$yxCwXAdjmmdyUJpON/40sAIFuLZ35p6l9TulUGiepDM", CreatedAt: now, UpdatedAt: now},
 	}
 	currencies := []dto.CurrencyDB{
 		{ID: 1, Code: "USD", Name: "US Dollar", CreatedAt: now},
