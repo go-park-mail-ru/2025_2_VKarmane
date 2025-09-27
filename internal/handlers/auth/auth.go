@@ -107,7 +107,8 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
-	utils.ClearAuthCookie(w)
+	isProduction := os.Getenv("ENV") == "production"
+	utils.ClearAuthCookie(w, isProduction)
 
 	httputil.Success(w, r, map[string]string{"message": "Logged out successfully"})
 }

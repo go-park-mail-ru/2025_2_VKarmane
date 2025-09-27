@@ -20,13 +20,13 @@ func SetAuthCookie(w http.ResponseWriter, token string, isProduction bool) {
 	http.SetCookie(w, cookie)
 }
 
-func ClearAuthCookie(w http.ResponseWriter) {
+func ClearAuthCookie(w http.ResponseWriter, isProduction bool) {
 	cookie := &http.Cookie{
 		Name:     "auth_token",
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   isProduction,
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   -1,
 		Expires:  time.Unix(0, 0),
