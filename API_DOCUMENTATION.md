@@ -10,6 +10,24 @@
 - SameSite: `Strict` - защита от CSRF атак
 - MaxAge: 86400 секунд (24 часа)
 
+## Структура данных
+
+### Счета (Accounts)
+- `account_id` - Уникальный идентификатор счета
+- `balance` - Текущий баланс счета
+- `type` - Тип счета (`card` - карта, `cash` - наличные)
+- `currency_id` - Идентификатор валюты
+
+### Бюджеты (Budgets)
+- `budget_id` - Уникальный идентификатор бюджета
+- `user_id` - Идентификатор пользователя-владельца
+- `amount` - Запланированная сумма бюджета
+- `actual` - Фактически потраченная сумма
+- `currency_id` - Идентификатор валюты
+- `description` - Описание бюджета
+- `period_start` - Начало периода (ISO 8601)
+- `period_end` - Конец периода (ISO 8601)
+
 ## Маршруты
 
 ### Публичные маршруты (без аутентификации)
@@ -109,30 +127,30 @@
 #### GET /api/v1/balance
 Получение баланса пользователя.
 
+**Поля ответа:**
+- `user_id` - ID пользователя
+- `accounts` - Массив счетов пользователя
+  - `account_id` - ID счета
+  - `balance` - Баланс счета
+  - `type` - Тип счета (card, cash)
+  - `currency_id` - ID валюты
+
 **Ответ:**
 ```json
 {
   "user_id": 1,
   "accounts": [
     {
-      "id": 1,
+      "account_id": 1,
       "balance": 100,
       "type": "card",
-      "currency": {
-        "id": 1,
-        "code": "USD",
-        "name": "US Dollar"
-      }
+      "currency_id": 1
     },
     {
-      "id": 2,
+      "account_id": 2,
       "balance": 500,
       "type": "cash",
-      "currency": {
-        "id": 1,
-        "code": "USD",
-        "name": "US Dollar"
-      }
+      "currency_id": 1
     }
   ]
 }
@@ -147,19 +165,27 @@
 **Ответ:**
 ```json
 {
-  "id": 1,
+  "account_id": 1,
   "balance": 100,
   "type": "card",
-  "currency": {
-    "id": 1,
-    "code": "USD",
-    "name": "US Dollar"
-  }
+  "currency_id": 1
 }
 ```
 
 #### GET /api/v1/budgets
 Получение списка бюджетов пользователя.
+
+**Поля ответа:**
+- `user_id` - ID пользователя
+- `budgets` - Массив бюджетов пользователя
+  - `budget_id` - ID бюджета
+  - `user_id` - ID пользователя-владельца
+  - `amount` - Запланированная сумма бюджета
+  - `actual` - Фактически потраченная сумма
+  - `currency_id` - ID валюты
+  - `description` - Описание бюджета
+  - `period_start` - Начало периода (ISO 8601)
+  - `period_end` - Конец периода (ISO 8601)
 
 **Ответ:**
 ```json
@@ -167,26 +193,22 @@
   "user_id": 1,
   "budgets": [
     {
-      "id": 1,
+      "budget_id": 1,
+      "user_id": 1,
       "amount": 100,
+      "actual": 110,
+      "currency_id": 1,
       "description": "September food",
-      "currency": {
-        "id": 1,
-        "code": "USD",
-        "name": "US Dollar"
-      },
       "period_start": "2025-09-01T00:00:00Z",
       "period_end": "2025-09-30T00:00:00Z"
     },
     {
-      "id": 2,
+      "budget_id": 2,
+      "user_id": 1,
       "amount": 500,
+      "actual": 110,
+      "currency_id": 1,
       "description": "September relax",
-      "currency": {
-        "id": 1,
-        "code": "USD",
-        "name": "US Dollar"
-      },
       "period_start": "2025-09-01T00:00:00Z",
       "period_end": "2025-09-30T00:00:00Z"
     }
@@ -200,17 +222,25 @@
 **Параметры:**
 - `id` - ID бюджета
 
+**Поля ответа:**
+- `budget_id` - ID бюджета
+- `user_id` - ID пользователя-владельца
+- `amount` - Запланированная сумма бюджета
+- `actual` - Фактически потраченная сумма
+- `currency_id` - ID валюты
+- `description` - Описание бюджета
+- `period_start` - Начало периода (ISO 8601)
+- `period_end` - Конец периода (ISO 8601)
+
 **Ответ:**
 ```json
 {
-  "id": 1,
+  "budget_id": 1,
+  "user_id": 1,
   "amount": 100,
+  "actual": 110,
+  "currency_id": 1,
   "description": "September food",
-  "currency": {
-    "id": 1,
-    "code": "USD",
-    "name": "US Dollar"
-  },
   "period_start": "2025-09-01T00:00:00Z",
   "period_end": "2025-09-30T00:00:00Z"
 }
@@ -354,6 +384,18 @@ curl -X GET http://localhost:8080/api/v1/profile \
 
 # Получение баланса
 curl -X GET http://localhost:8080/api/v1/balance \
+  -b cookies.txt
+
+# Получение конкретного счета
+curl -X GET http://localhost:8080/api/v1/balance/1 \
+  -b cookies.txt
+
+# Получение списка бюджетов
+curl -X GET http://localhost:8080/api/v1/budgets \
+  -b cookies.txt
+
+# Получение конкретного бюджета
+curl -X GET http://localhost:8080/api/v1/budget/1 \
   -b cookies.txt
 
 # Выход из системы
