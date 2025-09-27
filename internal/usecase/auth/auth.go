@@ -2,14 +2,13 @@ package auth
 
 import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
 )
 
 type UseCase struct {
-	authService *auth.Service
+	authService AuthService
 }
 
-func NewUseCase(authService *auth.Service) *UseCase {
+func NewUseCase(authService AuthService) *UseCase {
 	return &UseCase{
 		authService: authService,
 	}

@@ -1,21 +1,19 @@
 package balance
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/balance"
+	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 	"github.com/gorilla/mux"
 )
 
 type Handler struct {
-	balanceUC *balance.UseCase
+	balanceUC BalanceUseCase
 }
 
-func NewHandler(balanceUC *balance.UseCase) *Handler {
+func NewHandler(balanceUC BalanceUseCase) *Handler {
 	return &Handler{balanceUC: balanceUC}
 }
 
@@ -29,59 +27,42 @@ func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error)
 	return strconv.Atoi(idStr)
 }
 
-func (h *Handler) sendJSONResponse(w http.ResponseWriter, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		log.Printf("Error encoding JSON response: %v", err)
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		return
-	}
-}
-
-func (h *Handler) sendErrorResponse(w http.ResponseWriter, message string, statusCode int) {
-	log.Printf("Error: %s", message)
-	http.Error(w, message, statusCode)
-}
-
 func (h *Handler) GetListBalance(w http.ResponseWriter, r *http.Request) {
 	userID, ok := h.getUserID(r)
 	if !ok {
-		h.sendErrorResponse(w, "User not authenticated", http.StatusUnauthorized)
+		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
 		return
 	}
 
 	accounts, err := h.balanceUC.GetBalanceForUser(userID)
 	if err != nil {
-		log.Printf("Error getting balance for user %d: %v", userID, err)
-		h.sendErrorResponse(w, "Failed to get balance for user", http.StatusInternalServerError)
+		httputils.InternalError(w, r, "Failed to get balance for user")
 		return
 	}
 
 	balanceDTO := AccountsToBalanceAPI(userID, accounts)
-	h.sendJSONResponse(w, balanceDTO)
+	httputils.Success(w, r, balanceDTO)
 }
 
 func (h *Handler) GetBalanceByAccountID(w http.ResponseWriter, r *http.Request) {
 	id, err := h.parseIDFromURL(r, "id")
 	if err != nil {
-		log.Printf("Invalid account ID format: %v", err)
-		h.sendErrorResponse(w, "Invalid account ID format", http.StatusBadRequest)
+		httputils.ValidationError(w, r, "Invalid account ID format", "id")
 		return
 	}
 
 	userID, ok := h.getUserID(r)
 	if !ok {
-		h.sendErrorResponse(w, "User not authenticated", http.StatusUnauthorized)
+		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
 		return
 	}
 
 	account, err := h.balanceUC.GetAccountByID(userID, id)
 	if err != nil {
-		log.Printf("Error getting account %d for user %d: %v", id, userID, err)
-		h.sendErrorResponse(w, "Account not found", http.StatusNotFound)
+		httputils.NotFoundError(w, r, "Account not found")
 		return
 	}
 
 	accountDTO := AccountToAPI(account)
-	h.sendJSONResponse(w, accountDTO)
+	httputils.Success(w, r, accountDTO)
 }

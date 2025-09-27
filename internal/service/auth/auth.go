@@ -1,19 +1,18 @@
 package auth
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 )
 
 type Service struct {
-	userRepo  *user.Repository
+	userRepo  UserRepository
 	jwtSecret string
 }
 
-func NewService(userRepo *user.Repository, jwtSecret string) *Service {
+func NewService(userRepo UserRepository, jwtSecret string) *Service {
 	return &Service{
 		userRepo:  userRepo,
 		jwtSecret: jwtSecret,
@@ -23,25 +22,25 @@ func NewService(userRepo *user.Repository, jwtSecret string) *Service {
 func (s *Service) Register(req models.RegisterRequest) (models.AuthResponse, error) {
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		return models.AuthResponse{}, err
+		return models.AuthResponse{}, fmt.Errorf("auth.Register: failed to hash password: %w", err)
 	}
 
 	user := models.User{
-		Name:     "",
-		Surname:  "",
-		Email:    req.Email,
-		Login:    req.Login,
-		Password: hashedPassword,
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Email:     req.Email,
+		Login:     req.Login,
+		Password:  hashedPassword,
 	}
 
 	createdUser, err := s.userRepo.CreateUser(user)
 	if err != nil {
-		return models.AuthResponse{}, err
+		return models.AuthResponse{}, fmt.Errorf("auth.Register: failed to create user: %w", err)
 	}
 
 	token, err := utils.GenerateJWT(createdUser.ID, createdUser.Login, s.jwtSecret)
 	if err != nil {
-		return models.AuthResponse{}, err
+		return models.AuthResponse{}, fmt.Errorf("auth.Register: failed to generate token: %w", err)
 	}
 
 	return models.AuthResponse{
@@ -53,21 +52,21 @@ func (s *Service) Register(req models.RegisterRequest) (models.AuthResponse, err
 func (s *Service) Login(req models.LoginRequest) (models.AuthResponse, error) {
 	user, err := s.userRepo.GetUserByLogin(req.Login)
 	if err != nil {
-		return models.AuthResponse{}, errors.New("invalid credentials")
+		return models.AuthResponse{}, fmt.Errorf("auth.Login: invalid credentials")
 	}
 
 	valid, err := utils.VerifyPassword(req.Password, user.Password)
 	if err != nil {
-		return models.AuthResponse{}, err
+		return models.AuthResponse{}, fmt.Errorf("auth.Login: failed to verify password: %w", err)
 	}
 
 	if !valid {
-		return models.AuthResponse{}, errors.New("invalid credentials")
+		return models.AuthResponse{}, fmt.Errorf("auth.Login: invalid credentials")
 	}
 
 	token, err := utils.GenerateJWT(user.ID, user.Login, s.jwtSecret)
 	if err != nil {
-		return models.AuthResponse{}, err
+		return models.AuthResponse{}, fmt.Errorf("auth.Login: failed to generate token: %w", err)
 	}
 
 	user.Password = ""
@@ -79,5 +78,9 @@ func (s *Service) Login(req models.LoginRequest) (models.AuthResponse, error) {
 }
 
 func (s *Service) GetUserByID(userID int) (models.User, error) {
-	return s.userRepo.GetUserByID(userID)
+	user, err := s.userRepo.GetUserByID(userID)
+	if err != nil {
+		return models.User{}, fmt.Errorf("auth.GetUserByID: %w", err)
+	}
+	return user, nil
 }

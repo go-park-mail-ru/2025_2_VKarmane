@@ -2,25 +2,30 @@ package budget
 
 import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
 )
 
 type Service struct {
-	store *repository.Store
+	budgetRepo    BudgetRepository
+	accountRepo   AccountRepository
+	operationRepo OperationRepository
 }
 
-func NewService(store *repository.Store) *Service {
-	return &Service{store: store}
+func NewService(budgetRepo BudgetRepository, accountRepo AccountRepository, operationRepo OperationRepository) *Service {
+	return &Service{
+		budgetRepo:    budgetRepo,
+		accountRepo:   accountRepo,
+		operationRepo: operationRepo,
+	}
 }
 
 func (s *Service) GetBudgetsForUser(userID int) ([]models.Budget, error) {
-	budgets := s.store.BudgetRepo.GetBudgetsByUser(userID)
-	accounts := s.store.AccountRepo.GetAccountsByUser(userID)
+	budgets := s.budgetRepo.GetBudgetsByUser(userID)
+	accounts := s.accountRepo.GetAccountsByUser(userID)
 
 	for i := range budgets {
 		var actual float64
 		for _, account := range accounts {
-			ops := s.store.OperationRepo.GetOperationsByAccount(account.ID)
+			ops := s.operationRepo.GetOperationsByAccount(account.ID)
 			for _, op := range ops {
 				if op.CurrencyID != budgets[i].CurrencyID {
 					continue

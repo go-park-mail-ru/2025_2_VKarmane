@@ -2,18 +2,17 @@ package balance
 
 import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
 )
 
 type Service struct {
-	store *repository.Store
+	accountRepo AccountRepository
 }
 
-func NewService(store *repository.Store) *Service {
-	return &Service{store: store}
+func NewService(accountRepo AccountRepository) *Service {
+	return &Service{accountRepo: accountRepo}
 }
 
 func (s *Service) GetBalanceForUser(userID int) ([]models.Account, error) {
-	accounts := s.store.AccountRepo.GetAccountsByUser(userID)
+	accounts := s.accountRepo.GetAccountsByUser(userID)
 	return accounts, nil
 }
