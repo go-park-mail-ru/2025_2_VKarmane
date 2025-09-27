@@ -1,15 +1,18 @@
 -- 001_create_tables.sql
 
+CREATE TYPE OPERATION_STATUS AS ENUM ('finished', 'reverted')
+CREATE TYPE OPERATION_TYPE AS ENUM ('transfer', 'expeense', 'income')
+
 --Таблица USER
 
 CREATE TABLE IF NOT EXISTS user (
     _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_name TEXT NOT NULL CHECK (LENGTH(user_name) <= 40),
+    user_name TEXT NOT NULL CHECK (LENGTH(user_name) <= 40 AND LENGTH(user_name) >= 3),
     surname TEXT NOT NULL CHECK (LENGTH(surname) <= 40),
-    email TEXT NOT NULL UNIQUE CHECK (LENGTH(email) <= 25),
-    logo_id INT NOT NULL DEFAULT 'default_logo_id',
+    email TEXT NOT NULL UNIQUE CHECK (LENGTH(email) <= 254),
+    logo_hasehd_id TEXT NOT NULL DEFAULT 1,
     user_login TEXT NOT NULL UNIQUE CHECK (LENGTH(user_login) <= 40 AND LENGTH(user_login) >= 5),
-    user_hashed_password TEXT NOT NULL CHECK (LENGTH(user_hashed_password) <= 40 AND LENGTH(user_hashed_password) >= 10),
+    user_hashed_password TEXT NOT NULL
     user_description TEXT CHECK (LENGTH(user_description) <= 250)
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -21,7 +24,6 @@ CREATE TABLE IF NOT EXISTS user (
 CREATE TABLE IF NOT EXISTS account (
     _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     balance DECIMAL(10, 2) NOT NULL DEFAULT 0.00 check (balance >= 0),
-    account_type TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 )
@@ -43,7 +45,7 @@ CREATE TABLE IF NOT EXISTS currency (
     _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     code TEXT NOT NULL UNIQUE,
     currency_name TEXT NOT NULL UNIQUE,
-    logo_id INT NOT NULL,
+    logo_hasehd_id TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 )
 
@@ -54,7 +56,7 @@ CREATE TABLE IF NOT EXISTS category (
     _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id INT REFERENCES USER(_id) ON DELETE CASCADE,
     category_name TEXT NOT NULL CHECK (LENGTH(category_name) <= 15),
-    logo_id INT
+    logo_hasehd_id TEXT NOT NULL DEFAULT 2
     category_description TEXT CHECK (LENGTH(category_description) <= 30)
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -66,11 +68,11 @@ CREATE TABLE IF NOT EXISTS category (
 CREATE TABLE IF NOT EXISTS operation (
     _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id INT NOT NULL REFERENCES account(_id) ON DELETE CASCADE,
-    category_id INT NOT NULL REFERENCES category(_id) ON DELETE CASCADE,
-    operation_status TEXT NOT NULL DEFAULT 'finished' CHECK (status operation_status in ('finished', 'reverted'))
-    operation_type TEXT NOT NULL,
-    operation_name TEXT NOT NULL,
-    operation_description TEXT CHECK (LENGTH(operation_description) <= 30)
+    category_id INT NOT NULL REFERENCES category(_id) ON SET DEFAULT 1,
+    operation_status OPERATION_STATUS, 
+    operation_type OPERATION_TYPE NOT NULL,
+    operation_name TEXT NOT NULL CHECK (LENGTH(operation_name) <= 50)
+    operation_description TEXT CHECK (LENGTH(operation_description) <= 60)
     receipt_url TEXT CHECK (LENGTH(receipt_url) <= 100),
     sum DECIMAL(10, 2) NOT NULL CHECK (sum > 0),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -133,6 +135,12 @@ CREATE TABLE IF NOT EXISTS receiver (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (user_id, receiver_name)
 )
+
+CREATE TRIGGER modify_payment_updated_at
+    BEFORE UPDATE
+    ON user, account, sharings, category, budget, chat, dialogue, message, receiver
+    FOR EACH ROW
+EXECUTE PROCEDURE public.moddatetime(updated_at);
 
 
 

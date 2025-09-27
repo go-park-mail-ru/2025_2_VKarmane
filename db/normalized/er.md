@@ -5,7 +5,7 @@ erDiagram
         string name 
         string surname 
         string email 
-        int logo_id
+        int logo_hasehd_id
         string login 
         string hashed_password 
         string user_description
@@ -52,7 +52,7 @@ erDiagram
         int id
         int user_id 
         string name
-        int logo_id
+        int logo_hasehd_id
         string description
         timestamptz created_at
         timestamptz updated_at
@@ -62,7 +62,7 @@ erDiagram
         int id
         string code
         string name
-        int logo_id
+        int logo_hasehd_id
         timestamptz created_at
     }
 
@@ -99,8 +99,8 @@ CHAT {
 
 USER_CHAT {
     int id
-    user_id int
-    chat_id int
+    int user_id
+    int chat_id
     timestamptz created_at
     timestamptz updated_at
 }
