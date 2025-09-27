@@ -1,7 +1,11 @@
 package balance
 
-import "github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+import (
+	"context"
+
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+)
 
 type BalanceService interface {
-	GetBalanceForUser(userID int) ([]models.Account, error)
+	GetBalanceForUser(ctx context.Context, userID int) ([]models.Account, error)
 }

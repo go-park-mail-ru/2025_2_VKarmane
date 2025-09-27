@@ -1,6 +1,8 @@
 package account
 
 import (
+	"context"
+
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
 
@@ -16,7 +18,7 @@ func NewRepository(accounts []AccountDB, userAccounts []UserAccountDB) *Reposito
 	}
 }
 
-func (r *Repository) GetAccountsByUser(userID int) []models.Account {
+func (r *Repository) GetAccountsByUser(ctx context.Context, userID int) []models.Account {
 	out := make([]models.Account, 0)
 	accountsIDs := make(map[int]struct{})
 

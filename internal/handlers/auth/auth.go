@@ -36,7 +36,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.authUC.Register(req)
+	response, err := h.authUC.Register(r.Context(), req)
 	if err != nil {
 		switch {
 		case strings.Contains(err.Error(), "email"):
@@ -70,7 +70,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.authUC.Login(req)
+	response, err := h.authUC.Login(r.Context(), req)
 	if err != nil {
 		switch {
 		case strings.Contains(err.Error(), "user not found") || strings.Contains(err.Error(), "пользователь не найден"):
@@ -97,7 +97,7 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.authUC.GetUserByID(userID)
+	user, err := h.authUC.GetUserByID(r.Context(), userID)
 	if err != nil {
 		httputil.NotFoundError(w, r, "Пользователь не найден")
 		return

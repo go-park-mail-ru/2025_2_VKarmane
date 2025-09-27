@@ -34,7 +34,7 @@ func (h *Handler) GetListBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accounts, err := h.balanceUC.GetBalanceForUser(userID)
+	accounts, err := h.balanceUC.GetBalanceForUser(r.Context(), userID)
 	if err != nil {
 		httputils.InternalError(w, r, "Failed to get balance for user")
 		return
@@ -57,7 +57,7 @@ func (h *Handler) GetBalanceByAccountID(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	account, err := h.balanceUC.GetAccountByID(userID, id)
+	account, err := h.balanceUC.GetAccountByID(r.Context(), userID, id)
 	if err != nil {
 		httputils.NotFoundError(w, r, "Account not found")
 		return

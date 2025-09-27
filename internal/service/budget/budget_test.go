@@ -1,11 +1,14 @@
 package budget
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestService_GetBudgetsForUser(t *testing.T) {
@@ -236,17 +239,17 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockBudgetRepo := &MockBudgetRepository{}
-			mockAccountRepo := &MockAccountRepository{}
-			mockOperationRepo := &MockOperationRepository{}
+			mockBudgetRepo := &mocks.BudgetRepository{}
+			mockAccountRepo := &mocks.AccountRepository{}
+			mockOperationRepo := &mocks.OperationRepository{}
 
-			mockBudgetRepo.On("GetBudgetsByUser", tt.userID).Return(tt.mockBudgets)
-			mockAccountRepo.On("GetAccountsByUser", tt.userID).Return(tt.mockAccounts)
-			mockOperationRepo.On("GetOperationsByAccount", 1).Return(tt.mockOperations)
+			mockBudgetRepo.On("GetBudgetsByUser", mock.Anything, tt.userID).Return(tt.mockBudgets)
+			mockAccountRepo.On("GetAccountsByUser", mock.Anything, tt.userID).Return(tt.mockAccounts)
+			mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 1).Return(tt.mockOperations)
 
 			service := NewService(mockBudgetRepo, mockAccountRepo, mockOperationRepo)
 
-			result, err := service.GetBudgetsForUser(tt.userID)
+			result, err := service.GetBudgetsForUser(context.Background(), tt.userID)
 
 			assert.NoError(t, err)
 			assert.Equal(t, len(tt.expectedResult), len(result))

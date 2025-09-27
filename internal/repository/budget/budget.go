@@ -1,6 +1,8 @@
 package budget
 
 import (
+	"context"
+
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
 
@@ -14,7 +16,7 @@ func NewRepository(budgets []BudgetDB) *Repository {
 	}
 }
 
-func (r *Repository) GetBudgetsByUser(userID int) []models.Budget {
+func (r *Repository) GetBudgetsByUser(ctx context.Context, userID int) []models.Budget {
 	out := make([]models.Budget, 0)
 
 	for _, b := range r.budgets {

@@ -1,12 +1,15 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestUseCase_Register(t *testing.T) {
@@ -70,15 +73,12 @@ func TestUseCase_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockAuthService := &MockAuthService{}
+			mockAuthService := &mocks.AuthService{}
 			uc := NewUseCase(mockAuthService)
 
-			mockAuthService.EXPECT().
-				Register(tt.request).
-				Return(tt.mockResponse, tt.mockError).
-				Once()
+			mockAuthService.On("Register", mock.Anything, tt.request).Return(tt.mockResponse, tt.mockError)
 
-			result, err := uc.Register(tt.request)
+			result, err := uc.Register(context.Background(), tt.request)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -153,15 +153,12 @@ func TestUseCase_Login(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockAuthService := &MockAuthService{}
+			mockAuthService := &mocks.AuthService{}
 			uc := NewUseCase(mockAuthService)
 
-			mockAuthService.EXPECT().
-				Login(tt.request).
-				Return(tt.mockResponse, tt.mockError).
-				Once()
+			mockAuthService.On("Login", mock.Anything, tt.request).Return(tt.mockResponse, tt.mockError)
 
-			result, err := uc.Login(tt.request)
+			result, err := uc.Login(context.Background(), tt.request)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -224,15 +221,12 @@ func TestUseCase_GetUserByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockAuthService := &MockAuthService{}
+			mockAuthService := &mocks.AuthService{}
 			uc := NewUseCase(mockAuthService)
 
-			mockAuthService.EXPECT().
-				GetUserByID(tt.userID).
-				Return(tt.mockUser, tt.mockError).
-				Once()
+			mockAuthService.On("GetUserByID", mock.Anything, tt.userID).Return(tt.mockUser, tt.mockError)
 
-			user, err := uc.GetUserByID(tt.userID)
+			user, err := uc.GetUserByID(context.Background(), tt.userID)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)

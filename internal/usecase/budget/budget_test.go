@@ -1,12 +1,15 @@
 package budget
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestUseCase_GetBudgetsForUser(t *testing.T) {
@@ -92,15 +95,12 @@ func TestUseCase_GetBudgetsForUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockBudgetService := &MockBudgetService{}
+			mockBudgetService := &mocks.BudgetService{}
 			uc := &UseCase{budgetSvc: mockBudgetService}
 
-			mockBudgetService.EXPECT().
-				GetBudgetsForUser(tt.userID).
-				Return(tt.mockBudgets, tt.mockError).
-				Once()
+			mockBudgetService.On("GetBudgetsForUser", mock.Anything, tt.userID).Return(tt.mockBudgets, tt.mockError)
 
-			result, err := uc.GetBudgetsForUser(tt.userID)
+			result, err := uc.GetBudgetsForUser(context.Background(), tt.userID)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -209,15 +209,12 @@ func TestUseCase_GetBudgetByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockBudgetService := &MockBudgetService{}
+			mockBudgetService := &mocks.BudgetService{}
 			uc := &UseCase{budgetSvc: mockBudgetService}
 
-			mockBudgetService.EXPECT().
-				GetBudgetsForUser(tt.userID).
-				Return(tt.mockBudgets, tt.mockError).
-				Once()
+			mockBudgetService.On("GetBudgetsForUser", mock.Anything, tt.userID).Return(tt.mockBudgets, tt.mockError)
 
-			budget, err := uc.GetBudgetByID(tt.userID, tt.budgetID)
+			budget, err := uc.GetBudgetByID(context.Background(), tt.userID, tt.budgetID)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)

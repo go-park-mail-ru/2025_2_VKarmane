@@ -1,6 +1,8 @@
 package operation
 
 import (
+	"context"
+
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
 
@@ -14,7 +16,7 @@ func NewRepository(operations []OperationDB) *Repository {
 	}
 }
 
-func (r *Repository) GetOperationsByAccount(accountID int) []models.Operation {
+func (r *Repository) GetOperationsByAccount(ctx context.Context, accountID int) []models.Operation {
 	out := make([]models.Operation, 0)
 
 	for _, o := range r.operations {

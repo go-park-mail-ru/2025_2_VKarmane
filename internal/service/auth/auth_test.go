@@ -1,11 +1,13 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -70,15 +72,12 @@ func TestService_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserRepo := &MockUserRepository{}
+			mockUserRepo := &mocks.UserRepository{}
 			service := NewService(mockUserRepo, "test-secret")
 
-			mockUserRepo.EXPECT().
-				CreateUser(mock.AnythingOfType("models.User")).
-				Return(tt.mockUser, tt.mockError).
-				Once()
+			mockUserRepo.On("CreateUser", mock.Anything, mock.Anything).Return(tt.mockUser, tt.mockError)
 
-			result, err := service.Register(tt.request)
+			result, err := service.Register(context.Background(), tt.request)
 
 			if tt.expectedError != "" {
 				assert.Error(t, err)
@@ -120,15 +119,12 @@ func TestService_Login(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserRepo := &MockUserRepository{}
+			mockUserRepo := &mocks.UserRepository{}
 			service := NewService(mockUserRepo, "test-secret")
 
-			mockUserRepo.EXPECT().
-				GetUserByLogin(tt.request.Login).
-				Return(tt.mockUser, tt.mockError).
-				Once()
+			mockUserRepo.On("GetUserByLogin", mock.Anything, tt.request.Login).Return(tt.mockUser, tt.mockError)
 
-			result, err := service.Login(tt.request)
+			result, err := service.Login(context.Background(), tt.request)
 
 			if tt.expectedError != "" {
 				assert.Error(t, err)
@@ -192,15 +188,12 @@ func TestService_GetUserByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserRepo := &MockUserRepository{}
+			mockUserRepo := &mocks.UserRepository{}
 			service := NewService(mockUserRepo, "test-secret")
 
-			mockUserRepo.EXPECT().
-				GetUserByID(tt.userID).
-				Return(tt.mockUser, tt.mockError).
-				Once()
+			mockUserRepo.On("GetUserByID", mock.Anything, tt.userID).Return(tt.mockUser, tt.mockError)
 
-			user, err := service.GetUserByID(tt.userID)
+			user, err := service.GetUserByID(context.Background(), tt.userID)
 
 			if tt.expectedError != "" {
 				assert.Error(t, err)

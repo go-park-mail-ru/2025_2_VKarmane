@@ -1,11 +1,14 @@
 package balance
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestService_GetBalanceForUser(t *testing.T) {
@@ -83,12 +86,12 @@ func TestService_GetBalanceForUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockAccountRepo := &MockAccountRepository{}
-			mockAccountRepo.On("GetAccountsByUser", tt.userID).Return(tt.mockAccounts)
+			mockAccountRepo := &mocks.AccountRepository{}
+			mockAccountRepo.On("GetAccountsByUser", mock.Anything, tt.userID).Return(tt.mockAccounts)
 
 			service := NewService(mockAccountRepo)
 
-			result, err := service.GetBalanceForUser(tt.userID)
+			result, err := service.GetBalanceForUser(context.Background(), tt.userID)
 
 			assert.NoError(t, err)
 			assert.Equal(t, len(tt.expectedResult), len(result))

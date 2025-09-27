@@ -1,19 +1,23 @@
 package budget
 
-import "github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+import (
+	"context"
+
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+)
 
 type BudgetService interface {
-	GetBudgetsForUser(userID int) ([]models.Budget, error)
+	GetBudgetsForUser(ctx context.Context, userID int) ([]models.Budget, error)
 }
 
 type BudgetRepository interface {
-	GetBudgetsByUser(userID int) []models.Budget
+	GetBudgetsByUser(ctx context.Context, userID int) []models.Budget
 }
 
 type AccountRepository interface {
-	GetAccountsByUser(userID int) []models.Account
+	GetAccountsByUser(ctx context.Context, userID int) []models.Account
 }
 
 type OperationRepository interface {
-	GetOperationsByAccount(accountID int) []models.Operation
+	GetOperationsByAccount(ctx context.Context, accountID int) []models.Operation
 }

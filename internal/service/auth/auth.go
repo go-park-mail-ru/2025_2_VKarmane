@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 )
@@ -19,9 +21,13 @@ func NewService(userRepo UserRepository, jwtSecret string) *Service {
 	}
 }
 
-func (s *Service) Register(req models.RegisterRequest) (models.AuthResponse, error) {
+func (s *Service) Register(ctx context.Context, req models.RegisterRequest) (models.AuthResponse, error) {
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
+		if log := logger.FromContext(ctx); log != nil {
+			log.Error("Failed to hash password", "error", err)
+		}
+
 		return models.AuthResponse{}, fmt.Errorf("auth.Register: failed to hash password: %w", err)
 	}
 
@@ -33,8 +39,12 @@ func (s *Service) Register(req models.RegisterRequest) (models.AuthResponse, err
 		Password:  hashedPassword,
 	}
 
-	createdUser, err := s.userRepo.CreateUser(user)
+	createdUser, err := s.userRepo.CreateUser(ctx, user)
 	if err != nil {
+		if log := logger.FromContext(ctx); log != nil {
+			log.Error("Failed to create user", "error", err, "login", req.Login)
+		}
+
 		return models.AuthResponse{}, fmt.Errorf("auth.Register: failed to create user: %w", err)
 	}
 
@@ -49,23 +59,39 @@ func (s *Service) Register(req models.RegisterRequest) (models.AuthResponse, err
 	}, nil
 }
 
-func (s *Service) Login(req models.LoginRequest) (models.AuthResponse, error) {
-	user, err := s.userRepo.GetUserByLogin(req.Login)
+func (s *Service) Login(ctx context.Context, req models.LoginRequest) (models.AuthResponse, error) {
+
+	user, err := s.userRepo.GetUserByLogin(ctx, req.Login)
 	if err != nil {
+		if log := logger.FromContext(ctx); log != nil {
+			log.Warn("Login attempt with invalid credentials", "login", req.Login, "error", err)
+		}
+
 		return models.AuthResponse{}, fmt.Errorf("auth.Login: invalid credentials")
 	}
 
 	valid, err := utils.VerifyPassword(req.Password, user.Password)
 	if err != nil {
+		if log := logger.FromContext(ctx); log != nil {
+			log.Error("Failed to verify password", "error", err, "user_id", user.ID)
+		}
+
 		return models.AuthResponse{}, fmt.Errorf("auth.Login: failed to verify password: %w", err)
 	}
 
 	if !valid {
+		if log := logger.FromContext(ctx); log != nil {
+			log.Warn("Login attempt with invalid password", "login", req.Login, "user_id", user.ID)
+		}
+
 		return models.AuthResponse{}, fmt.Errorf("auth.Login: invalid credentials")
 	}
 
 	token, err := utils.GenerateJWT(user.ID, user.Login, s.jwtSecret)
 	if err != nil {
+		if log := logger.FromContext(ctx); log != nil {
+			log.Error("Failed to generate JWT token", "error", err, "user_id", user.ID)
+		}
 		return models.AuthResponse{}, fmt.Errorf("auth.Login: failed to generate token: %w", err)
 	}
 
@@ -77,10 +103,15 @@ func (s *Service) Login(req models.LoginRequest) (models.AuthResponse, error) {
 	}, nil
 }
 
-func (s *Service) GetUserByID(userID int) (models.User, error) {
-	user, err := s.userRepo.GetUserByID(userID)
+func (s *Service) GetUserByID(ctx context.Context, userID int) (models.User, error) {
+	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
+		if log := logger.FromContext(ctx); log != nil {
+			log.Error("Failed to get user by ID", "error", err, "user_id", userID)
+		}
+
 		return models.User{}, fmt.Errorf("auth.GetUserByID: %w", err)
 	}
+
 	return user, nil
 }

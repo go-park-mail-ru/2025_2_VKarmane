@@ -1,12 +1,15 @@
 package balance
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestUseCase_GetBalanceForUser(t *testing.T) {
@@ -76,15 +79,12 @@ func TestUseCase_GetBalanceForUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockBalanceService := &MockBalanceService{}
+			mockBalanceService := &mocks.BalanceService{}
 			uc := &UseCase{balanceSvc: mockBalanceService}
 
-			mockBalanceService.EXPECT().
-				GetBalanceForUser(tt.userID).
-				Return(tt.mockAccounts, tt.mockError).
-				Once()
+			mockBalanceService.On("GetBalanceForUser", mock.Anything, tt.userID).Return(tt.mockAccounts, tt.mockError)
 
-			result, err := uc.GetBalanceForUser(tt.userID)
+			result, err := uc.GetBalanceForUser(context.Background(), tt.userID)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -175,15 +175,12 @@ func TestUseCase_GetAccountByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockBalanceService := &MockBalanceService{}
+			mockBalanceService := &mocks.BalanceService{}
 			uc := &UseCase{balanceSvc: mockBalanceService}
 
-			mockBalanceService.EXPECT().
-				GetBalanceForUser(tt.userID).
-				Return(tt.mockAccounts, tt.mockError).
-				Once()
+			mockBalanceService.On("GetBalanceForUser", mock.Anything, tt.userID).Return(tt.mockAccounts, tt.mockError)
 
-			account, err := uc.GetAccountByID(tt.userID, tt.accountID)
+			account, err := uc.GetAccountByID(context.Background(), tt.userID, tt.accountID)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)

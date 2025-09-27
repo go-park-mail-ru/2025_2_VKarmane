@@ -34,7 +34,7 @@ func (h *Handler) GetListBudgets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	budgets, err := h.budgetUC.GetBudgetsForUser(userID)
+	budgets, err := h.budgetUC.GetBudgetsForUser(r.Context(), userID)
 	if err != nil {
 		httputils.InternalError(w, r, "Failed to get budgets for user")
 		return
@@ -57,7 +57,7 @@ func (h *Handler) GetBudgetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	budget, err := h.budgetUC.GetBudgetByID(userID, id)
+	budget, err := h.budgetUC.GetBudgetByID(r.Context(), userID, id)
 	if err != nil {
 		httputils.NotFoundError(w, r, "Budget not found")
 		return

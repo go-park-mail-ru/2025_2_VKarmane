@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"context"
+
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
 
@@ -14,14 +16,14 @@ func NewUseCase(authService AuthService) *UseCase {
 	}
 }
 
-func (uc *UseCase) Register(req models.RegisterRequest) (models.AuthResponse, error) {
-	return uc.authService.Register(req)
+func (uc *UseCase) Register(ctx context.Context, req models.RegisterRequest) (models.AuthResponse, error) {
+	return uc.authService.Register(ctx, req)
 }
 
-func (uc *UseCase) Login(req models.LoginRequest) (models.AuthResponse, error) {
-	return uc.authService.Login(req)
+func (uc *UseCase) Login(ctx context.Context, req models.LoginRequest) (models.AuthResponse, error) {
+	return uc.authService.Login(ctx, req)
 }
 
-func (uc *UseCase) GetUserByID(userID int) (models.User, error) {
-	return uc.authService.GetUserByID(userID)
+func (uc *UseCase) GetUserByID(ctx context.Context, userID int) (models.User, error) {
+	return uc.authService.GetUserByID(ctx, userID)
 }

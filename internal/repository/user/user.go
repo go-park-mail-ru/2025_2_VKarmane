@@ -1,9 +1,11 @@
 package user
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/dto"
 )
@@ -16,12 +18,20 @@ func NewRepository(users []dto.UserDB) *Repository {
 	return &Repository{users: users}
 }
 
-func (r *Repository) CreateUser(user models.User) (models.User, error) {
+func (r *Repository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
 	for _, u := range r.users {
 		if u.Login == user.Login {
+			if log := logger.FromContext(ctx); log != nil {
+				log.Warn("User creation failed: login already exists", "login", user.Login)
+			}
+
 			return models.User{}, fmt.Errorf("user.CreateUser: user with this login already exists")
 		}
 		if u.Email == user.Email {
+			if log := logger.FromContext(ctx); log != nil {
+				log.Warn("User creation failed: email already exists", "email", user.Email)
+			}
+
 			return models.User{}, fmt.Errorf("user.CreateUser: user with this email already exists")
 		}
 	}
@@ -59,7 +69,7 @@ func (r *Repository) CreateUser(user models.User) (models.User, error) {
 	}, nil
 }
 
-func (r *Repository) GetUserByLogin(login string) (models.User, error) {
+func (r *Repository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
 	for _, u := range r.users {
 		if u.Login == login {
 			return models.User{
@@ -74,10 +84,15 @@ func (r *Repository) GetUserByLogin(login string) (models.User, error) {
 			}, nil
 		}
 	}
+
+	if log := logger.FromContext(ctx); log != nil {
+		log.Warn("User not found by login", "login", login)
+	}
+
 	return models.User{}, fmt.Errorf("user.GetUserByLogin: user not found")
 }
 
-func (r *Repository) GetUserByID(id int) (models.User, error) {
+func (r *Repository) GetUserByID(ctx context.Context, id int) (models.User, error) {
 	for _, u := range r.users {
 		if u.ID == id {
 			return models.User{
@@ -92,6 +107,11 @@ func (r *Repository) GetUserByID(id int) (models.User, error) {
 			}, nil
 		}
 	}
+
+	if log := logger.FromContext(ctx); log != nil {
+		log.Warn("User not found by ID", "user_id", id)
+	}
+
 	return models.User{}, fmt.Errorf("user.GetUserByID: user not found")
 }
 
