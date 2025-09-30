@@ -32,8 +32,8 @@ func (s *Service) Register(ctx context.Context, req models.RegisterRequest) (mod
 	}
 
 	user := models.User{
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
+		FirstName: "", // Необязательное поле
+		LastName:  "", // Необязательное поле
 		Email:     req.Email,
 		Login:     req.Login,
 		Password:  hashedPassword,

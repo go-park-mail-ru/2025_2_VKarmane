@@ -1,12 +1,14 @@
 package repository
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/dto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 )
 
 type Store struct {
@@ -23,11 +25,24 @@ type Store struct {
 	OperationRepo *operation.Repository
 }
 
-func NewStore() *Store {
+func NewStore() (*Store, error) {
 	now := time.Now()
+
+	// Пароль для всех тестовых пользователей: Test123
+	testPassword := "Test123"
+
+	passwordHash1, err := utils.HashPassword(testPassword)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password for user 1: %w", err)
+	}
+	passwordHash2, err := utils.HashPassword(testPassword)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password for user 2: %w", err)
+	}
+
 	users := []dto.UserDB{
-		{ID: 1, FirstName: "Vlad", LastName: "Sigma", Email: "vlad@example.com", Login: "hello", Password: "$argon2id$v=19$m=65536,t=3,p=2$IMY6j3oazwHeNWnntoZdxg$yxCwXAdjmmdyUJpON/40sAIFuLZ35p6l9TulUGiepDM", CreatedAt: now, UpdatedAt: now},
-		{ID: 2, FirstName: "Nikita", LastName: "Go", Email: "nikita@example.com", Login: "goodbye", Password: "$argon2id$v=19$m=65536,t=3,p=2$IMY6j3oazwHeNWnntoZdxg$yxCwXAdjmmdyUJpON/40sAIFuLZ35p6l9TulUGiepDM", CreatedAt: now, UpdatedAt: now},
+		{ID: 1, FirstName: "Vlad", LastName: "Sigma", Email: "vlad@example.com", Login: "hello", Password: passwordHash1, CreatedAt: now, UpdatedAt: now},
+		{ID: 2, FirstName: "Nikita", LastName: "Go", Email: "nikita@example.com", Login: "goodbye", Password: passwordHash2, CreatedAt: now, UpdatedAt: now},
 	}
 	currencies := []dto.CurrencyDB{
 		{ID: 1, Code: "USD", Name: "US Dollar", CreatedAt: now},
@@ -69,5 +84,5 @@ func NewStore() *Store {
 	store.BudgetRepo = budget.NewRepository(budgets)
 	store.OperationRepo = operation.NewRepository(operations)
 
-	return store
+	return store, nil
 }
