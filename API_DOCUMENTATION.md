@@ -350,6 +350,15 @@
 }
 ```
 
+## Тестовые пользователи
+
+Для разработки и тестирования доступны следующие пользователи:
+
+| Login | Password | Имя | Email |
+|-------|----------|-----|-------|
+| `hello` | `Test123` | Vlad Sigma | vlad@example.com |
+| `goodbye` | `Test123` | Nikita Go | nikita@example.com |
+
 ## Примеры использования
 
 ### Регистрация и вход
@@ -371,7 +380,7 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "login": "hello",
-    "password": "password123"
+    "password": "Test123"
   }' \
   -c cookies.txt
 ```

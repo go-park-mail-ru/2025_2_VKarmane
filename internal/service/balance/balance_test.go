@@ -107,3 +107,12 @@ func TestService_GetBalanceForUser(t *testing.T) {
 		})
 	}
 }
+
+func TestService_GetBalanceForUser_Empty(t *testing.T) {
+	repo := &mocks.AccountRepository{}
+	repo.On("GetAccountsByUser", mock.Anything, 99).Return([]models.Account{})
+	svc := NewService(repo)
+	res, err := svc.GetBalanceForUser(context.Background(), 99)
+	assert.NoError(t, err)
+	assert.Empty(t, res)
+}

@@ -26,7 +26,7 @@
 
 ## Ссылки
 
-- 🌐 [**Деплой**]()
+- 🌐 [**Деплой**](http://217.16.23.67:8000)
 - 🎨 [**Figma**](https://www.figma.com/design/MRITYWRJ9ZEVQrO8k89Vjy/V%D0%9A%D0%B0%D1%80%D0%BC%D0%B0%D0%BD%D0%B5-%7C-PLANERO?node-id=1-2&t=6VUvYldbeFpV7HQB-1)
 - 💻 [**Frontend репозиторий**](https://github.com/frontend-park-mail-ru/2025_2_VKarmane)
 
