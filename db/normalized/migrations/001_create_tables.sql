@@ -1,7 +1,7 @@
 -- 001_create_tables.sql
 
-CREATE TYPE OPERATION_STATUS AS ENUM ('finished', 'reverted')
-CREATE TYPE OPERATION_TYPE AS ENUM ('transfer', 'expeense', 'income')
+CREATE TYPE OPERATION_STATUS AS ENUM ('finished', 'reverted');
+CREATE TYPE OPERATION_TYPE AS ENUM ('transfer', 'expense', 'income');
 
 --Таблица USER
 
@@ -9,11 +9,11 @@ CREATE TABLE IF NOT EXISTS user (
     _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_name TEXT NOT NULL CHECK (LENGTH(user_name) <= 40 AND LENGTH(user_name) >= 3),
     surname TEXT NOT NULL CHECK (LENGTH(surname) <= 40),
-    email TEXT NOT NULL UNIQUE CHECK (LENGTH(email) <= 254),
-    logo_hasehd_id TEXT NOT NULL DEFAULT 1,
+    email TEXT NOT NULL UNIQUE CHECK (LENGTH(email) <= 254  AND email ~ '^[^@]+@[^@]+$'),
+    logo_hasehd_id TEXT NOT NULL DEFAULT '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b',
     user_login TEXT NOT NULL UNIQUE CHECK (LENGTH(user_login) <= 40 AND LENGTH(user_login) >= 5),
-    user_hashed_password TEXT NOT NULL
-    user_description TEXT CHECK (LENGTH(user_description) <= 250)
+    user_hashed_password TEXT NOT NULL CHECK (LENGTH(user_hashed_password) > 0),
+    user_description TEXT CHECK (LENGTH(user_description) <= 250),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 )
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS category (
 CREATE TABLE IF NOT EXISTS operation (
     _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id INT NOT NULL REFERENCES account(_id) ON DELETE CASCADE,
-    category_id INT NOT NULL REFERENCES category(_id) ON SET DEFAULT 1,
+    category_id INT NOT NULL REFERENCES category(_id) ON SET DELETE SET DEFAULT 1,
     operation_status OPERATION_STATUS, 
     operation_type OPERATION_TYPE NOT NULL,
     operation_name TEXT NOT NULL CHECK (LENGTH(operation_name) <= 50)
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS operation (
 --Таблица TRANSFER
 
 CREATE TABLE IF NOT EXISTS transfer_op (
-    _id PRIMARY KEY REFERENCES operation(_id),
+    _id INT PRIMARY KEY REFERENCES operation(_id),
     from_account_id INT NOT NULL REFERENCES account(_id) ON DELETE CASCADE
 )
 
@@ -103,42 +103,91 @@ CREATE TABLE IF NOT EXISTS budget (
 )
 
 CREATE TABLE IF NOT EXISTS chat (
-    _id GENERATED ALWAYS AS IDENTITY PRIMARY KEY
-    chat_name TEXT NOT NULL CHECK (LENGTH(chat_name) <= 30)
+    _id GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    chat_name TEXT NOT NULL CHECK (LENGTH(chat_name) <= 30),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 )
 
 CREATE TABLE IF NOT EXISTS dialogue (
-    _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY
-    user_id INT NOT NULL REFERENCES user(_id) ON DELETE CASCADE
-    chat_id INT NOT NULL REFERENCES chat(_id) ON DELETE CASCADE
+    _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES user(_id) ON DELETE CASCADE,
+    chat_id INT NOT NULL REFERENCES chat(_id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (user_id, chat_id)
 )
 
 CREATE TABLE IF NOT EXISTS message  (
-    _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY
-    user_id INT NOT NULL REFERENCES user(_id) ON DELETE CASCADE
-    chat_id INT NOT NULL REFERENCES chat(_id) ON DELETE CASCADE
-    message_text TEXT NOT NULL CHECK (LENGTH(message_text) <= 200)
+    _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES user(_id) ON DELETE CASCADE,
+    chat_id INT NOT NULL REFERENCES chat(_id) ON DELETE CASCADE,
+    message_text TEXT NOT NULL CHECK (LENGTH(message_text) <= 200),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 )
 
 CREATE TABLE IF NOT EXISTS receiver (
-    _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY
-    user_id INT NOT NULL REFERENCES user(_id) ON DELETE CASCADE
-    receiver_name TEXT NOT NULL CHECK (LENGTH(receiver_name) <= 60)
+    _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES user(_id) ON DELETE CASCADE,
+    receiver_name TEXT NOT NULL CHECK (LENGTH(receiver_name) <= 60),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (user_id, receiver_name)
 )
 
-CREATE TRIGGER modify_payment_updated_at
+CREATE TRIGGER modify_user_updated_at
     BEFORE UPDATE
-    ON user, account, sharings, category, budget, chat, dialogue, message, receiver
+    ON user
+    FOR EACH ROW
+EXECUTE PROCEDURE public.moddatetime(updated_at);
+
+CREATE TRIGGER modify_account_updated_at
+    BEFORE UPDATE
+    ON  account
+    FOR EACH ROW
+EXECUTE PROCEDURE public.moddatetime(updated_at);
+
+
+CREATE TRIGGER modify_sharing_updated_at
+    BEFORE UPDATE
+    ON sharings
+    FOR EACH ROW
+EXECUTE PROCEDURE public.moddatetime(updated_at);
+
+CREATE TRIGGER modify_category_updated_at
+    BEFORE UPDATE
+    ON category
+    FOR EACH ROW
+EXECUTE PROCEDURE public.moddatetime(updated_at);
+
+CREATE TRIGGER modify_budget_updated_at
+    BEFORE UPDATE
+    ON budget
+    FOR EACH ROW
+EXECUTE PROCEDURE public.moddatetime(updated_at);
+
+CREATE TRIGGER modify_chat_updated_at
+    BEFORE UPDATE
+    ON chat
+    FOR EACH ROW
+EXECUTE PROCEDURE public.moddatetime(updated_at);
+
+CREATE TRIGGER modify_dialogue_updated_at
+    BEFORE UPDATE
+    ON dialogue
+    FOR EACH ROW
+EXECUTE PROCEDURE public.moddatetime(updated_at);
+
+CREATE TRIGGER modify_message_updated_at
+    BEFORE UPDATE
+    ON message
+    FOR EACH ROW
+EXECUTE PROCEDURE public.moddatetime(updated_at);
+
+CREATE TRIGGER modify_receiver_updated_at
+    BEFORE UPDATE
+    ON receiver
     FOR EACH ROW
 EXECUTE PROCEDURE public.moddatetime(updated_at);
 
