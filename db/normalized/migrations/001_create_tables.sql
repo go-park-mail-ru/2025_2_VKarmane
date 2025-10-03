@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS chat (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 )
 
-CREATE TABLE IF NOT EXISTS dialogue (
+CREATE TABLE IF NOT EXISTS user_in_chat (
     _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id INT NOT NULL REFERENCES user(_id) ON DELETE CASCADE,
     chat_id INT NOT NULL REFERENCES chat(_id) ON DELETE CASCADE,
@@ -173,9 +173,9 @@ CREATE TRIGGER modify_chat_updated_at
     FOR EACH ROW
 EXECUTE PROCEDURE public.moddatetime(updated_at);
 
-CREATE TRIGGER modify_dialogue_updated_at
+CREATE TRIGGER modify_user_in_chat_updated_at
     BEFORE UPDATE
-    ON dialogue
+    ON user_in_chat
     FOR EACH ROW
 EXECUTE PROCEDURE public.moddatetime(updated_at);
 
