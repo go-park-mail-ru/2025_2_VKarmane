@@ -69,13 +69,8 @@ erDiagram
     CURRENCY ||--|{ACCOUNT : "currency of"
     CURRENCY ||--|{OPERATION : "currency of"
 
-        TRANSFER {
-        int id
-        int from_account_id
-    }
-    ACCOUNT ||--o{ TRANSFER : "from"
     OPERATION ||--|{ ACCOUNT : "from/to"
-    TRANSFER ||--|| OPERATION : "is"
+
 
 BUDGET {
     int id
