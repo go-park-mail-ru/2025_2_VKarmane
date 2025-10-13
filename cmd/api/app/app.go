@@ -65,6 +65,13 @@ func Run() error {
 	protected.HandleFunc("/budget/{id}", handler.GetBudgetByID).Methods(http.MethodGet)
 	protected.HandleFunc("/balance", handler.GetListBalance).Methods(http.MethodGet)
 	protected.HandleFunc("/balance/{id}", handler.GetBalanceByAccountID).Methods(http.MethodGet)
+	protected.HandleFunc("/account/{acc_id}/operations", handler.GetAccountOperations).Methods(http.MethodGet)
+	protected.HandleFunc("/account/{acc_id}/operations", handler.CreateOperation).Methods(http.MethodPost)
+	protected.HandleFunc("/account/{acc_id}/operations/{op_id}", handler.GetOperationByID).Methods(http.MethodGet)
+	protected.HandleFunc("/account/{acc_id}/operations/{op_id}", handler.UpdateOperation).Methods(http.MethodPut)
+	protected.HandleFunc("/account/{acc_id}/operations/{op_id}", handler.DeleteOperation).Methods(http.MethodDelete)
+
+
 
 	// Добавляем обработку OPTIONS запросов для всех маршрутов (для preflight запросов)
 	r.PathPrefix("/api/v1").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
