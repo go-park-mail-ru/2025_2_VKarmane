@@ -47,6 +47,6 @@ type CreateOperationRequest struct {
 	CategoryID int `json:"category_id"`
 	Type OperationType `json:"type"`
 	Name string `json:"name" validate:"required,max=50"`
-	Description string `json:"description" validate:"required,max=60"`
+	Description string `json:"description,omitempty" validate:"max=60"`
 	Sum float64 `json:"sum" validate:"required,min=0"`
 }
