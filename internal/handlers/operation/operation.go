@@ -2,12 +2,13 @@ package operation
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 	"github.com/gorilla/mux"
@@ -15,7 +16,7 @@ import (
 
 type Handler struct {
 	opUC OperationUseCase
-} 
+}
 
 func NewHandler(opUC OperationUseCase) *Handler {
 	return &Handler{opUC: opUC}
@@ -31,7 +32,7 @@ func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error)
 	return strconv.Atoi((idStr))
 }
 
-func (h	*Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 	userID, ok := h.getUserID(r)
 	if !ok {
 		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
@@ -43,14 +44,12 @@ func (h	*Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 		httputils.ValidationError(w, r, "Invalid account ID format", "id")
 		return
 	}
-	
 
 	ops, err := h.opUC.GetAccountOperations(r.Context(), accID)
 	if err != nil {
 		switch {
-		case strings.Contains(err.Error(), "forbidden"):
+		case errors.Is(err, operation.ErrForbidden):
 			httputils.Error(w, r, "У пользователя нет доступа", http.StatusForbidden)
-			break;
 		default:
 			httputils.InternalError(w, r, "Failed to get operations for user")
 		}
@@ -73,9 +72,7 @@ func (h *Handler) GetOperationByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-	_, ok := h.getUserID(r)
-	if !ok {
+	if _, ok := h.getUserID(r); !ok {
 		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
 		return
 	}
@@ -115,27 +112,24 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, ok := h.getUserID(r)
-	if !ok {
+	if _, ok := h.getUserID(r); !ok {
 		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
 		return
 	}
 
-	_, err = h.opUC.GetOperationByID(r.Context(), accID, opID)
-	if err != nil {
+	if _, err = h.opUC.GetOperationByID(r.Context(), accID, opID); err != nil {
 		httputils.NotFoundError(w, r, "Operation not found")
 		return
 	}
 
 	response, err := h.opUC.UpdateOperation(r.Context(), req, accID, opID)
-		if err != nil {
+	if err != nil {
 		switch {
-			case strings.Contains(err.Error(), "forbidden"):
-				httputils.Error(w, r, "У пользователя нет доступа", http.StatusForbidden)
-				break;
-			default:
-				httputils.Error(w, r, "Failed to update operation", http.StatusBadRequest)
-			}
+		case errors.Is(err, operation.ErrForbidden):
+			httputils.Error(w, r, "У пользователя нет доступа", http.StatusForbidden)
+		default:
+			httputils.Error(w, r, "Failed to update operation", http.StatusBadRequest)
+		}
 		return
 	}
 
@@ -155,14 +149,12 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, ok := h.getUserID(r)
-	if !ok {
+	if _, ok := h.getUserID(r); !ok {
 		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
 		return
 	}
 
-	_, err = h.opUC.GetOperationByID(r.Context(), accID, opID)
-	if err != nil {
+	if _, err = h.opUC.GetOperationByID(r.Context(), accID, opID); err != nil {
 		httputils.NotFoundError(w, r, "Operation not found")
 		return
 	}
@@ -170,12 +162,11 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 	response, err := h.opUC.DeleteOperation(r.Context(), accID, opID)
 	if err != nil {
 		switch {
-			case strings.Contains(err.Error(), "forbidden"):
-				httputils.Error(w, r, "У пользователя нет доступа", http.StatusForbidden)
-				break;
-			default:
-				httputils.Error(w, r, "Failed to delete operation", http.StatusBadRequest)
-			}
+		case errors.Is(err, operation.ErrForbidden):
+			httputils.Error(w, r, "У пользователя нет доступа", http.StatusForbidden)
+		default:
+			httputils.Error(w, r, "Failed to delete operation", http.StatusBadRequest)
+		}
 		return
 	}
 
@@ -198,8 +189,7 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, ok := h.getUserID(r)
-	if !ok {
+	if _, ok := h.getUserID(r); !ok {
 		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
 		return
 	}
@@ -212,16 +202,14 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 	response, err := h.opUC.CreateOperation(r.Context(), req, accID)
 	if err != nil {
 		switch {
-			case strings.Contains(err.Error(), "forbidden"):
-				httputils.Error(w, r, "У пользователя нет доступа", http.StatusForbidden)
-				break;
-			default:
-				httputils.Error(w, r, "Failed to create operation", http.StatusBadRequest)
-			}
+		case errors.Is(err, operation.ErrForbidden):
+			httputils.Error(w, r, "У пользователя нет доступа", http.StatusForbidden)
+		default:
+			httputils.Error(w, r, "Failed to create operation", http.StatusBadRequest)
+		}
 		return
 	}
 
-	
-	opDTO := OperationToApi(response) 
+	opDTO := OperationToApi(response)
 	httputils.Created(w, r, opDTO)
 }

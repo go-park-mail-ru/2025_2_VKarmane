@@ -6,16 +6,16 @@ import (
 
 func OperationToApi(op models.Operation) OperationAPI {
 	return OperationAPI{
-		ID: op.ID,
-		AccountID: op.AccountID,
-		CategoryID: op.CategoryID,
-		Sum: op.Sum,
-		Name: op.Name,
-		Status: string(op.Status),
-		Type: string(op.Type),
+		ID:          op.ID,
+		AccountID:   op.AccountID,
+		CategoryID:  op.CategoryID,
+		Sum:         op.Sum,
+		Name:        op.Name,
+		Status:      string(op.Status),
+		Type:        string(op.Type),
 		Description: op.Description,
-		ReceiptURL: op.ReceiptURL,
-		Date: op.CreatedAt,
+		ReceiptURL:  op.ReceiptURL,
+		Date:        op.CreatedAt,
 	}
 }
 
@@ -25,8 +25,7 @@ func OperationsToApi(userID int, ops []models.Operation) OperationsAPI {
 		opDTOs = append(opDTOs, OperationToApi(op))
 	}
 	return OperationsAPI{
-		UserID: userID,
+		UserID:     userID,
 		Operations: opDTOs,
 	}
-} 
-
+}

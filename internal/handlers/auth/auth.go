@@ -2,13 +2,15 @@ package auth
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	httputil "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 )
@@ -39,9 +41,9 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	response, err := h.authUC.Register(r.Context(), req)
 	if err != nil {
 		switch {
-		case strings.Contains(err.Error(), "email"):
+		case errors.Is(err, user.EmailExistsErr):
 			httputil.ConflictError(w, r, "Пользователь с таким email уже существует", models.ErrCodeEmailExists)
-		case strings.Contains(err.Error(), "login"):
+		case errors.Is(err, user.LoginExistsErr):
 			httputil.ConflictError(w, r, "Пользователь с таким логином уже существует", models.ErrCodeLoginExists)
 		default:
 			httputil.ConflictError(w, r, "Пользователь уже существует", models.ErrCodeUserExists)
@@ -73,9 +75,9 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	response, err := h.authUC.Login(r.Context(), req)
 	if err != nil {
 		switch {
-		case strings.Contains(err.Error(), "user not found") || strings.Contains(err.Error(), "пользователь не найден"):
+		case errors.Is(err, user.UserNotFound):
 			httputil.UnauthorizedError(w, r, "Пользователь не найден", models.ErrCodeUserNotFound)
-		case strings.Contains(err.Error(), "invalid password") || strings.Contains(err.Error(), "неверный пароль"):
+		case errors.Is(err, auth.InvalidPassword):
 			httputil.UnauthorizedError(w, r, "Неверный пароль", models.ErrCodeInvalidCredentials)
 		default:
 			httputil.UnauthorizedError(w, r, "Неверные учетные данные", models.ErrCodeInvalidCredentials)

@@ -6,184 +6,173 @@ import (
 	"testing"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/stretchr/testify/require"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
-type MockOperationService struct {
-	GetAccountOps func(ctx context.Context, accID int) ([]models.Operation, error)
-	CreateOp      func(ctx context.Context, req models.CreateOperationRequest, accID int) (models.Operation, error)
-	UpdateOp      func(ctx context.Context, req models.UpdateOperationRequest, accID, opID int) (models.Operation, error)
-	DeleteOp      func(ctx context.Context, accID, opID int) (models.Operation, error)
-}
-
-func (m *MockOperationService) GetAccountOperations(ctx context.Context, accID int) ([]models.Operation, error) {
-	return m.GetAccountOps(ctx, accID)
-}
-
-func (m *MockOperationService) CreateOperation(ctx context.Context, req models.CreateOperationRequest, accID int) (models.Operation, error) {
-	return m.CreateOp(ctx, req, accID)
-}
-
-func (m *MockOperationService) UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID, opID int) (models.Operation, error) {
-	return m.UpdateOp(ctx, req, accID, opID)
-}
-
-func (m *MockOperationService) DeleteOperation(ctx context.Context, accID, opID int) (models.Operation, error) {
-	return m.DeleteOp(ctx, accID, opID)
-}
-
 func TestGetAccountOperations_Success(t *testing.T) {
-	mockSvc := &MockOperationService{
-		GetAccountOps: func(ctx context.Context, accID int) ([]models.Operation, error) {
-			return []models.Operation{{ID: 1, AccountID: accID, Name: "test"}}, nil
-		},
-	}
+	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
 
+	expected := []models.Operation{{ID: 1, AccountID: 7, Name: "test"}}
+
+	mockSvc.On("GetAccountOperations", mock.Anything, 7).
+		Return(expected, nil).
+		Once()
+
 	ops, err := uc.GetAccountOperations(context.Background(), 7)
-	require.NoError(t, err)
-	require.Len(t, ops, 1)
-	require.Equal(t, 7, ops[0].AccountID)
-	require.Equal(t, "test", ops[0].Name)
+	assert.NoError(t, err)
+	assert.Len(t, ops, 1)
+	assert.Equal(t, 7, ops[0].AccountID)
+	assert.Equal(t, "test", ops[0].Name)
 }
 
 func TestGetAccountOperations_Error(t *testing.T) {
-	mockSvc := &MockOperationService{
-		GetAccountOps: func(ctx context.Context, accID int) ([]models.Operation, error) {
-			return nil, errors.New("db error")
-		},
-	}
+	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
 
+	mockSvc.On("GetAccountOperations", mock.Anything, 1).
+		Return(nil, errors.New("db error")).
+		Once()
+
 	ops, err := uc.GetAccountOperations(context.Background(), 1)
-	require.Error(t, err)
-	require.Nil(t, ops)
+	assert.Error(t, err)
+	assert.Nil(t, ops)
 }
 
 func TestGetOperationByID_Success(t *testing.T) {
-	mockSvc := &MockOperationService{
-		GetAccountOps: func(ctx context.Context, accID int) ([]models.Operation, error) {
-			return []models.Operation{
-				{ID: 1, AccountID: accID, Name: "A"},
-				{ID: 2, AccountID: accID, Name: "B"},
-			}, nil
-		},
-	}
+	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
 
+	mockSvc.On("GetAccountOperations", mock.Anything, 10).
+		Return([]models.Operation{
+			{ID: 1, AccountID: 10, Name: "A"},
+			{ID: 2, AccountID: 10, Name: "B"},
+		}, nil).
+		Once()
+
 	op, err := uc.GetOperationByID(context.Background(), 10, 2)
-	require.NoError(t, err)
-	require.Equal(t, 2, op.ID)
-	require.Equal(t, "B", op.Name)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, op.ID)
+	assert.Equal(t, "B", op.Name)
 }
 
 func TestGetOperationByID_NotFound(t *testing.T) {
-	mockSvc := &MockOperationService{
-		GetAccountOps: func(ctx context.Context, accID int) ([]models.Operation, error) {
-			return []models.Operation{{ID: 1}}, nil
-		},
-	}
+	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
 
+	mockSvc.On("GetAccountOperations", mock.Anything, 10).
+		Return([]models.Operation{{ID: 1}}, nil).
+		Once()
+
 	op, err := uc.GetOperationByID(context.Background(), 10, 999)
-	require.Error(t, err)
-	require.Equal(t, 0, op.ID)
+	assert.Error(t, err)
+	assert.Equal(t, 0, op.ID)
 }
 
 func TestGetOperationByID_ErrorFromService(t *testing.T) {
-	mockSvc := &MockOperationService{
-		GetAccountOps: func(ctx context.Context, accID int) ([]models.Operation, error) {
-			return nil, errors.New("db error")
-		},
-	}
+	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
 
+	mockSvc.On("GetAccountOperations", mock.Anything, 10).
+		Return(nil, errors.New("db error")).
+		Once()
+
 	op, err := uc.GetOperationByID(context.Background(), 10, 1)
-	require.Error(t, err)
-	require.Equal(t, 0, op.ID)
+	assert.Error(t, err)
+	assert.Equal(t, 0, op.ID)
 }
 
 func TestCreateOperation_Success(t *testing.T) {
-	mockSvc := &MockOperationService{
-		CreateOp: func(ctx context.Context, req models.CreateOperationRequest, accID int) (models.Operation, error) {
-			return models.Operation{ID: 42, AccountID: accID, Name: req.Name}, nil
-		},
-	}
+	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
 
 	req := models.CreateOperationRequest{Name: "test"}
+	expected := models.Operation{ID: 42, AccountID: 5, Name: "test"}
+
+	mockSvc.On("CreateOperation", mock.Anything, req, 5).
+		Return(expected, nil).
+		Once()
+
 	op, err := uc.CreateOperation(context.Background(), req, 5)
-	require.NoError(t, err)
-	require.Equal(t, 42, op.ID)
-	require.Equal(t, "test", op.Name)
+	assert.NoError(t, err)
+	assert.Equal(t, 42, op.ID)
+	assert.Equal(t, "test", op.Name)
 }
 
 func TestCreateOperation_Error(t *testing.T) {
-	mockSvc := &MockOperationService{
-		CreateOp: func(ctx context.Context, req models.CreateOperationRequest, accID int) (models.Operation, error) {
-			return models.Operation{}, errors.New("create failed")
-		},
-	}
+	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
 
-	op, err := uc.CreateOperation(context.Background(), models.CreateOperationRequest{}, 1)
-	require.Error(t, err)
-	require.Equal(t, 0, op.ID)
+	req := models.CreateOperationRequest{}
+	mockSvc.On("CreateOperation", mock.Anything, req, 1).
+		Return(models.Operation{}, errors.New("create failed")).
+		Once()
+
+	op, err := uc.CreateOperation(context.Background(), req, 1)
+	assert.Error(t, err)
+	assert.Equal(t, 0, op.ID)
 }
 
 func TestUpdateOperation_Success(t *testing.T) {
-	mockSvc := &MockOperationService{
-		UpdateOp: func(ctx context.Context, req models.UpdateOperationRequest, accID, opID int) (models.Operation, error) {
-			return models.Operation{ID: opID, AccountID: accID, Name: "updated"}, nil
-		},
-	}
+	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
 
 	req := models.UpdateOperationRequest{Name: ptr("new")}
+	expected := models.Operation{ID: 2, AccountID: 1, Name: "updated"}
+
+	mockSvc.On("UpdateOperation", mock.Anything, req, 1, 2).
+		Return(expected, nil).
+		Once()
+
 	op, err := uc.UpdateOperation(context.Background(), req, 1, 2)
-	require.NoError(t, err)
-	require.Equal(t, "updated", op.Name)
-	require.Equal(t, 2, op.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, "updated", op.Name)
+	assert.Equal(t, 2, op.ID)
 }
 
 func TestUpdateOperation_Error(t *testing.T) {
-	mockSvc := &MockOperationService{
-		UpdateOp: func(ctx context.Context, req models.UpdateOperationRequest, accID, opID int) (models.Operation, error) {
-			return models.Operation{}, errors.New("update failed")
-		},
-	}
+	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
 
-	op, err := uc.UpdateOperation(context.Background(), models.UpdateOperationRequest{}, 1, 2)
-	require.Error(t, err)
-	require.Equal(t, 0, op.ID)
+	req := models.UpdateOperationRequest{}
+	mockSvc.On("UpdateOperation", mock.Anything, req, 1, 2).
+		Return(models.Operation{}, errors.New("update failed")).
+		Once()
+
+	op, err := uc.UpdateOperation(context.Background(), req, 1, 2)
+	assert.Error(t, err)
+	assert.Equal(t, 0, op.ID)
 }
 
 func TestDeleteOperation_Success(t *testing.T) {
-	mockSvc := &MockOperationService{
-		DeleteOp: func(ctx context.Context, accID, opID int) (models.Operation, error) {
-			return models.Operation{ID: opID, AccountID: accID}, nil
-		},
-	}
+	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
 
+	expected := models.Operation{ID: 99, AccountID: 1}
+
+	mockSvc.On("DeleteOperation", mock.Anything, 1, 99).
+		Return(expected, nil).
+		Once()
+
 	op, err := uc.DeleteOperation(context.Background(), 1, 99)
-	require.NoError(t, err)
-	require.Equal(t, 99, op.ID)
-	require.Equal(t, 1, op.AccountID)
+	assert.NoError(t, err)
+	assert.Equal(t, 99, op.ID)
+	assert.Equal(t, 1, op.AccountID)
 }
 
 func TestDeleteOperation_Error(t *testing.T) {
-	mockSvc := &MockOperationService{
-		DeleteOp: func(ctx context.Context, accID, opID int) (models.Operation, error) {
-			return models.Operation{}, errors.New("delete failed")
-		},
-	}
+	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
 
+	mockSvc.On("DeleteOperation", mock.Anything, 1, 2).
+		Return(models.Operation{}, errors.New("delete failed")).
+		Once()
+
 	op, err := uc.DeleteOperation(context.Background(), 1, 2)
-	require.Error(t, err)
-	require.Equal(t, 0, op.ID)
+	assert.Error(t, err)
+	assert.Equal(t, 0, op.ID)
 }
 
 func ptr[T any](v T) *T {

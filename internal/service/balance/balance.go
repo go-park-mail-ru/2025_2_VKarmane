@@ -2,6 +2,7 @@ package balance
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
@@ -15,7 +16,10 @@ func NewService(accountRepo AccountRepository) *Service {
 }
 
 func (s *Service) GetBalanceForUser(ctx context.Context, userID int) ([]models.Account, error) {
-	accounts := s.accountRepo.GetAccountsByUser(ctx, userID)
+	accounts, err := s.accountRepo.GetAccountsByUser(ctx, userID)
+	if err != nil {
+		return []models.Account{}, fmt.Errorf("Failed to get balance for user: %d", err)
+	}
 
 	return accounts, nil
 }

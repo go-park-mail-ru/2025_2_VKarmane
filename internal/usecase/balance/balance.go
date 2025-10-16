@@ -25,9 +25,10 @@ func NewUseCase(store *repository.Store) *UseCase {
 }
 
 func (uc *UseCase) GetBalanceForUser(ctx context.Context, userID int) ([]models.Account, error) {
+	log := logger.FromContext(ctx)
 	accounts, err := uc.balanceSvc.GetBalanceForUser(ctx, userID)
 	if err != nil {
-		if log := logger.FromContext(ctx); log != nil {
+		if log != nil {
 			log.Error("Failed to get balance for user", "error", err, "user_id", userID)
 		}
 
@@ -38,9 +39,10 @@ func (uc *UseCase) GetBalanceForUser(ctx context.Context, userID int) ([]models.
 }
 
 func (uc *UseCase) GetAccountByID(ctx context.Context, userID, accountID int) (models.Account, error) {
+	log := logger.FromContext(ctx)
 	accounts, err := uc.balanceSvc.GetBalanceForUser(ctx, userID)
 	if err != nil {
-		if log := logger.FromContext(ctx); log != nil {
+		if log != nil {
 			log.Error("Failed to get balance for user", "error", err, "user_id", userID)
 		}
 
@@ -53,7 +55,7 @@ func (uc *UseCase) GetAccountByID(ctx context.Context, userID, accountID int) (m
 		}
 	}
 
-	if log := logger.FromContext(ctx); log != nil {
+	if log != nil {
 		log.Warn("Account not found", "user_id", userID, "account_id", accountID)
 	}
 

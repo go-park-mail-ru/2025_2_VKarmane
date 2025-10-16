@@ -10,17 +10,17 @@ import (
 
 func sampleOperations() []OperationDB {
 	return []OperationDB{
-		{ID: 1, AccountID: 1, Name: "Op1", Status: string(models.OperationFinished), Sum: 100},
-		{ID: 2, AccountID: 1, Name: "Op2", Status: string(models.OperationFinished), Sum: 200},
-		{ID: 3, AccountID: 2, Name: "OtherAccOp", Status: string(models.OperationFinished), Sum: 300},
-		{ID: 4, AccountID: 1, Name: "Reverted", Status: string(models.OperationReverted), Sum: 400},
+		{ID: 1, AccountID: 1, Name: "Op1", Status: models.OperationFinished, Sum: 100},
+		{ID: 2, AccountID: 1, Name: "Op2", Status: models.OperationFinished, Sum: 200},
+		{ID: 3, AccountID: 2, Name: "OtherAccOp", Status: models.OperationFinished, Sum: 300},
+		{ID: 4, AccountID: 1, Name: "Reverted", Status: models.OperationReverted, Sum: 400},
 	}
 }
 
 func TestGetOperationsByAccount(t *testing.T) {
 	repo := NewRepository(sampleOperations())
 
-	ops := repo.GetOperationsByAccount(context.Background(), 1)
+	ops, _ := repo.GetOperationsByAccount(context.Background(), 1)
 	require.Len(t, ops, 2, "should exclude reverted ops and match accountID")
 	require.Equal(t, "Op1", ops[0].Name)
 	require.Equal(t, "Op2", ops[1].Name)
@@ -29,13 +29,13 @@ func TestGetOperationsByAccount(t *testing.T) {
 func TestGetOperationByID(t *testing.T) {
 	repo := NewRepository(sampleOperations())
 
-	op := repo.GetOperationByID(context.Background(), 1, 2)
+	op, _ := repo.GetOperationByID(context.Background(), 1, 2)
 	require.Equal(t, 2, op.ID)
 	require.Equal(t, "Op2", op.Name)
-	op = repo.GetOperationByID(context.Background(), 1, 999)
+	op, _ = repo.GetOperationByID(context.Background(), 1, 999)
 	require.Zero(t, op.ID, "should return empty struct when not found")
 
-	op = repo.GetOperationByID(context.Background(), 1, 4)
+	op, _ = repo.GetOperationByID(context.Background(), 1, 4)
 	require.Zero(t, op.ID)
 }
 
@@ -51,7 +51,7 @@ func TestCreateOperation(t *testing.T) {
 		Sum:        999,
 	}
 
-	created := repo.CreateOperation(context.Background(), op)
+	created, _ := repo.CreateOperation(context.Background(), op)
 
 	require.Equal(t, 1, created.ID)
 	require.Equal(t, "NewOp", created.Name)
@@ -73,24 +73,24 @@ func TestUpdateOperation(t *testing.T) {
 		Sum:  &newSum,
 	}
 
-	updated := repo.UpdateOperation(context.Background(), req, 10, 1)
+	updated, _ := repo.UpdateOperation(context.Background(), req, 10, 1)
 	require.Equal(t, "Updated", updated.Name)
 	require.Equal(t, float64(200), updated.Sum)
 
-	empty := repo.UpdateOperation(context.Background(), req, 999, 1)
+	empty, _ := repo.UpdateOperation(context.Background(), req, 999, 1)
 	require.Zero(t, empty.ID)
 }
 
 func TestDeleteOperation(t *testing.T) {
 	repo := NewRepository([]OperationDB{
-		{ID: 1, AccountID: 7, Name: "Active", Status: string(models.OperationFinished)},
+		{ID: 1, AccountID: 7, Name: "Active", Status: models.OperationFinished},
 	})
 
-	deleted := repo.DeleteOperation(context.Background(), 7, 1)
+	deleted, _ := repo.DeleteOperation(context.Background(), 7, 1)
 	require.Equal(t, 1, deleted.ID)
 	require.Equal(t, models.OperationReverted, deleted.Status)
-	require.Equal(t, string(models.OperationReverted), repo.operations[0].Status)
-	empty := repo.DeleteOperation(context.Background(), 7, 99)
+	require.Equal(t, models.OperationReverted, repo.operations[0].Status)
+	empty, _ := repo.DeleteOperation(context.Background(), 7, 99)
 	require.Zero(t, empty.ID)
 }
 
@@ -104,7 +104,7 @@ func TestCreateOperationAssignsIncrementalIDs(t *testing.T) {
 		Name:      "Second",
 		Status:    models.OperationFinished,
 	}
-	created := repo.CreateOperation(context.Background(), newOp)
+	created, _ := repo.CreateOperation(context.Background(), newOp)
 
 	require.Equal(t, 2, created.ID)
 	require.Len(t, repo.operations, 2)

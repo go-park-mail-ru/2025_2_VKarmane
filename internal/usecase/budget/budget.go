@@ -29,9 +29,10 @@ func NewUseCase(store *repository.Store) *UseCase {
 }
 
 func (uc *UseCase) GetBudgetsForUser(ctx context.Context, userID int) ([]models.Budget, error) {
+	log := logger.FromContext(ctx)
 	budgetsData, err := uc.budgetSvc.GetBudgetsForUser(ctx, userID)
 	if err != nil {
-		if log := logger.FromContext(ctx); log != nil {
+		if log != nil {
 			log.Error("Failed to get budgets for user", "error", err, "user_id", userID)
 		}
 
@@ -42,9 +43,10 @@ func (uc *UseCase) GetBudgetsForUser(ctx context.Context, userID int) ([]models.
 }
 
 func (uc *UseCase) GetBudgetByID(ctx context.Context, userID, budgetID int) (models.Budget, error) {
+	log := logger.FromContext(ctx)
 	budgetsData, err := uc.budgetSvc.GetBudgetsForUser(ctx, userID)
 	if err != nil {
-		if log := logger.FromContext(ctx); log != nil {
+		if log != nil {
 			log.Error("Failed to get budgets for user", "error", err, "user_id", userID)
 		}
 
@@ -57,7 +59,7 @@ func (uc *UseCase) GetBudgetByID(ctx context.Context, userID, budgetID int) (mod
 		}
 	}
 
-	if log := logger.FromContext(ctx); log != nil {
+	if log != nil {
 		log.Warn("Budget not found", "user_id", userID, "budget_id", budgetID)
 	}
 

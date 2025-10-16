@@ -39,7 +39,6 @@ func (m *MockOperationUseCase) DeleteOperation(ctx context.Context, accID, opID 
 	return m.DeleteOp(ctx, accID, opID)
 }
 
-
 func TestGetAccountOperationsUnauthorized(t *testing.T) {
 	mockUC := &MockOperationUseCase{}
 	h := NewHandler(mockUC)
@@ -96,12 +95,12 @@ func TestCreateOperationSuccess(t *testing.T) {
 	h := NewHandler(mockUC)
 
 	reqBody := models.CreateOperationRequest{
-		AccountID:  1,
-		CategoryID: 1,
-		Type:       models.OperationIncome,
-		Name:       "test",
+		AccountID:   1,
+		CategoryID:  1,
+		Type:        models.OperationIncome,
+		Name:        "test",
 		Description: "desc",
-		Sum:        100,
+		Sum:         100,
 	}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)

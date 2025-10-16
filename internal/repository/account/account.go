@@ -18,7 +18,7 @@ func NewRepository(accounts []AccountDB, userAccounts []UserAccountDB) *Reposito
 	}
 }
 
-func (r *Repository) GetAccountsByUser(ctx context.Context, userID int) []models.Account {
+func (r *Repository) GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error) {
 	out := make([]models.Account, 0)
 	accountsIDs := make(map[int]struct{})
 
@@ -34,5 +34,5 @@ func (r *Repository) GetAccountsByUser(ctx context.Context, userID int) []models
 		}
 	}
 
-	return out
+	return out, nil
 }

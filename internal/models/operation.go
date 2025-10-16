@@ -5,7 +5,7 @@ import "time"
 type OperationType string
 
 const (
-	OperationIncome OperationType = "income"
+	OperationIncome  OperationType = "income"
 	OperationExpense OperationType = "expense"
 )
 
@@ -31,22 +31,21 @@ type Operation struct {
 }
 
 type UpdateOperationRequest struct {
-    CategoryID  *int     `json:"category_id,omitempty"`
-    Name        *string  `json:"name,omitempty" validate:"omitempty,max=50"`
-    Description *string  `json:"description,omitempty" validate:"omitempty,max=60"`
-    Sum         *float64 `json:"sum,omitempty" validate:"omitempty,min=0"`
+	CategoryID  *int     `json:"category_id,omitempty"`
+	Name        *string  `json:"name,omitempty" validate:"omitempty,max=50"`
+	Description *string  `json:"description,omitempty" validate:"omitempty,max=60"`
+	Sum         *float64 `json:"sum,omitempty" validate:"omitempty,min=0"`
 }
-
 
 type DeleteOperationRequest struct {
 	Status string `json:"status"`
 }
 
 type CreateOperationRequest struct {
-	AccountID int `json:"account_id"`
-	CategoryID int `json:"category_id"`
-	Type OperationType `json:"type"`
-	Name string `json:"name" validate:"required,max=50"`
-	Description string `json:"description,omitempty" validate:"max=60"`
-	Sum float64 `json:"sum" validate:"required,min=0"`
+	AccountID   int           `json:"account_id"`
+	CategoryID  int           `json:"category_id"`
+	Type        OperationType `json:"type"`
+	Name        string        `json:"name" validate:"required,max=50"`
+	Description string        `json:"description,omitempty" validate:"max=60"`
+	Sum         float64       `json:"sum" validate:"required,min=0"`
 }

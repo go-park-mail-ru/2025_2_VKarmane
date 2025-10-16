@@ -8,15 +8,15 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/balance"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
 	budgetService "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/budget"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
 )
 
 type Service struct {
 	AuthUC    auth.AuthService
 	BalanceUC balance.BalanceService
 	BudgetUC  budgetService.BudgetService
-	OpUC operation.OperationService
+	OpUC      operation.OperationService
 }
 
 func NewService(store *repository.Store) *Service {
@@ -34,6 +34,6 @@ func NewService(store *repository.Store) *Service {
 		AuthUC:    authService,
 		BalanceUC: balanceService,
 		BudgetUC:  budgetService,
-		OpUC: opService,
+		OpUC:      opService,
 	}
 }

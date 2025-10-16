@@ -10,18 +10,17 @@ type OperationService interface {
 	GetAccountOperations(ctx context.Context, accID int) ([]models.Operation, error)
 	CreateOperation(ctx context.Context, req models.CreateOperationRequest, accID int) (models.Operation, error)
 	UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID, opID int) (models.Operation, error)
-	DeleteOperation(ctx context.Context, accID, opID int) (models.Operation ,error)
+	DeleteOperation(ctx context.Context, accID, opID int) (models.Operation, error)
 }
 
-
 type OperationRepository interface {
-	GetOperationsByAccount(ctx context.Context, accountID int) []models.Operation
-	GetOperationByID(ctx context.Context, accID int, opID int) models.Operation
-	CreateOperation(ctx context.Context, op models.Operation) models.Operation
-	UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) models.Operation
-	DeleteOperation(ctx context.Context, accID int, opID int) models.Operation
+	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+	GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error)
+	CreateOperation(ctx context.Context, op models.Operation) (models.Operation, error)
+	UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error)
+	DeleteOperation(ctx context.Context, accID int, opID int) (models.Operation, error)
 }
 
 type AccountRepository interface {
-	GetAccountsByUser(ctx context.Context, userID int) []models.Account
+	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
 }

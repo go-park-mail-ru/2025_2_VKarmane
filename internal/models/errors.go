@@ -26,11 +26,11 @@ const (
 	ErrCodeForbidden    ErrorCode = "FORBIDDEN"
 	ErrCodeAccessDenied ErrorCode = "ACCESS_DENIED"
 
-	ErrCodeResourceNotFound ErrorCode = "RESOURCE_NOT_FOUND"
-	ErrCodeResourceExists   ErrorCode = "RESOURCE_EXISTS"
-	ErrCodeResourceConflict ErrorCode = "RESOURCE_CONFLICT"
-	ErrCodeBudgetNotFound   ErrorCode = "BUDGET_NOT_FOUND"
-	ErrCodeAccountNotFound  ErrorCode = "ACCOUNT_NOT_FOUND"
+	ErrCodeResourceNotFound    ErrorCode = "RESOURCE_NOT_FOUND"
+	ErrCodeResourceExists      ErrorCode = "RESOURCE_EXISTS"
+	ErrCodeResourceConflict    ErrorCode = "RESOURCE_CONFLICT"
+	ErrCodeBudgetNotFound      ErrorCode = "BUDGET_NOT_FOUND"
+	ErrCodeAccountNotFound     ErrorCode = "ACCOUNT_NOT_FOUND"
 	ErrCodeTransactionNotFound ErrorCode = "OPERATION_NOT_FOUND"
 
 	ErrCodeInvalidAmount   ErrorCode = "INVALID_AMOUNT"

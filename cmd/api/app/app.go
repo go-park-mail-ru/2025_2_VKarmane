@@ -49,8 +49,6 @@ func Run() error {
 	r.Use(middleware.SecurityLoggerMiddleware(appLogger))
 
 	public := r.PathPrefix("/api/v1").Subrouter()
-	public.HandleFunc("/auth/register", handler.Register).Methods(http.MethodPost)
-	public.HandleFunc("/auth/login", handler.Login).Methods(http.MethodPost)
 
 	protected := r.PathPrefix("/api/v1").Subrouter()
 	protected.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
@@ -58,20 +56,7 @@ func Run() error {
 	protected.Use(middleware.RequestLoggerMiddleware(appLogger))
 	protected.Use(middleware.SecurityLoggerMiddleware(appLogger))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
-
-	protected.HandleFunc("/auth/logout", handler.Logout).Methods(http.MethodPost)
-	protected.HandleFunc("/profile", handler.GetProfile).Methods(http.MethodGet)
-	protected.HandleFunc("/budgets", handler.GetListBudgets).Methods(http.MethodGet)
-	protected.HandleFunc("/budget/{id}", handler.GetBudgetByID).Methods(http.MethodGet)
-	protected.HandleFunc("/balance", handler.GetListBalance).Methods(http.MethodGet)
-	protected.HandleFunc("/balance/{id}", handler.GetBalanceByAccountID).Methods(http.MethodGet)
-	protected.HandleFunc("/account/{acc_id}/operations", handler.GetAccountOperations).Methods(http.MethodGet)
-	protected.HandleFunc("/account/{acc_id}/operations", handler.CreateOperation).Methods(http.MethodPost)
-	protected.HandleFunc("/account/{acc_id}/operations/{op_id}", handler.GetOperationByID).Methods(http.MethodGet)
-	protected.HandleFunc("/account/{acc_id}/operations/{op_id}", handler.UpdateOperation).Methods(http.MethodPut)
-	protected.HandleFunc("/account/{acc_id}/operations/{op_id}", handler.DeleteOperation).Methods(http.MethodDelete)
-
-
+	handler.Register(public, protected)
 
 	// Добавляем обработку OPTIONS запросов для всех маршрутов (для preflight запросов)
 	r.PathPrefix("/api/v1").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
