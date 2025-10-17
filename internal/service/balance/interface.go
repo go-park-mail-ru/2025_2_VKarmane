@@ -11,5 +11,5 @@ type BalanceService interface {
 }
 
 type AccountRepository interface {
-	GetAccountsByUser(ctx context.Context, userID int) []models.Account
+	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
 }

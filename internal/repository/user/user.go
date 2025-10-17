@@ -2,13 +2,17 @@ package user
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/dto"
 )
+
+var LoginExistsErr = errors.New("login exists")
+var EmailExistsErr = errors.New("email exists")
+var UserNotFound = errors.New("not Found")
 
 type Repository struct {
 	users []dto.UserDB
@@ -19,20 +23,21 @@ func NewRepository(users []dto.UserDB) *Repository {
 }
 
 func (r *Repository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
+	log := logger.FromContext(ctx)
 	for _, u := range r.users {
 		if u.Login == user.Login {
-			if log := logger.FromContext(ctx); log != nil {
+			if log != nil {
 				log.Warn("User creation failed: login already exists", "login", user.Login)
 			}
 
-			return models.User{}, fmt.Errorf("user.CreateUser: user with this login already exists")
+			return models.User{}, LoginExistsErr
 		}
 		if u.Email == user.Email {
-			if log := logger.FromContext(ctx); log != nil {
+			if log != nil {
 				log.Warn("User creation failed: email already exists", "email", user.Email)
 			}
 
-			return models.User{}, fmt.Errorf("user.CreateUser: user with this email already exists")
+			return models.User{}, EmailExistsErr
 		}
 	}
 
@@ -70,6 +75,7 @@ func (r *Repository) CreateUser(ctx context.Context, user models.User) (models.U
 }
 
 func (r *Repository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
+	log := logger.FromContext(ctx)
 	for _, u := range r.users {
 		if u.Login == login {
 			return models.User{
@@ -85,14 +91,15 @@ func (r *Repository) GetUserByLogin(ctx context.Context, login string) (models.U
 		}
 	}
 
-	if log := logger.FromContext(ctx); log != nil {
+	if log != nil {
 		log.Warn("User not found by login", "login", login)
 	}
 
-	return models.User{}, fmt.Errorf("user.GetUserByLogin: user not found")
+	return models.User{}, UserNotFound
 }
 
 func (r *Repository) GetUserByID(ctx context.Context, id int) (models.User, error) {
+	log := logger.FromContext(ctx)
 	for _, u := range r.users {
 		if u.ID == id {
 			return models.User{
@@ -107,12 +114,11 @@ func (r *Repository) GetUserByID(ctx context.Context, id int) (models.User, erro
 			}, nil
 		}
 	}
-
-	if log := logger.FromContext(ctx); log != nil {
+	if log != nil {
 		log.Warn("User not found by ID", "user_id", id)
 	}
 
-	return models.User{}, fmt.Errorf("user.GetUserByID: user not found")
+	return models.User{}, UserNotFound
 }
 
 func (r *Repository) GetAllUsers() []dto.UserDB {

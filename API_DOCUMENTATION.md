@@ -246,12 +246,239 @@
 }
 ```
 
+#### GET /api/v1/account/{acc_id}/operations
+Получение всех транзакций счета.
+
+**Параметры:**
+- `acc_id` - ID счета
+
+**Поля ответа:**
+- `user_id` - ID пользователя
+- `operations` - Массив операций
+  - `transaction_id` - ID операции
+  - `account_id` - ID счета
+  - `category_id` - ID категории
+  - `sum` - Сумма
+  - `name` - Название
+  - `type` - Тип операции
+  - `description` - Описание бюджета
+  -  `status` - Стаус операции,
+  -  `receipt` - URL чека,
+  -  `date` -  Дата совершения транзакции
+
+**Ответ:**
+```json
+{
+    "user_id": 1,
+    "operations": [
+        {
+            "transaction_id": 1,
+            "account_id": 1,
+            "category_id": 1,
+            "sum": 80,
+            "name": "Restaurant",
+            "type": "expense",
+            "status": "",
+            "description": "",
+            "receipt": "",
+            "date": "2025-10-13T17:31:51.0501988+03:00"
+        },
+        {
+            "transaction_id": 2,
+            "account_id": 1,
+            "category_id": 1,
+            "sum": 30,
+            "name": "Vkusno i tochka",
+            "type": "expense",
+            "status": "",
+            "description": "",
+            "receipt": "",
+            "date": "2025-10-13T17:31:51.0501988+03:00"
+        },
+        {
+            "transaction_id": 3,
+            "account_id": 1,
+            "category_id": 1,
+            "sum": 70,
+            "name": "Salary",
+            "type": "income",
+            "status": "",
+            "description": "",
+            "receipt": "",
+            "date": "2025-10-13T17:31:51.0501988+03:00"
+        }
+    ]
+}
+```
+
+#### GET /api/v1/account/{acc_id}/operations/{op_id}
+Получение конкретной операции.
+
+**Параметры:**
+- `acc_id` - ID счета
+- `op_id` - ID операции
+
+**Поля ответа:**
+- `transaction_id` - ID операции
+- `category_id` - ID категории
+- `account_id` - ID счета
+- `sum` - Сумма
+- `name` - Название
+- `type` - Тип операции
+- `description` - Описание бюджета
+-  `status` - Стаус операции,
+-  `receipt` - URL чека,
+-  `date` -  Дата совершения транзакции
+
+**Ответ:**
+```json
+{
+    "transaction_id": 1,
+    "account_id": 1,
+    "category_id": 1,
+    "sum": 80,
+    "name": "Restaurant",
+    "type": "expense",
+    "status": "",
+    "description": "",
+    "receipt": "",
+    "date": "2025-10-13T18:37:13.1559998+03:00"
+}
+```
+
+#### POST /api/v1/account/{acc_id}/operations
+Создание операции для счета.
+
+**Параметры:**
+- `acc_id` - ID счета
+
+**Тело запроса:**
+```json
+{
+  "account_id": "int (обязательно)",
+  "category_id": "int (обязательно)",
+  "sum": "float64 (обязательно, >=0)",
+  "name": "string (обязательноб <=50 символов)",
+  "description": "string (обязательноб <=60 символов)",
+}
+```
+
+**Поля ответа:**
+- `transaction_id` - ID операции
+- `category_id` - ID категории
+- `account_id` - ID счета
+- `sum` - Сумма
+- `name` - Название
+- `type` - Тип операции
+- `description` - Описание бюджета
+-  `status` - Стаус операции,
+-  `receipt` - URL чека,
+-  `date` -  Дата совершения транзакции
+
+**Ответ:**
+```json
+{
+    "transaction_id": 4,
+    "account_id": 1,
+    "category_id": 1,
+    "sum": 80,
+    "name": "Restaurant",
+    "type": "expense",
+    "status": "finished",
+    "description": "bbbb",
+    "receipt": "11111111111",
+    "date": "2025-10-13T18:43:52.7213288+03:00"
+}
+```
+
+#### PUT /api/v1/account/{acc_id}/operations/{op_id}
+Изменение операции для счета.
+
+**Параметры:**
+- `acc_id` - ID счета
+- `op_id` - ID операции
+
+**Тело запроса:**
+```json
+{
+  "category_id": "int (необязательно)",
+  "sum": "float64 (необязательно, >=0)",
+  "name": "string (необязательноб <=50 символов)",
+  "description": "string (необязательноб <=60 символов)",
+}
+```
+
+**Поля ответа:**
+- `transaction_id` - ID операции
+- `category_id` - ID категории
+- `account_id` - ID счета
+- `sum` - Сумма
+- `name` - Название
+- `type` - Тип операции
+- `description` - Описание бюджета
+-  `status` - Стаус операции,
+-  `receipt` - URL чека,
+-  `date` -  Дата совершения транзакции
+
+**Ответ:**
+```json
+{
+    "transaction_id": 4,
+    "account_id": 1,
+    "category_id": 1,
+    "sum": 80,
+    "name": "new_name",
+    "type": "expense",
+    "status": "finished",
+    "description": "bbbb",
+    "receipt": "11111111111",
+    "date": "2025-10-13T18:43:52.7213288+03:00"
+}
+```
+
+#### DELETE /api/v1/account/{acc_id}/operations/{op_id}
+Изменение операции для счета.
+
+**Параметры:**
+- `acc_id` - ID счета
+- `op_id` - ID операции
+
+
+**Поля ответа:**
+- `transaction_id` - ID операции
+- `category_id` - ID категории
+- `account_id` - ID счета
+- `sum` - Сумма
+- `name` - Название
+- `type` - Тип операции
+- `description` - Описание бюджета
+-  `status` - Стаус операции,
+-  `receipt` - URL чека,
+-  `date` -  Дата совершения транзакции
+
+**Ответ:**
+```json
+{
+    "transaction_id": 4,
+    "account_id": 1,
+    "category_id": 1,
+    "sum": 80,
+    "name": "new_name",
+    "type": "expense",
+    "status": "reverted",
+    "description": "bbbb",
+    "receipt": "11111111111",
+    "date": "2025-10-13T18:43:52.7213288+03:00"
+}
+```
+
 ## Коды ошибок
 
 ### HTTP статус коды
 - `400 Bad Request` - Неверные данные запроса
 - `401 Unauthorized` - Требуется аутентификация
 - `404 Not Found` - Ресурс не найден
+- `403 Forbidden` - У пользователя нет прав
 - `409 Conflict` - Конфликт данных
 - `500 Internal Server Error` - Внутренняя ошибка сервера
 
@@ -290,6 +517,7 @@
 - `RESOURCE_CONFLICT` - Конфликт ресурсов
 - `BUDGET_NOT_FOUND` - Бюджет не найден
 - `ACCOUNT_NOT_FOUND` - Счет не найден
+- `ErrCodeTransactionNotFound` - Операция не найдена
 
 ### Примеры ошибок
 

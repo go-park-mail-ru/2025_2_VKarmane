@@ -243,9 +243,9 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 			mockAccountRepo := &mocks.AccountRepository{}
 			mockOperationRepo := &mocks.OperationRepository{}
 
-			mockBudgetRepo.On("GetBudgetsByUser", mock.Anything, tt.userID).Return(tt.mockBudgets)
-			mockAccountRepo.On("GetAccountsByUser", mock.Anything, tt.userID).Return(tt.mockAccounts)
-			mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 1).Return(tt.mockOperations)
+			mockBudgetRepo.On("GetBudgetsByUser", mock.Anything, tt.userID).Return(tt.mockBudgets, nil)
+			mockAccountRepo.On("GetAccountsByUser", mock.Anything, tt.userID).Return(tt.mockAccounts, nil)
+			mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 1).Return(tt.mockOperations, nil)
 
 			service := NewService(mockBudgetRepo, mockAccountRepo, mockOperationRepo)
 
@@ -281,10 +281,10 @@ func TestService_GetBudgetsForUser_MultipleAccountsAggregation(t *testing.T) {
 	ops1 := []models.Operation{{ID: 1, AccountID: 1, Type: "expense", Sum: 100, CurrencyID: 1, CreatedAt: now}}
 	ops2 := []models.Operation{{ID: 2, AccountID: 2, Type: "expense", Sum: 50, CurrencyID: 1, CreatedAt: now}}
 
-	mockBudgetRepo.On("GetBudgetsByUser", mock.Anything, 1).Return(budgets)
-	mockAccountRepo.On("GetAccountsByUser", mock.Anything, 1).Return(accounts)
-	mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 1).Return(ops1)
-	mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 2).Return(ops2)
+	mockBudgetRepo.On("GetBudgetsByUser", mock.Anything, 1).Return(budgets, nil)
+	mockAccountRepo.On("GetAccountsByUser", mock.Anything, 1).Return(accounts, nil)
+	mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 1).Return(ops1, nil)
+	mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 2).Return(ops2, nil)
 
 	svc := NewService(mockBudgetRepo, mockAccountRepo, mockOperationRepo)
 	res, err := svc.GetBudgetsForUser(context.Background(), 1)

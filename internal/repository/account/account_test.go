@@ -24,7 +24,7 @@ func TestGetAccountsByUser_Table(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := repo.GetAccountsByUser(context.Background(), tt.userID)
+			got, _ := repo.GetAccountsByUser(context.Background(), tt.userID)
 			assert.Len(t, got, tt.expect)
 			if tt.expect == 1 {
 				assert.Equal(t, 1, got[0].ID)

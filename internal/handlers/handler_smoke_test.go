@@ -21,6 +21,6 @@ func TestHandler_Logout_Smoke(t *testing.T) {
 
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/logout", nil)
-	h.Logout(rr, req)
+	h.authHandler.Logout(rr, req)
 	require.Equal(t, http.StatusOK, rr.Code)
 }

@@ -8,11 +8,13 @@ import (
 	authUC "github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/balance"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/budget"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/operation"
 )
 
 type UseCase struct {
 	service   *service.Service
 	BalanceUC *balance.UseCase
+	OpUC      *operation.UseCase
 	BudgetUC  *budget.UseCase
 	AuthUC    *authUC.UseCase
 }
@@ -26,6 +28,7 @@ func NewUseCase(service *service.Service, store *repository.Store, jwtSecret str
 		service:   service,
 		BalanceUC: balance.NewUseCase(store),
 		BudgetUC:  budget.NewUseCase(store),
+		OpUC:      operation.NewUseCase(store),
 		AuthUC:    authUC,
 	}
 }

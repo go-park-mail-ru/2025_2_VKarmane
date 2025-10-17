@@ -16,7 +16,7 @@ func NewRepository(budgets []BudgetDB) *Repository {
 	}
 }
 
-func (r *Repository) GetBudgetsByUser(ctx context.Context, userID int) []models.Budget {
+func (r *Repository) GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error) {
 	out := make([]models.Budget, 0)
 
 	for _, b := range r.budgets {
@@ -25,5 +25,5 @@ func (r *Repository) GetBudgetsByUser(ctx context.Context, userID int) []models.
 		}
 	}
 
-	return out
+	return out, nil
 }

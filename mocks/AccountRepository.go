@@ -15,7 +15,7 @@ type AccountRepository struct {
 }
 
 // GetAccountsByUser provides a mock function with given fields: ctx, userID
-func (_m *AccountRepository) GetAccountsByUser(ctx context.Context, userID int) []models.Account {
+func (_m *AccountRepository) GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error) {
 	ret := _m.Called(ctx, userID)
 
 	if len(ret) == 0 {
@@ -23,6 +23,10 @@ func (_m *AccountRepository) GetAccountsByUser(ctx context.Context, userID int) 
 	}
 
 	var r0 []models.Account
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int) ([]models.Account, error)); ok {
+		return rf(ctx, userID)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, int) []models.Account); ok {
 		r0 = rf(ctx, userID)
 	} else {
@@ -31,7 +35,13 @@ func (_m *AccountRepository) GetAccountsByUser(ctx context.Context, userID int) 
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // NewAccountRepository creates a new instance of AccountRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
