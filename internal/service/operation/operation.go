@@ -3,8 +3,9 @@ package operation
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
+
+	pkgErrors "github.com/pkg/errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
@@ -46,7 +47,7 @@ func (s *Service) GetAccountOperations(ctx context.Context, accID int) ([]models
 	}
 	ops, err := s.operationRepo.GetOperationsByAccount(ctx, accID)
 	if err != nil {
-		return []models.Operation{}, fmt.Errorf("Failed to get account operations: %d", err)
+		return []models.Operation{}, pkgErrors.Wrap(err, "Failed to get account operations")
 	}
 
 	return ops, nil
@@ -58,7 +59,7 @@ func (s *Service) GetOperationByID(ctx context.Context, accID int, opID int) (mo
 	}
 	ops, err := s.operationRepo.GetOperationsByAccount(ctx, accID)
 	if err != nil {
-		return models.Operation{}, fmt.Errorf("Failed to get operation by id: %d", err)
+		return models.Operation{}, pkgErrors.Wrap(err, "Failed to get operation by id")
 	}
 
 	for _, op := range ops {
@@ -90,7 +91,7 @@ func (s *Service) CreateOperation(ctx context.Context, req models.CreateOperatio
 
 	createdOp, err := s.operationRepo.CreateOperation(ctx, op)
 	if err != nil {
-		return models.Operation{}, fmt.Errorf("Failed to get create operation: %d", err)
+		return models.Operation{}, pkgErrors.Wrap(err, "Failed to create operation")
 	}
 
 	return createdOp, nil
@@ -102,7 +103,7 @@ func (s *Service) UpdateOperation(ctx context.Context, req models.UpdateOperatio
 	}
 	updatedOp, err := s.operationRepo.UpdateOperation(ctx, req, accID, opID)
 	if err != nil {
-		return models.Operation{}, fmt.Errorf("Failed to update operation: %d", err)
+		return models.Operation{}, pkgErrors.Wrap(err, "Failed to update operation")
 	}
 
 	return updatedOp, nil
@@ -114,7 +115,7 @@ func (s *Service) DeleteOperation(ctx context.Context, accID int, opID int) (mod
 	}
 	deletedOp, err := s.operationRepo.DeleteOperation(ctx, accID, opID)
 	if err != nil {
-		return models.Operation{}, fmt.Errorf("Failed to delete operation: %d", err)
+		return models.Operation{}, pkgErrors.Wrap(err, "Failed to delete operation")
 	}
 
 	return deletedOp, nil

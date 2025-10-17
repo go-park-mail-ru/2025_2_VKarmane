@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	pkgErrors "github.com/pkg/errors"
+
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
@@ -35,7 +37,7 @@ func (uc *UseCase) GetAccountOperations(ctx context.Context, accID int) ([]model
 			log.Error("Failed to get ops for acc", "error", err, "user_id", accID)
 		}
 
-		return nil, fmt.Errorf("operation.GetUserOperations: %w", err)
+		return nil, pkgErrors.Wrap(err, "operation.GetUserOperations")
 	}
 
 	return opsData, nil
@@ -50,7 +52,7 @@ func (uc *UseCase) GetOperationByID(ctx context.Context, accID int, opID int) (m
 			log.Error("Failed to get op for acc", "error", err, "user_id", accID)
 		}
 
-		return models.Operation{}, fmt.Errorf("operation.GetOperationByID: %w", err)
+		return models.Operation{}, pkgErrors.Wrap(err, "operation.GetOperationByID")
 	}
 
 	for _, op := range opsData {
@@ -74,7 +76,7 @@ func (uc *UseCase) CreateOperation(ctx context.Context, req models.CreateOperati
 			log.Error("Failed to create op for acc", "error", err, "acc_id", accID)
 		}
 
-		return models.Operation{}, fmt.Errorf("operation.CreateOperation: %w", err)
+		return models.Operation{}, pkgErrors.Wrap(err, "operation.CreateOperation")
 	}
 
 	return op, nil
@@ -88,7 +90,7 @@ func (uc *UseCase) UpdateOperation(ctx context.Context, req models.UpdateOperati
 			log.Error("Failed to update op for acc", "error", err, "user_id", accID)
 		}
 
-		return models.Operation{}, fmt.Errorf("operation.UpdateOperation: %w", err)
+		return models.Operation{}, pkgErrors.Wrap(err, "operation.UpdateOperation")
 	}
 
 	return op, nil
@@ -102,7 +104,7 @@ func (uc *UseCase) DeleteOperation(ctx context.Context, accID int, opID int) (mo
 			log.Error("Failed to delete op for acc", "error", err, "acc_id", accID)
 		}
 
-		return models.Operation{}, fmt.Errorf("operation.DeleteOperation: %w", err)
+		return models.Operation{}, pkgErrors.Wrap(err, "operation.DeleteOperation")
 	}
 
 	return op, nil
