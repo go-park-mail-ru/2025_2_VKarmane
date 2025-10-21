@@ -124,6 +124,32 @@
 }
 ```
 
+#### POST /api/v1/profile/edit
+Изменить профиля текущего пользователя.
+
+**Тело запроса:**
+```json
+{
+  "first_name": "string (необязательно,  масимум 40 символов)",
+  "last_name": "string (необязательно,  масимум 40 символов)",
+  "email":     "string (обязательно, масимум 40 символов)",
+}
+```
+
+**Ответ:**
+```json
+{
+    "ID": 1,
+    "FirstName": "",
+    "LastName": "",
+    "Email": "aaaa@ya.ru",
+    "Login": "hello",
+    "Password": "",
+    "CreatedAt": "2025-10-21T20:52:08.3251177+03:00",
+    "UpdatedAt": "2025-10-21T20:52:08.3251177+03:00"
+}
+```
+
 #### GET /api/v1/balance
 Получение баланса пользователя.
 
@@ -357,9 +383,12 @@
 {
   "account_id": "int (обязательно)",
   "category_id": "int (обязательно)",
+  "receiver_id": "int (необязательно)",
   "sum": "float64 (обязательно, >=0)",
   "name": "string (обязательноб <=50 символов)",
-  "description": "string (обязательноб <=60 символов)",
+  "type": "string (обязательный)",
+  "description": "string (необязательно <=60 символов)",
+  "created_at" : "time.Time (обязательный)",
 }
 ```
 
@@ -381,6 +410,7 @@
     "transaction_id": 4,
     "account_id": 1,
     "category_id": 1,
+    "receiver_id": 1,
     "sum": 80,
     "name": "Restaurant",
     "type": "expense",
@@ -391,7 +421,7 @@
 }
 ```
 
-#### PUT /api/v1/account/{acc_id}/operations/{op_id}
+#### POST /api/v1/account/{acc_id}/operations/update/{op_id}
 Изменение операции для счета.
 
 **Параметры:**
@@ -436,7 +466,7 @@
 }
 ```
 
-#### DELETE /api/v1/account/{acc_id}/operations/{op_id}
+#### POST /api/v1/account/{acc_id}/operations/delete/{op_id}
 Изменение операции для счета.
 
 **Параметры:**

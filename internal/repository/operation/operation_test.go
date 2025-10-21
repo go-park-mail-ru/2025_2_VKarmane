@@ -3,6 +3,7 @@ package operation
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/stretchr/testify/require"
@@ -49,6 +50,7 @@ func TestCreateOperation(t *testing.T) {
 		Status:     models.OperationFinished,
 		Name:       "NewOp",
 		Sum:        999,
+		CreatedAt: time.Now(),
 	}
 
 	created, _ := repo.CreateOperation(context.Background(), op)
@@ -59,6 +61,7 @@ func TestCreateOperation(t *testing.T) {
 	require.NotZero(t, created.CreatedAt)
 	require.Len(t, repo.operations, 1)
 	require.Equal(t, "NewOp", repo.operations[0].Name)
+	require.Equal(t, time.Now(), op.CreatedAt)
 }
 
 func TestUpdateOperation(t *testing.T) {

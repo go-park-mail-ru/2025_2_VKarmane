@@ -3,7 +3,7 @@ package operation
 import (
 	"context"
 	"errors"
-	"time"
+	// "time"
 
 	pkgErrors "github.com/pkg/errors"
 
@@ -86,7 +86,8 @@ func (s *Service) CreateOperation(ctx context.Context, req models.CreateOperatio
 		Name:        req.Name,
 		Sum:         req.Sum,
 		CurrencyID:  1,
-		CreatedAt:   time.Now(),
+		CreatedAt:   req.CreatedAt,
+		ReceiverID: req.ReceiverID,
 	}
 
 	createdOp, err := s.operationRepo.CreateOperation(ctx, op)

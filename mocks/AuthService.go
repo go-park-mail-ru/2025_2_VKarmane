@@ -14,6 +14,34 @@ type AuthService struct {
 	mock.Mock
 }
 
+// EditUserByID provides a mock function with given fields: ctx, req, userID
+func (_m *AuthService) EditUserByID(ctx context.Context, req models.UpdateUserRequest, userID int) (models.User, error) {
+	ret := _m.Called(ctx, req, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EditUserByID")
+	}
+
+	var r0 models.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UpdateUserRequest, int) (models.User, error)); ok {
+		return rf(ctx, req, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.UpdateUserRequest, int) models.User); ok {
+		r0 = rf(ctx, req, userID)
+	} else {
+		r0 = ret.Get(0).(models.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.UpdateUserRequest, int) error); ok {
+		r1 = rf(ctx, req, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUserByID provides a mock function with given fields: ctx, userID
 func (_m *AuthService) GetUserByID(ctx context.Context, userID int) (models.User, error) {
 	ret := _m.Called(ctx, userID)

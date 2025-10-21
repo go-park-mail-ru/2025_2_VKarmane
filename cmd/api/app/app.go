@@ -9,14 +9,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gorilla/mux"
+
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
-
-	"github.com/gorilla/mux"
 )
 
 func Run() error {

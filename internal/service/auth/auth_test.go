@@ -207,3 +207,81 @@ func TestService_GetUserByID(t *testing.T) {
 		})
 	}
 }
+
+func TestService_EditUserByID(t *testing.T) {
+	tests := []struct {
+		name          string
+		req           models.UpdateUserRequest
+		userID        int
+		mockUser      models.User
+		mockError     error
+		expectedUser  models.User
+		expectedError string
+	}{
+		{
+			name: "successful edit user",
+			req: models.UpdateUserRequest{
+				FirstName: "John",
+				LastName:  "Doe",
+				Email:     "john@example.com",
+			},
+			userID: 1,
+			mockUser: models.User{
+				ID:        1,
+				FirstName: "John",
+				LastName:  "Doe",
+				Email:     "john@example.com",
+				Login:     "johndoe",
+				CreatedAt: time.Now(),
+			},
+			mockError: nil,
+			expectedUser: models.User{
+				ID:        1,
+				FirstName: "John",
+				LastName:  "Doe",
+				Email:     "john@example.com",
+				Login:     "johndoe",
+			},
+			expectedError: "",
+		},
+		{
+			name: "edit user conflict error",
+			req: models.UpdateUserRequest{
+				FirstName: "John",
+				LastName:  "Doe",
+				Email:     "john@example.com",
+			},
+			userID:        1,
+			mockUser:      models.User{},
+			mockError:     errors.New("email already exists"),
+			expectedUser:  models.User{},
+			expectedError: "auth.EditUserByID: email already exists",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockUserRepo := &mocks.UserRepository{}
+			service := NewService(mockUserRepo, "test-secret")
+
+			mockUserRepo.On("EditUserByID", mock.Anything, tt.req, tt.userID).
+				Return(tt.mockUser, tt.mockError)
+
+			user, err := service.EditUserByID(context.Background(), tt.req, tt.userID)
+
+			if tt.expectedError != "" {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedUser.ID, user.ID)
+				assert.Equal(t, tt.expectedUser.FirstName, user.FirstName)
+				assert.Equal(t, tt.expectedUser.LastName, user.LastName)
+				assert.Equal(t, tt.expectedUser.Email, user.Email)
+				assert.Equal(t, tt.expectedUser.Login, user.Login)
+			}
+
+			mockUserRepo.AssertExpectations(t)
+		})
+	}
+}

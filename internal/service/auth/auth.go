@@ -122,3 +122,17 @@ func (s *Service) GetUserByID(ctx context.Context, userID int) (models.User, err
 
 	return user, nil
 }
+
+func (s *Service) EditUserByID(ctx context.Context, req models.UpdateUserRequest, userID int) (models.User, error) {
+	log := logger.FromContext(ctx)
+	user, err := s.userRepo.EditUserByID(ctx, req, userID)
+	if err != nil {
+		if log != nil {
+			log.Error("Failed to get update user by ID", "error", err, "user_id", userID)
+		}
+
+		return models.User{}, pkgErrors.Wrap(err, "auth.EditUserByID")
+	}
+
+	return user, nil
+}

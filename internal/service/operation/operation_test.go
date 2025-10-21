@@ -58,6 +58,7 @@ func TestService_CreateOperation(t *testing.T) {
 		Name:        "Lunch",
 		Description: "Food",
 		Sum:         250,
+		CreatedAt: time.Now(),
 	}
 
 	expectedOp := models.Operation{
@@ -88,12 +89,14 @@ func TestService_UpdateOperation(t *testing.T) {
 	opID := 42
 	newName := "Updated"
 	newSum := float64(1000)
+	created_at := time.Now()
 
 	mockSvc := mocks.NewOperationService(t)
 
 	req := models.UpdateOperationRequest{
 		Name: &newName,
 		Sum:  &newSum,
+		CreatedAt: &created_at,
 	}
 
 	expectedOp := models.Operation{
@@ -101,6 +104,7 @@ func TestService_UpdateOperation(t *testing.T) {
 		AccountID: accID,
 		Name:      newName,
 		Sum:       newSum,
+		CreatedAt: created_at,
 	}
 
 	mockSvc.On("UpdateOperation", mock.Anything, req, accID, opID).Return(expectedOp, nil).Once()

@@ -108,6 +108,39 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	httputil.Success(w, r, user)
 }
 
+func (h *Handler) EditUser(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.GetUserIDFromContext(r.Context())
+	if !ok {
+		httputil.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
+		return
+	}
+
+	var req models.UpdateUserRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputil.ValidationError(w, r, "Некорректный формат данных", "body")
+		return
+	}
+
+	validationErrors := utils.ValidateStruct(req)
+	if len(validationErrors) > 0 {
+		httputil.ValidationErrors(w, r, validationErrors)
+		return
+	}
+
+	userInstance, err := h.authUC.EditUserByID(r.Context(), req, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, user.EmailExistsErr):
+			httputil.ConflictError(w, r, "Пользователь с таким email уже существует", models.ErrCodeEmailExists)
+		default:
+			httputil.ConflictError(w, r, "Пользователь уже существует", models.ErrCodeUserExists)
+		}
+		return
+	}
+	httputil.Success(w, r, userInstance)
+}
+
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	isProduction := os.Getenv("ENV") == "production"
 	utils.ClearAuthCookie(w, isProduction)

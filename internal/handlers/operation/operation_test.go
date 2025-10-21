@@ -3,12 +3,13 @@ package operation
 import (
 	"bytes"
 	"context"
+	"time"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
+	
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/gorilla/mux"
@@ -89,7 +90,7 @@ func TestGetOperationByIDNotFound(t *testing.T) {
 func TestCreateOperationSuccess(t *testing.T) {
 	mockUC := &MockOperationUseCase{
 		CreateOp: func(ctx context.Context, req models.CreateOperationRequest, accID int) (models.Operation, error) {
-			return models.Operation{ID: 1, Name: req.Name, Sum: req.Sum}, nil
+			return models.Operation{ID: 1, Name: req.Name, Sum: req.Sum, CreatedAt: req.CreatedAt}, nil
 		},
 	}
 	h := NewHandler(mockUC)
@@ -101,6 +102,7 @@ func TestCreateOperationSuccess(t *testing.T) {
 		Name:        "test",
 		Description: "desc",
 		Sum:         100,
+		CreatedAt: time.Now(),
 	}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -181,12 +183,12 @@ func TestUpdateOperationSuccess(t *testing.T) {
 			return models.Operation{ID: opID, AccountID: accID, Name: "Old name"}, nil
 		},
 		UpdateOp: func(ctx context.Context, req models.UpdateOperationRequest, accID, opID int) (models.Operation, error) {
-			return models.Operation{ID: opID, AccountID: accID, Name: *req.Name}, nil
+			return models.Operation{ID: opID, AccountID: accID, Name: *req.Name, CreatedAt: *req.CreatedAt}, nil
 		},
 	}
 	h := NewHandler(mockUC)
 
-	reqBody := models.UpdateOperationRequest{Name: utilsPtr("Updated name")}
+	reqBody := models.UpdateOperationRequest{Name: utilsPtr("Updated name"), CreatedAt: utilsPtr(time.Now())}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 
