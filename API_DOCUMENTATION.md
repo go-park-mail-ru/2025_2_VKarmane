@@ -124,7 +124,7 @@
 }
 ```
 
-#### POST /api/v1/profile/edit
+#### PUT /api/v1/profile/edit
 Изменить профиля текущего пользователя.
 
 **Тело запроса:**
@@ -421,7 +421,7 @@
 }
 ```
 
-#### POST /api/v1/account/{acc_id}/operations/update/{op_id}
+#### PUT /api/v1/account/{acc_id}/operations/{op_id}
 Изменение операции для счета.
 
 **Параметры:**
@@ -466,8 +466,8 @@
 }
 ```
 
-#### POST /api/v1/account/{acc_id}/operations/delete/{op_id}
-Изменение операции для счета.
+#### DELETE /api/v1/account/{acc_id}/operations/delete/{op_id}
+Удаление операции для счета.
 
 **Параметры:**
 - `acc_id` - ID счета
