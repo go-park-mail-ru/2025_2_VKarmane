@@ -50,7 +50,7 @@ func TestCreateOperation(t *testing.T) {
 		Status:     models.OperationFinished,
 		Name:       "NewOp",
 		Sum:        999,
-		CreatedAt: time.Now(),
+		CreatedAt:  time.Now(),
 	}
 
 	created, _ := repo.CreateOperation(context.Background(), op)

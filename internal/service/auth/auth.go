@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	pkgErrors "github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
@@ -33,7 +33,7 @@ func (s *Service) Register(ctx context.Context, req models.RegisterRequest) (mod
 			log.Error("Failed to hash password", "error", err)
 		}
 
-		return models.AuthResponse{}, pkgErrors.Wrap(err, "auth.Register: failed to hash password")
+		return models.AuthResponse{}, pkgerrors.Wrap(err, "auth.Register: failed to hash password")
 	}
 
 	user := models.User{
@@ -50,12 +50,12 @@ func (s *Service) Register(ctx context.Context, req models.RegisterRequest) (mod
 			log.Error("Failed to create user", "error", err, "login", req.Login)
 		}
 
-		return models.AuthResponse{}, pkgErrors.Wrap(err, "auth.Register: failed to create user")
+		return models.AuthResponse{}, pkgerrors.Wrap(err, "auth.Register: failed to create user")
 	}
 
 	token, err := utils.GenerateJWT(createdUser.ID, createdUser.Login, s.jwtSecret)
 	if err != nil {
-		return models.AuthResponse{}, pkgErrors.Wrap(err, "auth.Register: failed to generate token")
+		return models.AuthResponse{}, pkgerrors.Wrap(err, "auth.Register: failed to generate token")
 	}
 
 	return models.AuthResponse{
@@ -72,7 +72,7 @@ func (s *Service) Login(ctx context.Context, req models.LoginRequest) (models.Au
 			log.Warn("Login attempt with invalid credentials", "login", req.Login, "error", err)
 		}
 
-		return models.AuthResponse{}, pkgErrors.Wrap(err, "auth.Login: invalid credentials")
+		return models.AuthResponse{}, pkgerrors.Wrap(err, "auth.Login: invalid credentials")
 	}
 
 	valid, err := utils.VerifyPassword(req.Password, user.Password)
@@ -81,7 +81,7 @@ func (s *Service) Login(ctx context.Context, req models.LoginRequest) (models.Au
 			log.Error("Failed to verify password", "error", err, "user_id", user.ID)
 		}
 
-		return models.AuthResponse{}, pkgErrors.Wrap(err, "auth.Login: failed to verify password")
+		return models.AuthResponse{}, pkgerrors.Wrap(err, "auth.Login: failed to verify password")
 	}
 
 	if !valid {
@@ -98,7 +98,7 @@ func (s *Service) Login(ctx context.Context, req models.LoginRequest) (models.Au
 			log.Error("Failed to generate JWT token", "error", err, "user_id", user.ID)
 		}
 
-		return models.AuthResponse{}, pkgErrors.Wrap(err, "auth.Login: failed to generate token")
+		return models.AuthResponse{}, pkgerrors.Wrap(err, "auth.Login: failed to generate token")
 	}
 
 	user.Password = ""
@@ -117,7 +117,7 @@ func (s *Service) GetUserByID(ctx context.Context, userID int) (models.User, err
 			log.Error("Failed to get user by ID", "error", err, "user_id", userID)
 		}
 
-		return models.User{}, pkgErrors.Wrap(err, "auth.GetUserByID")
+		return models.User{}, pkgerrors.Wrap(err, "auth.GetUserByID")
 	}
 
 	return user, nil
@@ -131,7 +131,7 @@ func (s *Service) EditUserByID(ctx context.Context, req models.UpdateUserRequest
 			log.Error("Failed to get update user by ID", "error", err, "user_id", userID)
 		}
 
-		return models.User{}, pkgErrors.Wrap(err, "auth.EditUserByID")
+		return models.User{}, pkgerrors.Wrap(err, "auth.EditUserByID")
 	}
 
 	return user, nil

@@ -113,14 +113,14 @@
 **Ответ:**
 ```json
 {
-  "ID": 1,
-  "FirstName": "Vlad",
-  "LastName": "Sigma",
-  "Email": "vlad@example.com", 
-  "Login": "hello",
+  "user_id": 1,
+  "first_name": "Vlad",
+  "last_name": "Sigma",
+  "email": "aaaa@ya.ru",
+  "login": "hello",
   "Password": "",
-  "CreatedAt": "2025-09-26T18:46:15.000000+03:00",
-  "UpdatedAt": "2025-09-26T18:46:15.000000+03:00"
+  "created_at": "2025-10-21T20:52:08.3251177+03:00",
+  "updated_at": "2025-10-21T20:52:08.3251177+03:00"
 }
 ```
 
@@ -139,14 +139,14 @@
 **Ответ:**
 ```json
 {
-    "ID": 1,
-    "FirstName": "",
-    "LastName": "",
-    "Email": "aaaa@ya.ru",
-    "Login": "hello",
+    "user_id": 1,
+    "first_name": "",
+    "last_name": "",
+    "email": "aaaa@ya.ru",
+    "login": "hello",
     "Password": "",
-    "CreatedAt": "2025-10-21T20:52:08.3251177+03:00",
-    "UpdatedAt": "2025-10-21T20:52:08.3251177+03:00"
+    "created_at": "2025-10-21T20:52:08.3251177+03:00",
+    "updated_at": "2025-10-21T20:52:08.3251177+03:00"
 }
 ```
 

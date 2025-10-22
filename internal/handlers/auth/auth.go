@@ -100,12 +100,13 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.authUC.GetUserByID(r.Context(), userID)
+	userDTO := UserToApi(user)
 	if err != nil {
 		httputil.NotFoundError(w, r, "Пользователь не найден")
 		return
 	}
 
-	httputil.Success(w, r, user)
+	httputil.Success(w, r, userDTO)
 }
 
 func (h *Handler) EditUser(w http.ResponseWriter, r *http.Request) {
@@ -138,7 +139,8 @@ func (h *Handler) EditUser(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	httputil.Success(w, r, userInstance)
+	userDTO := UserToApi(userInstance)
+	httputil.Success(w, r, userDTO)
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {

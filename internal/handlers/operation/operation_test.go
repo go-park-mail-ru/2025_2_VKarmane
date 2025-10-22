@@ -3,18 +3,26 @@ package operation
 import (
 	"bytes"
 	"context"
-	"time"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	
+	"time"
+
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 )
+
+type Clock struct {
+	FixedTime time.Time
+}
+
+func (f Clock) Now() time.Time {
+	return f.FixedTime
+}
 
 type MockOperationUseCase struct {
 	GetOps    func(ctx context.Context, accID int) ([]models.Operation, error)
@@ -38,6 +46,10 @@ func (m *MockOperationUseCase) UpdateOperation(ctx context.Context, req models.U
 }
 func (m *MockOperationUseCase) DeleteOperation(ctx context.Context, accID, opID int) (models.Operation, error) {
 	return m.DeleteOp(ctx, accID, opID)
+}
+
+func (m *MockOperationUseCase) GetClock() time.Time {
+	return (Clock{FixedTime: time.Now()}).Now()
 }
 
 func TestGetAccountOperationsUnauthorized(t *testing.T) {
@@ -102,7 +114,7 @@ func TestCreateOperationSuccess(t *testing.T) {
 		Name:        "test",
 		Description: "desc",
 		Sum:         100,
-		CreatedAt: time.Now(),
+		CreatedAt:   mockUC.GetClock(),
 	}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)
@@ -188,7 +200,7 @@ func TestUpdateOperationSuccess(t *testing.T) {
 	}
 	h := NewHandler(mockUC)
 
-	reqBody := models.UpdateOperationRequest{Name: utilsPtr("Updated name"), CreatedAt: utilsPtr(time.Now())}
+	reqBody := models.UpdateOperationRequest{Name: utilsPtr("Updated name"), CreatedAt: utilsPtr(mockUC.GetClock())}
 	bodyBytes, err := json.Marshal(reqBody)
 	require.NoError(t, err)
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	pkgErrors "github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
@@ -38,7 +38,7 @@ func (uc *UseCase) GetBudgetsForUser(ctx context.Context, userID int) ([]models.
 			log.Error("Failed to get budgets for user", "error", err, "user_id", userID)
 		}
 
-		return nil, pkgErrors.Wrap(err, "budget.GetBudgetsForUser")
+		return nil, pkgerrors.Wrap(err, "budget.GetBudgetsForUser")
 	}
 
 	return budgetsData, nil
@@ -52,7 +52,7 @@ func (uc *UseCase) GetBudgetByID(ctx context.Context, userID, budgetID int) (mod
 			log.Error("Failed to get budgets for user", "error", err, "user_id", userID)
 		}
 
-		return models.Budget{}, pkgErrors.Wrap(err, "budget.GetBudgetByID")
+		return models.Budget{}, pkgerrors.Wrap(err, "budget.GetBudgetByID")
 	}
 
 	for _, budget := range budgetsData {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	pkgErrors "github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
@@ -34,7 +34,7 @@ func (uc *UseCase) GetBalanceForUser(ctx context.Context, userID int) ([]models.
 			log.Error("Failed to get balance for user", "error", err, "user_id", userID)
 		}
 
-		return nil, pkgErrors.Wrap(err, "balance.GetBalanceForUser")
+		return nil, pkgerrors.Wrap(err, "balance.GetBalanceForUser")
 	}
 
 	return accounts, nil
@@ -48,7 +48,7 @@ func (uc *UseCase) GetAccountByID(ctx context.Context, userID, accountID int) (m
 			log.Error("Failed to get balance for user", "error", err, "user_id", userID)
 		}
 
-		return models.Account{}, pkgErrors.Wrap(err, "balance.GetAccountByID")
+		return models.Account{}, pkgerrors.Wrap(err, "balance.GetAccountByID")
 	}
 
 	for _, account := range accounts {

@@ -125,7 +125,7 @@ func (r *Repository) GetAllUsers() []dto.UserDB {
 	return r.users
 }
 
-func (r *Repository) EditUserByID (ctx context.Context, req models.UpdateUserRequest, id int) (models.User, error) {
+func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateUserRequest, id int) (models.User, error) {
 	log := logger.FromContext(ctx)
 	for i := range r.users {
 		if r.users[i].ID != id && r.users[i].Email == req.Email {
@@ -141,11 +141,11 @@ func (r *Repository) EditUserByID (ctx context.Context, req models.UpdateUserReq
 			r.users[i].LastName = req.LastName
 
 			return models.User{
-				ID: r.users[i].ID,
+				ID:        r.users[i].ID,
 				FirstName: r.users[i].FirstName,
-				LastName: r.users[i].LastName,
-				Email: r.users[i].Email,
-				Login: r.users[i].Login,
+				LastName:  r.users[i].LastName,
+				Email:     r.users[i].Email,
+				Login:     r.users[i].Login,
 				CreatedAt: r.users[i].CreatedAt,
 				UpdatedAt: r.users[i].UpdatedAt,
 			}, nil

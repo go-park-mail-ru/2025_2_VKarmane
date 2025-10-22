@@ -12,6 +12,14 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+type Clock struct {
+	FixedTime time.Time
+}
+
+func (f Clock) Now() time.Time {
+	return f.FixedTime
+}
+
 func TestGetAccountOperations_Success(t *testing.T) {
 	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
@@ -86,10 +94,11 @@ func TestGetOperationByID_ErrorFromService(t *testing.T) {
 }
 
 func TestCreateOperation_Success(t *testing.T) {
+	clockInstance := Clock{FixedTime: time.Now()}
 	mockSvc := mocks.NewOperationService(t)
 	uc := &UseCase{opSvc: mockSvc}
 
-	req := models.CreateOperationRequest{Name: "test", CreatedAt: time.Now()}
+	req := models.CreateOperationRequest{Name: "test", CreatedAt: clockInstance.Now()}
 	expected := models.Operation{ID: 42, AccountID: 5, Name: "test", CreatedAt: req.CreatedAt}
 
 	mockSvc.On("CreateOperation", mock.Anything, req, 5).

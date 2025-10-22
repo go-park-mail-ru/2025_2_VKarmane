@@ -51,7 +51,7 @@ func (r *Repository) CreateOperation(ctx context.Context, op models.Operation) (
 		Sum:         op.Sum,
 		CurrencyID:  op.CurrencyID,
 		CreatedAt:   op.CreatedAt,
-		ReceiverID: op.ReceiverID,
+		ReceiverID:  op.ReceiverID,
 	}
 
 	r.operations = append(r.operations, opDB)
