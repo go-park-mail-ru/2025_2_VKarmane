@@ -106,7 +106,7 @@ func TestCreateOperationSuccess(t *testing.T) {
 	h.CreateOperation(rr, req)
 
 	require.Equal(t, http.StatusCreated, rr.Code)
-	// mockUC.AssertExpectations(t)
+	mockUC.AssertExpectations(t)
 }
 
 func TestDeleteOperationSuccess(t *testing.T) {
