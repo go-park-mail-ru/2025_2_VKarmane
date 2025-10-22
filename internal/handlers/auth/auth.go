@@ -12,16 +12,18 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputil "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 )
 
 type Handler struct {
 	authUC AuthUseCase
+	clock  clock.Clock
 	logger logger.Logger
 }
 
-func NewHandler(authUC AuthUseCase, logger logger.Logger) *Handler {
-	return &Handler{authUC: authUC, logger: logger}
+func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger) *Handler {
+	return &Handler{authUC: authUC, clock: clck, logger: logger}
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {

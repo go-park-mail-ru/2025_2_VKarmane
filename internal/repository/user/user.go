@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/dto"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 var LoginExistsErr = errors.New("login exists")
@@ -16,10 +17,11 @@ var UserNotFound = errors.New("not Found")
 
 type Repository struct {
 	users []dto.UserDB
+	clock clock.Clock
 }
 
-func NewRepository(users []dto.UserDB) *Repository {
-	return &Repository{users: users}
+func NewRepository(users []dto.UserDB, clck clock.Clock) *Repository {
+	return &Repository{users: users, clock: clck}
 }
 
 func (r *Repository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
@@ -48,7 +50,7 @@ func (r *Repository) CreateUser(ctx context.Context, user models.User) (models.U
 		}
 	}
 
-	now := time.Now()
+	now := r.clock.Now()
 	userDB := dto.UserDB{
 		ID:        newID,
 		FirstName: user.FirstName,
@@ -127,6 +129,7 @@ func (r *Repository) GetAllUsers() []dto.UserDB {
 
 func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateUserRequest, id int) (models.User, error) {
 	log := logger.FromContext(ctx)
+	now := time.Now()
 	for i := range r.users {
 		if r.users[i].ID != id && r.users[i].Email == req.Email {
 			if log != nil {
@@ -147,7 +150,7 @@ func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateUserRequ
 				Email:     r.users[i].Email,
 				Login:     r.users[i].Login,
 				CreatedAt: r.users[i].CreatedAt,
-				UpdatedAt: r.users[i].UpdatedAt,
+				UpdatedAt: now,
 			}, nil
 		}
 	}

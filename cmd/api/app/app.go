@@ -56,7 +56,7 @@ func Run() error {
 	protected.Use(middleware.RequestLoggerMiddleware(appLogger))
 	protected.Use(middleware.SecurityLoggerMiddleware(appLogger))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
-	
+
 	handler.Register(public, protected)
 
 	// Добавляем обработку OPTIONS запросов для всех маршрутов (для preflight запросов)

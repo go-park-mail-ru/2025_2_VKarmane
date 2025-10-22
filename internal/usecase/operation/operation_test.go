@@ -4,21 +4,13 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
-
-type Clock struct {
-	FixedTime time.Time
-}
-
-func (f Clock) Now() time.Time {
-	return f.FixedTime
-}
 
 func TestGetAccountOperations_Success(t *testing.T) {
 	mockSvc := mocks.NewOperationService(t)
@@ -94,11 +86,10 @@ func TestGetOperationByID_ErrorFromService(t *testing.T) {
 }
 
 func TestCreateOperation_Success(t *testing.T) {
-	clockInstance := Clock{FixedTime: time.Now()}
 	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc}
+	uc := &UseCase{opSvc: mockSvc, clock: clock.RealClock{}}
 
-	req := models.CreateOperationRequest{Name: "test", CreatedAt: clockInstance.Now()}
+	req := models.CreateOperationRequest{Name: "test", CreatedAt: uc.clock.Now()}
 	expected := models.Operation{ID: 42, AccountID: 5, Name: "test", CreatedAt: req.CreatedAt}
 
 	mockSvc.On("CreateOperation", mock.Anything, req, 5).

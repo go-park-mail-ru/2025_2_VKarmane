@@ -4,15 +4,18 @@ import (
 	"context"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type UseCase struct {
 	authService AuthService
+	clock       clock.Clock
 }
 
-func NewUseCase(authService AuthService) *UseCase {
+func NewUseCase(authService AuthService, clck clock.Clock) *UseCase {
 	return &UseCase{
 		authService: authService,
+		clock:       clck,
 	}
 }
 

@@ -13,20 +13,23 @@ import (
 	budgetRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/budget"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type UseCase struct {
 	budgetSvc BudgetService
+	clock     clock.Clock
 }
 
-func NewUseCase(store *repository.Store) *UseCase {
-	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts)
-	budgetRepo := budgetRepo.NewRepository(store.Budget)
-	operationRepo := operation.NewRepository(store.Operations)
-	budgetService := budget.NewService(budgetRepo, accountRepo, operationRepo)
+func NewUseCase(store *repository.Store, clck clock.Clock) *UseCase {
+	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts, clck)
+	budgetRepo := budgetRepo.NewRepository(store.Budget, clck)
+	operationRepo := operation.NewRepository(store.Operations, clck)
+	budgetService := budget.NewService(budgetRepo, accountRepo, operationRepo, clck)
 
 	return &UseCase{
 		budgetSvc: budgetService,
+		clock:     clck,
 	}
 }
 

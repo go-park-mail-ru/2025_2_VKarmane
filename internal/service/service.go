@@ -10,6 +10,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/balance"
 	budgetService "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/budget"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type Service struct {
@@ -20,15 +21,16 @@ type Service struct {
 }
 
 func NewService(store *repository.Store) *Service {
-	userRepo := user.NewRepository(store.Users)
-	accountRepo := accountRepo.NewRepository(store.Accounts, store.UserAccounts)
-	budgetRepo := budgetRepo.NewRepository(store.Budget)
-	operationRepo := opRepo.NewRepository(store.Operations)
+	realClock := clock.RealClock{}
+	userRepo := user.NewRepository(store.Users, realClock)
+	accountRepo := accountRepo.NewRepository(store.Accounts, store.UserAccounts, realClock)
+	budgetRepo := budgetRepo.NewRepository(store.Budget, realClock)
+	operationRepo := opRepo.NewRepository(store.Operations, realClock)
 
-	authService := auth.NewService(userRepo, "your-secret-key")
-	balanceService := balance.NewService(accountRepo)
-	budgetService := budgetService.NewService(budgetRepo, accountRepo, operationRepo)
-	opService := operation.NewService(accountRepo, operationRepo)
+	authService := auth.NewService(userRepo, "your-secret-key", realClock)
+	balanceService := balance.NewService(accountRepo, realClock)
+	budgetService := budgetService.NewService(budgetRepo, accountRepo, operationRepo, realClock)
+	opService := operation.NewService(accountRepo, operationRepo, realClock)
 
 	return &Service{
 		AuthUC:    authService,

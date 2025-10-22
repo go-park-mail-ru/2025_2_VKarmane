@@ -12,6 +12,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -19,7 +20,8 @@ import (
 
 func TestRegisterSuccess(t *testing.T) {
 	m := mocks.NewAuthUseCase(t)
-	h := NewHandler(m, logger.NewSlogLogger())
+	realClock := clock.RealClock{}
+	h := NewHandler(m, realClock, logger.NewSlogLogger())
 
 	reqBody := models.RegisterRequest{Email: "u@e.co", Login: "user1", Password: "password"}
 	b, _ := json.Marshal(reqBody)
@@ -34,8 +36,9 @@ func TestRegisterSuccess(t *testing.T) {
 }
 
 func TestRegisterValidationError(t *testing.T) {
+	realClock := clock.RealClock{}
 	m := mocks.NewAuthUseCase(t)
-	h := NewHandler(m, logger.NewSlogLogger())
+	h := NewHandler(m, realClock, logger.NewSlogLogger())
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewBufferString("{"))
 	rr := httptest.NewRecorder()
@@ -44,8 +47,9 @@ func TestRegisterValidationError(t *testing.T) {
 }
 
 func TestLoginUnauthorizedPaths(t *testing.T) {
+	realClock := clock.RealClock{}
 	m := mocks.NewAuthUseCase(t)
-	h := NewHandler(m, logger.NewSlogLogger())
+	h := NewHandler(m, realClock, logger.NewSlogLogger())
 
 	body := models.LoginRequest{Login: "user", Password: "pass123"}
 	b, _ := json.Marshal(body)
@@ -58,8 +62,9 @@ func TestLoginUnauthorizedPaths(t *testing.T) {
 }
 
 func TestGetProfileUnauthorized(t *testing.T) {
+	realClock := clock.RealClock{}
 	m := mocks.NewAuthUseCase(t)
-	h := NewHandler(m, logger.NewSlogLogger())
+	h := NewHandler(m, realClock, logger.NewSlogLogger())
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/profile", nil)
 	rr := httptest.NewRecorder()
@@ -68,8 +73,9 @@ func TestGetProfileUnauthorized(t *testing.T) {
 }
 
 func TestEditUserSuccess(t *testing.T) {
+	realClock := clock.RealClock{}
 	m := mocks.NewAuthUseCase(t)
-	h := NewHandler(m, logger.NewSlogLogger())
+	h := NewHandler(m, realClock, logger.NewSlogLogger())
 
 	reqBody := models.UpdateUserRequest{
 		FirstName: "John",
@@ -90,8 +96,9 @@ func TestEditUserSuccess(t *testing.T) {
 }
 
 func TestEditUserUnauthorized(t *testing.T) {
+	realClock := clock.RealClock{}
 	m := mocks.NewAuthUseCase(t)
-	h := NewHandler(m, logger.NewSlogLogger())
+	h := NewHandler(m, realClock, logger.NewSlogLogger())
 
 	reqBody := models.UpdateUserRequest{
 		FirstName: "John",

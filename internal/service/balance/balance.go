@@ -6,14 +6,16 @@ import (
 	pkgerrors "github.com/pkg/errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type Service struct {
 	accountRepo AccountRepository
+	clock       clock.Clock
 }
 
-func NewService(accountRepo AccountRepository) *Service {
-	return &Service{accountRepo: accountRepo}
+func NewService(accountRepo AccountRepository, clck clock.Clock) *Service {
+	return &Service{accountRepo: accountRepo, clock: clck}
 }
 
 func (s *Service) GetBalanceForUser(ctx context.Context, userID int) ([]models.Account, error) {

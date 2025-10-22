@@ -3,14 +3,21 @@ package account
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 func TestGetAccountsByUser_Table(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := NewRepository(
 		[]AccountDB{{ID: 1, Balance: 10, Type: "card"}, {ID: 2, Balance: 5, Type: "cash"}},
 		[]UserAccountDB{{ID: 1, UserID: 1, AccountID: 1}},
+		fixedClock,
 	)
 
 	tests := []struct {

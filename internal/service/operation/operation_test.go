@@ -12,14 +12,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type Clock struct {
-	FixedTime time.Time
-}
-
-func (f Clock) Now() time.Time {
-	return f.FixedTime
-}
-
 const testUserID = 42
 
 func contextWithUserID() context.Context {
@@ -54,7 +46,6 @@ func TestService_GetAccountOperations(t *testing.T) {
 }
 
 func TestService_CreateOperation(t *testing.T) {
-	clockInstance := Clock{FixedTime: time.Now()}
 	ctx := contextWithUserID()
 	accID := 1
 
@@ -67,7 +58,6 @@ func TestService_CreateOperation(t *testing.T) {
 		Name:        "Lunch",
 		Description: "Food",
 		Sum:         250,
-		CreatedAt:   clockInstance.Now(),
 	}
 
 	expectedOp := models.Operation{
@@ -75,7 +65,6 @@ func TestService_CreateOperation(t *testing.T) {
 		AccountID: accID,
 		Name:      "Lunch",
 		Status:    models.OperationFinished,
-		CreatedAt: clockInstance.Now(),
 	}
 
 	mockSvc.On("CreateOperation", mock.Anything, req, accID).Return(expectedOp, nil).Once()
@@ -93,20 +82,17 @@ func TestService_CreateOperation(t *testing.T) {
 }
 
 func TestService_UpdateOperation(t *testing.T) {
-	clockInstance := Clock{FixedTime: time.Now()}
 	ctx := contextWithUserID()
 	accID := 5
 	opID := 42
 	newName := "Updated"
 	newSum := float64(1000)
-	created_at := clockInstance.Now()
 
 	mockSvc := mocks.NewOperationService(t)
 
 	req := models.UpdateOperationRequest{
-		Name:      &newName,
-		Sum:       &newSum,
-		CreatedAt: &created_at,
+		Name: &newName,
+		Sum:  &newSum,
 	}
 
 	expectedOp := models.Operation{
@@ -114,7 +100,6 @@ func TestService_UpdateOperation(t *testing.T) {
 		AccountID: accID,
 		Name:      newName,
 		Sum:       newSum,
-		CreatedAt: created_at,
 	}
 
 	mockSvc.On("UpdateOperation", mock.Anything, req, accID, opID).Return(expectedOp, nil).Once()

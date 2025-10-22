@@ -6,19 +6,22 @@ import (
 	pkgerrors "github.com/pkg/errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type Service struct {
 	budgetRepo    BudgetRepository
 	accountRepo   AccountRepository
 	operationRepo OperationRepository
+	clock         clock.Clock
 }
 
-func NewService(budgetRepo BudgetRepository, accountRepo AccountRepository, operationRepo OperationRepository) *Service {
+func NewService(budgetRepo BudgetRepository, accountRepo AccountRepository, operationRepo OperationRepository, clck clock.Clock) *Service {
 	return &Service{
 		budgetRepo:    budgetRepo,
 		accountRepo:   accountRepo,
 		operationRepo: operationRepo,
+		clock:         clck,
 	}
 }
 

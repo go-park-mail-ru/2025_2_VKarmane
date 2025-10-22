@@ -4,17 +4,20 @@ import (
 	"context"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type Repository struct {
 	accounts     []AccountDB
 	userAccounts []UserAccountDB
+	clock        clock.Clock
 }
 
-func NewRepository(accounts []AccountDB, userAccounts []UserAccountDB) *Repository {
+func NewRepository(accounts []AccountDB, userAccounts []UserAccountDB, clck clock.Clock) *Repository {
 	return &Repository{
 		accounts:     accounts,
 		userAccounts: userAccounts,
+		clock:        clck,
 	}
 }
 

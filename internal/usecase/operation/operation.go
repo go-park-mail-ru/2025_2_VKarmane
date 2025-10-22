@@ -12,19 +12,22 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
 	opRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type UseCase struct {
 	opSvc OperationService
+	clock clock.Clock
 }
 
-func NewUseCase(store *repository.Store) *UseCase {
-	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts)
-	opRepo := opRepo.NewRepository(store.Operations)
-	opService := operation.NewService(accountRepo, opRepo)
+func NewUseCase(store *repository.Store, clck clock.Clock) *UseCase {
+	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts, clck)
+	opRepo := opRepo.NewRepository(store.Operations, clck)
+	opService := operation.NewService(accountRepo, opRepo, clck)
 
 	return &UseCase{
 		opSvc: opService,
+		clock: clck,
 	}
 }
 

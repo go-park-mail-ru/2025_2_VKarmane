@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 
-	// "time"
-
 	pkgerrors "github.com/pkg/errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 var ErrForbidden = errors.New("forbidden")
@@ -17,12 +16,14 @@ var ErrForbidden = errors.New("forbidden")
 type Service struct {
 	accountRepo   AccountRepository
 	operationRepo OperationRepository
+	clock         clock.Clock
 }
 
-func NewService(accountRepo AccountRepository, operationRepo OperationRepository) *Service {
+func NewService(accountRepo AccountRepository, operationRepo OperationRepository, clck clock.Clock) *Service {
 	return &Service{
 		accountRepo:   accountRepo,
 		operationRepo: operationRepo,
+		clock:         clck,
 	}
 }
 

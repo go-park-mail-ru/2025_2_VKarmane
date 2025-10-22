@@ -12,14 +12,3 @@ type UserAPI struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
-
-// type User struct {
-// 	ID        int
-// 	FirstName string
-// 	LastName  string
-// 	Email     string
-// 	Login     string
-// 	Password  string
-// 	CreatedAt time.Time
-// 	UpdatedAt time.Time
-// }

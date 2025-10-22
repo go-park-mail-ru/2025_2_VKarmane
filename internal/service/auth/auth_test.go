@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestService_Register(t *testing.T) {
+	realClock := clock.RealClock{}
 	tests := []struct {
 		name           string
 		request        models.RegisterRequest
@@ -35,7 +36,7 @@ func TestService_Register(t *testing.T) {
 				Email:     "john@example.com",
 				Login:     "johndoe",
 				Password:  "hashed_password",
-				CreatedAt: time.Now(),
+				CreatedAt: realClock.Now(),
 			},
 			mockError: nil,
 			expectedResult: models.AuthResponse{
@@ -47,7 +48,7 @@ func TestService_Register(t *testing.T) {
 					Email:     "john@example.com",
 					Login:     "johndoe",
 					Password:  "hashed_password",
-					CreatedAt: time.Now(),
+					CreatedAt: realClock.Now(),
 				},
 			},
 			expectedError: "",
@@ -69,7 +70,7 @@ func TestService_Register(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUserRepo := &mocks.UserRepository{}
-			service := NewService(mockUserRepo, "test-secret")
+			service := NewService(mockUserRepo, "test-secret", realClock)
 
 			mockUserRepo.On("CreateUser", mock.Anything, mock.Anything).Return(tt.mockUser, tt.mockError)
 
@@ -94,6 +95,7 @@ func TestService_Register(t *testing.T) {
 }
 
 func TestService_Login(t *testing.T) {
+	realClock := clock.RealClock{}
 	tests := []struct {
 		name          string
 		request       models.LoginRequest
@@ -116,7 +118,7 @@ func TestService_Login(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUserRepo := &mocks.UserRepository{}
-			service := NewService(mockUserRepo, "test-secret")
+			service := NewService(mockUserRepo, "test-secret", realClock)
 
 			mockUserRepo.On("GetUserByLogin", mock.Anything, tt.request.Login).Return(tt.mockUser, tt.mockError)
 
@@ -142,6 +144,7 @@ func TestService_Login(t *testing.T) {
 }
 
 func TestService_GetUserByID(t *testing.T) {
+	realClock := clock.RealClock{}
 	tests := []struct {
 		name          string
 		userID        int
@@ -159,7 +162,7 @@ func TestService_GetUserByID(t *testing.T) {
 				LastName:  "",
 				Email:     "john@example.com",
 				Login:     "johndoe",
-				CreatedAt: time.Now(),
+				CreatedAt: realClock.Now(),
 			},
 			mockError: nil,
 			expectedUser: models.User{
@@ -168,7 +171,7 @@ func TestService_GetUserByID(t *testing.T) {
 				LastName:  "",
 				Email:     "john@example.com",
 				Login:     "johndoe",
-				CreatedAt: time.Now(),
+				CreatedAt: realClock.Now(),
 			},
 			expectedError: "",
 		},
@@ -185,7 +188,7 @@ func TestService_GetUserByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUserRepo := &mocks.UserRepository{}
-			service := NewService(mockUserRepo, "test-secret")
+			service := NewService(mockUserRepo, "test-secret", realClock)
 
 			mockUserRepo.On("GetUserByID", mock.Anything, tt.userID).Return(tt.mockUser, tt.mockError)
 
@@ -209,6 +212,7 @@ func TestService_GetUserByID(t *testing.T) {
 }
 
 func TestService_EditUserByID(t *testing.T) {
+	realClock := clock.RealClock{}
 	tests := []struct {
 		name          string
 		req           models.UpdateUserRequest
@@ -232,7 +236,7 @@ func TestService_EditUserByID(t *testing.T) {
 				LastName:  "Doe",
 				Email:     "john@example.com",
 				Login:     "johndoe",
-				CreatedAt: time.Now(),
+				CreatedAt: realClock.Now(),
 			},
 			mockError: nil,
 			expectedUser: models.User{
@@ -262,7 +266,7 @@ func TestService_EditUserByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUserRepo := &mocks.UserRepository{}
-			service := NewService(mockUserRepo, "test-secret")
+			service := NewService(mockUserRepo, "test-secret", realClock)
 
 			mockUserRepo.On("EditUserByID", mock.Anything, tt.req, tt.userID).
 				Return(tt.mockUser, tt.mockError)

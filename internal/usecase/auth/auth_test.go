@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -70,7 +71,7 @@ func TestUseCase_Register(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockAuthService := &mocks.AuthService{}
-			uc := NewUseCase(mockAuthService)
+			uc := NewUseCase(mockAuthService, clock.RealClock{})
 
 			mockAuthService.On("Register", mock.Anything, tt.request).Return(tt.mockResponse, tt.mockError)
 
@@ -150,7 +151,7 @@ func TestUseCase_Login(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockAuthService := &mocks.AuthService{}
-			uc := NewUseCase(mockAuthService)
+			uc := NewUseCase(mockAuthService, clock.RealClock{})
 
 			mockAuthService.On("Login", mock.Anything, tt.request).Return(tt.mockResponse, tt.mockError)
 
@@ -218,7 +219,7 @@ func TestUseCase_GetUserByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockAuthService := &mocks.AuthService{}
-			uc := NewUseCase(mockAuthService)
+			uc := NewUseCase(mockAuthService, clock.RealClock{})
 
 			mockAuthService.On("GetUserByID", mock.Anything, tt.userID).Return(tt.mockUser, tt.mockError)
 
@@ -296,7 +297,7 @@ func TestUseCase_EditUserByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockAuthService := &mocks.AuthService{}
-			uc := NewUseCase(mockAuthService)
+			uc := NewUseCase(mockAuthService, clock.RealClock{})
 
 			mockAuthService.On("EditUserByID", mock.Anything, tt.req, tt.userID).
 				Return(tt.mockUser, tt.mockError)

@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type Handler struct {
@@ -21,11 +22,12 @@ type Handler struct {
 }
 
 func NewHandler(uc *usecase.UseCase, logger logger.Logger) *Handler {
+	realClock := clock.RealClock{}
 	return &Handler{
-		balanceHandler: balance.NewHandler(uc.BalanceUC),
-		budgetHandler:  budget.NewHandler(uc.BudgetUC),
-		authHandler:    auth.NewHandler(uc.AuthUC, logger),
-		opHandler:      operation.NewHandler(uc.OpUC),
+		balanceHandler: balance.NewHandler(uc.BalanceUC, realClock),
+		budgetHandler:  budget.NewHandler(uc.BudgetUC, realClock),
+		authHandler:    auth.NewHandler(uc.AuthUC, realClock, logger),
+		opHandler:      operation.NewHandler(uc.OpUC, realClock),
 		logger:         logger,
 		registrator:    NewRegistrator(uc, logger),
 	}

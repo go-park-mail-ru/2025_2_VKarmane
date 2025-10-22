@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 var InvalidPassword = errors.New("invalid credentials")
@@ -16,12 +17,14 @@ var InvalidPassword = errors.New("invalid credentials")
 type Service struct {
 	userRepo  UserRepository
 	jwtSecret string
+	clock     clock.Clock
 }
 
-func NewService(userRepo UserRepository, jwtSecret string) *Service {
+func NewService(userRepo UserRepository, jwtSecret string, clck clock.Clock) *Service {
 	return &Service{
 		userRepo:  userRepo,
 		jwtSecret: jwtSecret,
+		clock:     clck,
 	}
 }
 

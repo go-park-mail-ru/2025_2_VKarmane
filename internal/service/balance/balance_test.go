@@ -6,12 +6,16 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestService_GetBalanceForUser(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	tests := []struct {
 		name           string
 		userID         int
@@ -89,7 +93,7 @@ func TestService_GetBalanceForUser(t *testing.T) {
 			mockAccountRepo := &mocks.AccountRepository{}
 			mockAccountRepo.On("GetAccountsByUser", mock.Anything, tt.userID).Return(tt.mockAccounts, nil)
 
-			service := NewService(mockAccountRepo)
+			service := NewService(mockAccountRepo, fixedClock)
 
 			result, err := service.GetBalanceForUser(context.Background(), tt.userID)
 
@@ -109,9 +113,12 @@ func TestService_GetBalanceForUser(t *testing.T) {
 }
 
 func TestService_GetBalanceForUser_Empty(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := &mocks.AccountRepository{}
 	repo.On("GetAccountsByUser", mock.Anything, 99).Return([]models.Account{}, nil)
-	svc := NewService(repo)
+	svc := NewService(repo, fixedClock)
 	res, err := svc.GetBalanceForUser(context.Background(), 99)
 	assert.NoError(t, err)
 	assert.Empty(t, res)

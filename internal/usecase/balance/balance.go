@@ -11,18 +11,21 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/balance"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type UseCase struct {
 	balanceSvc BalanceService
+	clock      clock.Clock
 }
 
-func NewUseCase(store *repository.Store) *UseCase {
-	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts)
-	balanceService := balance.NewService(accountRepo)
+func NewUseCase(store *repository.Store, clck clock.Clock) *UseCase {
+	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts, clck)
+	balanceService := balance.NewService(accountRepo, clck)
 
 	return &UseCase{
 		balanceSvc: balanceService,
+		clock:      clck,
 	}
 }
 

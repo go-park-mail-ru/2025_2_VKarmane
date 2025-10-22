@@ -3,16 +3,21 @@ package user
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/dto"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUserRepository_GetUserByLogin_Found(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := NewRepository([]dto.UserDB{
 		{ID: 1, FirstName: "A", LastName: "B", Email: "a@b.c", Login: "ab", Password: "hash"},
-	})
+	}, fixedClock)
 
 	u, err := repo.GetUserByLogin(context.Background(), "ab")
 	assert.NoError(t, err)
@@ -20,36 +25,48 @@ func TestUserRepository_GetUserByLogin_Found(t *testing.T) {
 }
 
 func TestUserRepository_GetUserByID_NotFound(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := NewRepository([]dto.UserDB{
 		{ID: 1, FirstName: "A", LastName: "B", Email: "a@b.c", Login: "ab", Password: "hash"},
-	})
+	}, fixedClock)
 
 	_, err := repo.GetUserByID(context.Background(), 99)
 	assert.Error(t, err)
 }
 
 func TestUserRepository_CreateUser_DuplicateLogin(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := NewRepository([]dto.UserDB{
 		{ID: 1, FirstName: "A", LastName: "B", Email: "a@b.c", Login: "ab", Password: "hash"},
-	})
+	}, fixedClock)
 
 	_, err := repo.CreateUser(context.Background(), models.User{Login: "ab", Email: "new@x.y"})
 	assert.Error(t, err)
 }
 
 func TestUserRepository_CreateUser_DuplicateEmail(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := NewRepository([]dto.UserDB{
 		{ID: 1, FirstName: "A", LastName: "B", Email: "a@b.c", Login: "ab", Password: "hash"},
-	})
+	}, fixedClock)
 
 	_, err := repo.CreateUser(context.Background(), models.User{Login: "newlogin", Email: "a@b.c"})
 	assert.Error(t, err)
 }
 
 func TestUserRepository_CreateUser_Success(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := NewRepository([]dto.UserDB{
 		{ID: 1, FirstName: "A", LastName: "B", Email: "a@b.c", Login: "ab", Password: "hash"},
-	})
+	}, fixedClock)
 
 	created, err := repo.CreateUser(context.Background(), models.User{FirstName: "N", LastName: "L", Email: "n@l.m", Login: "nl", Password: "p"})
 	assert.NoError(t, err)
@@ -58,9 +75,12 @@ func TestUserRepository_CreateUser_Success(t *testing.T) {
 }
 
 func TestUserRepository_EditUserByID_Success(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := NewRepository([]dto.UserDB{
 		{ID: 1, FirstName: "Old", LastName: "Name", Email: "old@mail.com", Login: "user1"},
-	})
+	}, fixedClock)
 
 	req := models.UpdateUserRequest{
 		FirstName: "New",
@@ -78,10 +98,13 @@ func TestUserRepository_EditUserByID_Success(t *testing.T) {
 }
 
 func TestUserRepository_EditUserByID_EmailExists(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := NewRepository([]dto.UserDB{
 		{ID: 1, FirstName: "A", LastName: "B", Email: "a@b.c", Login: "ab"},
 		{ID: 2, FirstName: "C", LastName: "D", Email: "x@y.z", Login: "cd"},
-	})
+	}, fixedClock)
 
 	req := models.UpdateUserRequest{
 		FirstName: "C",
@@ -95,9 +118,12 @@ func TestUserRepository_EditUserByID_EmailExists(t *testing.T) {
 }
 
 func TestUserRepository_EditUserByID_NotFound(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := NewRepository([]dto.UserDB{
 		{ID: 1, FirstName: "A", LastName: "B", Email: "a@b.c", Login: "ab"},
-	})
+	}, fixedClock)
 
 	req := models.UpdateUserRequest{
 		FirstName: "Z",
