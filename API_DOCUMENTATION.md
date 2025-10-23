@@ -466,7 +466,7 @@
 }
 ```
 
-#### DELETE /api/v1/account/{acc_id}/operations/delete/{op_id}
+#### DELETE /api/v1/account/{acc_id}/operations/{op_id}
 Удаление операции для счета.
 
 **Параметры:**
