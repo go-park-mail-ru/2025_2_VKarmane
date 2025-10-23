@@ -8,4 +8,5 @@ import (
 
 type BudgetService interface {
 	GetBudgetsForUser(ctx context.Context, userID int) ([]models.Budget, error)
+	GetBudgetByID(ctx context.Context, userID, budgetID int) (models.Budget, error)
 }

@@ -2,10 +2,6 @@ package service
 
 import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
-	accountRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
-	budgetRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/balance"
 	budgetService "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/budget"
@@ -17,15 +13,18 @@ type Service struct {
 	BudgetUC  budgetService.BudgetService
 }
 
-func NewService(store *repository.Store) *Service {
-	userRepo := user.NewRepository(store.Users)
-	accountRepo := accountRepo.NewRepository(store.Accounts, store.UserAccounts)
-	budgetRepo := budgetRepo.NewRepository(store.Budget)
-	operationRepo := operation.NewRepository(store.Operations)
+func NewService(store repository.Repository, jwtSecret string) *Service {
+	postgresStore := store.(*repository.PostgresStore)
 
-	authService := auth.NewService(userRepo, "your-secret-key")
-	balanceService := balance.NewService(accountRepo)
-	budgetService := budgetService.NewService(budgetRepo, accountRepo, operationRepo)
+	userRepoAdapter := auth.NewPostgresUserRepositoryAdapter(postgresStore.UserRepo)
+	authService := auth.NewService(userRepoAdapter, jwtSecret)
+
+	accountRepoAdapter := balance.NewPostgresAccountRepositoryAdapter(postgresStore)
+	budgetRepoAdapter := budgetService.NewPostgresBudgetRepositoryAdapter(postgresStore)
+	operationRepoAdapter := budgetService.NewPostgresOperationRepositoryAdapter(postgresStore)
+
+	balanceService := balance.NewService(accountRepoAdapter)
+	budgetService := budgetService.NewService(budgetRepoAdapter, accountRepoAdapter, operationRepoAdapter)
 
 	return &Service{
 		AuthUC:    authService,

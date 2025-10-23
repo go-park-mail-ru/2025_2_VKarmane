@@ -7,7 +7,6 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/balance"
 )
 
@@ -15,9 +14,9 @@ type UseCase struct {
 	balanceSvc BalanceService
 }
 
-func NewUseCase(store *repository.Store) *UseCase {
-	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts)
-	balanceService := balance.NewService(accountRepo)
+func NewUseCase(store repository.Repository) *UseCase {
+	accountRepoAdapter := balance.NewPostgresAccountRepositoryAdapter(store)
+	balanceService := balance.NewService(accountRepoAdapter)
 
 	return &UseCase{
 		balanceSvc: balanceService,

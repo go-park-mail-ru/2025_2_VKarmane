@@ -20,7 +20,8 @@ func (r *Repository) GetOperationsByAccount(ctx context.Context, accountID int) 
 	out := make([]models.Operation, 0)
 
 	for _, o := range r.operations {
-		if o.AccountID == accountID {
+		if (o.AccountFromID != nil && *o.AccountFromID == accountID) ||
+			(o.AccountToID != nil && *o.AccountToID == accountID) {
 			out = append(out, OperationDBToModel(o))
 		}
 	}

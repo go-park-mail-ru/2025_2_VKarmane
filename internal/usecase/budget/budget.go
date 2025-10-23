@@ -7,9 +7,6 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
-	budgetRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/budget"
 )
 
@@ -17,11 +14,12 @@ type UseCase struct {
 	budgetSvc BudgetService
 }
 
-func NewUseCase(store *repository.Store) *UseCase {
-	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts)
-	budgetRepo := budgetRepo.NewRepository(store.Budget)
-	operationRepo := operation.NewRepository(store.Operations)
-	budgetService := budget.NewService(budgetRepo, accountRepo, operationRepo)
+func NewUseCase(store repository.Repository) *UseCase {
+	budgetRepoAdapter := budget.NewPostgresBudgetRepositoryAdapter(store)
+	accountRepoAdapter := budget.NewPostgresAccountRepositoryAdapter(store)
+	operationRepoAdapter := budget.NewPostgresOperationRepositoryAdapter(store)
+
+	budgetService := budget.NewService(budgetRepoAdapter, accountRepoAdapter, operationRepoAdapter)
 
 	return &UseCase{
 		budgetSvc: budgetService,
