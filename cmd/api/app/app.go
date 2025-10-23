@@ -19,6 +19,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func Run() {
@@ -30,9 +31,19 @@ func Run() {
 		appLogger = logger.NewSlogLogger()
 	}
 
+<<<<<<< Updated upstream
 	store := repository.NewStore()
 	service := service.NewService(store)
 	usecase := usecase.NewUseCase(service, store, jwtSecret)
+=======
+	store, err := repository.NewPostgresStore(config.GetDatabaseDSN())
+	if err != nil {
+		return err
+	}
+	defer store.Close()
+	service := service.NewService(store, config.JWTSecret)
+	usecase := usecase.NewUseCase(service, store, config.JWTSecret)
+>>>>>>> Stashed changes
 	handler := handlers.NewHandler(usecase, appLogger)
 
 	r := mux.NewRouter()
@@ -57,6 +68,23 @@ func Run() {
 	protected.HandleFunc("/balance", handler.GetListBalance).Methods(http.MethodGet)
 	protected.HandleFunc("/balance/{id}", handler.GetBalanceByAccountID).Methods(http.MethodGet)
 
+<<<<<<< Updated upstream
+=======
+	// Swagger документация
+	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+
+	// Добавляем обработку OPTIONS запросов для всех маршрутов (для preflight запросов)
+	r.PathPrefix("/api/v1").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions {
+			appLogger.Info("Handling OPTIONS request", "path", r.URL.Path)
+			w.WriteHeader(http.StatusOK)
+
+			return
+		}
+		http.NotFound(w, r)
+	}).Methods(http.MethodOptions)
+
+>>>>>>> Stashed changes
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: r,
