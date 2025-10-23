@@ -2,15 +2,21 @@ package service
 
 import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
+	accountRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
+	budgetRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
+	opRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/balance"
 	budgetService "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/budget"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
 )
 
 type Service struct {
 	AuthUC    auth.AuthService
 	BalanceUC balance.BalanceService
 	BudgetUC  budgetService.BudgetService
+	OpUC      operation.OperationService
 }
 
 func NewService(store repository.Repository, jwtSecret string) *Service {
@@ -25,10 +31,12 @@ func NewService(store repository.Repository, jwtSecret string) *Service {
 
 	balanceService := balance.NewService(accountRepoAdapter)
 	budgetService := budgetService.NewService(budgetRepoAdapter, accountRepoAdapter, operationRepoAdapter)
+	opService := operation.NewService(accountRepoAdapter, operationRepoAdapter)
 
 	return &Service{
 		AuthUC:    authService,
 		BalanceUC: balanceService,
 		BudgetUC:  budgetService,
+		OpUC:      opService,
 	}
 }

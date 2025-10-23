@@ -10,6 +10,7 @@ type Config struct {
 	Host      string
 	JWTSecret string
 	LogLevel  string
+<<<<<<< HEAD
 	Database  DatabaseConfig
 }
 
@@ -20,6 +21,8 @@ type DatabaseConfig struct {
 	Password string
 	DBName   string
 	SSLMode  string
+=======
+>>>>>>> origin/main
 }
 
 func LoadConfig() *Config {
@@ -28,6 +31,7 @@ func LoadConfig() *Config {
 		Host:      getEnv("HOST", "0.0.0.0"),
 		JWTSecret: getEnv("JWT_SECRET", "your-secret-key"),
 		LogLevel:  getEnv("LOG_LEVEL", "info"),
+<<<<<<< HEAD
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
@@ -36,6 +40,8 @@ func LoadConfig() *Config {
 			DBName:   getEnv("DB_NAME", "vkarmane"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
+=======
+>>>>>>> origin/main
 	}
 
 	return config
@@ -69,6 +75,7 @@ func (c *Config) GetCORSOrigins() []string {
 		"http://217.16.23.67:8000",
 	}
 }
+<<<<<<< HEAD
 
 func (c *Config) GetDatabaseDSN() string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -80,3 +87,5 @@ func (c *Config) GetDatabaseDSN() string {
 		c.Database.SSLMode,
 	)
 }
+=======
+>>>>>>> origin/main

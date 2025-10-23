@@ -2,8 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -22,20 +20,14 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func Run() {
-	// TODO: use environment variables
-	jwtSecret := "your-secret-key"
+func Run() error {
+	config := LoadConfig()
 
 	appLogger, err := logger.NewSlogLoggerWithFileAndConsole("logs/app.log", slog.LevelInfo)
 	if err != nil {
 		appLogger = logger.NewSlogLogger()
 	}
 
-<<<<<<< Updated upstream
-	store := repository.NewStore()
-	service := service.NewService(store)
-	usecase := usecase.NewUseCase(service, store, jwtSecret)
-=======
 	store, err := repository.NewPostgresStore(config.GetDatabaseDSN())
 	if err != nil {
 		return err
@@ -43,10 +35,14 @@ func Run() {
 	defer store.Close()
 	service := service.NewService(store, config.JWTSecret)
 	usecase := usecase.NewUseCase(service, store, config.JWTSecret)
->>>>>>> Stashed changes
 	handler := handlers.NewHandler(usecase, appLogger)
 
 	r := mux.NewRouter()
+
+	// CORS middleware должен быть первым
+	corsOrigins := config.GetCORSOrigins()
+	appLogger.Info("CORS Configuration", "origins", corsOrigins, "is_production", config.IsProduction())
+	r.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
 
 	r.Use(middleware.LoggerMiddleware(appLogger))
 
@@ -55,21 +51,15 @@ func Run() {
 	r.Use(middleware.SecurityLoggerMiddleware(appLogger))
 
 	public := r.PathPrefix("/api/v1").Subrouter()
-	public.HandleFunc("/auth/register", handler.Register).Methods(http.MethodPost)
-	public.HandleFunc("/auth/login", handler.Login).Methods(http.MethodPost)
 
 	protected := r.PathPrefix("/api/v1").Subrouter()
-	protected.Use(middleware.AuthMiddleware(jwtSecret))
+	protected.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
+	protected.Use(middleware.LoggerMiddleware(appLogger))
+	protected.Use(middleware.RequestLoggerMiddleware(appLogger))
+	protected.Use(middleware.SecurityLoggerMiddleware(appLogger))
+	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
+	handler.Register(public, protected)
 
-	protected.HandleFunc("/auth/logout", handler.Logout).Methods(http.MethodPost)
-	protected.HandleFunc("/profile", handler.GetProfile).Methods(http.MethodGet)
-	protected.HandleFunc("/budgets", handler.GetListBudgets).Methods(http.MethodGet)
-	protected.HandleFunc("/budget/{id}", handler.GetBudgetByID).Methods(http.MethodGet)
-	protected.HandleFunc("/balance", handler.GetListBalance).Methods(http.MethodGet)
-	protected.HandleFunc("/balance/{id}", handler.GetBalanceByAccountID).Methods(http.MethodGet)
-
-<<<<<<< Updated upstream
-=======
 	// Swagger документация
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
@@ -83,17 +73,16 @@ func Run() {
 		}
 		http.NotFound(w, r)
 	}).Methods(http.MethodOptions)
-
->>>>>>> Stashed changes
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    config.GetServerAddress(),
 		Handler: r,
 	}
 
 	go func() {
-		fmt.Println("Server running at http://localhost:8080")
+		appLogger.Info("Server running at", "address", config.GetServerAddress())
+
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server failed to start: %v", err)
+			appLogger.Error("Server failed to start", "error", err)
 		}
 	}()
 
@@ -101,14 +90,15 @@ func Run() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	<-quit
-	log.Println("Shutting down server...")
+	appLogger.Info("Shutting down server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		appLogger.Error("Server forced to shutdown", "error", err)
 	}
 
-	log.Println("Server exited")
+	appLogger.Info("Server exited")
+	return nil
 }

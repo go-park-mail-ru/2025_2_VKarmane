@@ -10,6 +10,24 @@
 - SameSite: `Strict` - защита от CSRF атак
 - MaxAge: 86400 секунд (24 часа)
 
+## Структура данных
+
+### Счета (Accounts)
+- `account_id` - Уникальный идентификатор счета
+- `balance` - Текущий баланс счета
+- `type` - Тип счета (`card` - карта, `cash` - наличные)
+- `currency_id` - Идентификатор валюты
+
+### Бюджеты (Budgets)
+- `budget_id` - Уникальный идентификатор бюджета
+- `user_id` - Идентификатор пользователя-владельца
+- `amount` - Запланированная сумма бюджета
+- `actual` - Фактически потраченная сумма
+- `currency_id` - Идентификатор валюты
+- `description` - Описание бюджета
+- `period_start` - Начало периода (ISO 8601)
+- `period_end` - Конец периода (ISO 8601)
+
 ## Маршруты
 
 ### Публичные маршруты (без аутентификации)
@@ -109,30 +127,30 @@
 #### GET /api/v1/balance
 Получение баланса пользователя.
 
+**Поля ответа:**
+- `user_id` - ID пользователя
+- `accounts` - Массив счетов пользователя
+  - `account_id` - ID счета
+  - `balance` - Баланс счета
+  - `type` - Тип счета (card, cash)
+  - `currency_id` - ID валюты
+
 **Ответ:**
 ```json
 {
   "user_id": 1,
   "accounts": [
     {
-      "id": 1,
+      "account_id": 1,
       "balance": 100,
       "type": "card",
-      "currency": {
-        "id": 1,
-        "code": "USD",
-        "name": "US Dollar"
-      }
+      "currency_id": 1
     },
     {
-      "id": 2,
+      "account_id": 2,
       "balance": 500,
       "type": "cash",
-      "currency": {
-        "id": 1,
-        "code": "USD",
-        "name": "US Dollar"
-      }
+      "currency_id": 1
     }
   ]
 }
@@ -147,19 +165,27 @@
 **Ответ:**
 ```json
 {
-  "id": 1,
+  "account_id": 1,
   "balance": 100,
   "type": "card",
-  "currency": {
-    "id": 1,
-    "code": "USD",
-    "name": "US Dollar"
-  }
+  "currency_id": 1
 }
 ```
 
 #### GET /api/v1/budgets
 Получение списка бюджетов пользователя.
+
+**Поля ответа:**
+- `user_id` - ID пользователя
+- `budgets` - Массив бюджетов пользователя
+  - `budget_id` - ID бюджета
+  - `user_id` - ID пользователя-владельца
+  - `amount` - Запланированная сумма бюджета
+  - `actual` - Фактически потраченная сумма
+  - `currency_id` - ID валюты
+  - `description` - Описание бюджета
+  - `period_start` - Начало периода (ISO 8601)
+  - `period_end` - Конец периода (ISO 8601)
 
 **Ответ:**
 ```json
@@ -167,26 +193,22 @@
   "user_id": 1,
   "budgets": [
     {
-      "id": 1,
+      "budget_id": 1,
+      "user_id": 1,
       "amount": 100,
+      "actual": 110,
+      "currency_id": 1,
       "description": "September food",
-      "currency": {
-        "id": 1,
-        "code": "USD",
-        "name": "US Dollar"
-      },
       "period_start": "2025-09-01T00:00:00Z",
       "period_end": "2025-09-30T00:00:00Z"
     },
     {
-      "id": 2,
+      "budget_id": 2,
+      "user_id": 1,
       "amount": 500,
+      "actual": 110,
+      "currency_id": 1,
       "description": "September relax",
-      "currency": {
-        "id": 1,
-        "code": "USD",
-        "name": "US Dollar"
-      },
       "period_start": "2025-09-01T00:00:00Z",
       "period_end": "2025-09-30T00:00:00Z"
     }
@@ -200,19 +222,253 @@
 **Параметры:**
 - `id` - ID бюджета
 
+**Поля ответа:**
+- `budget_id` - ID бюджета
+- `user_id` - ID пользователя-владельца
+- `amount` - Запланированная сумма бюджета
+- `actual` - Фактически потраченная сумма
+- `currency_id` - ID валюты
+- `description` - Описание бюджета
+- `period_start` - Начало периода (ISO 8601)
+- `period_end` - Конец периода (ISO 8601)
+
 **Ответ:**
 ```json
 {
-  "id": 1,
+  "budget_id": 1,
+  "user_id": 1,
   "amount": 100,
+  "actual": 110,
+  "currency_id": 1,
   "description": "September food",
-  "currency": {
-    "id": 1,
-    "code": "USD",
-    "name": "US Dollar"
-  },
   "period_start": "2025-09-01T00:00:00Z",
   "period_end": "2025-09-30T00:00:00Z"
+}
+```
+
+#### GET /api/v1/account/{acc_id}/operations
+Получение всех транзакций счета.
+
+**Параметры:**
+- `acc_id` - ID счета
+
+**Поля ответа:**
+- `user_id` - ID пользователя
+- `operations` - Массив операций
+  - `transaction_id` - ID операции
+  - `account_id` - ID счета
+  - `category_id` - ID категории
+  - `sum` - Сумма
+  - `name` - Название
+  - `type` - Тип операции
+  - `description` - Описание бюджета
+  -  `status` - Стаус операции,
+  -  `receipt` - URL чека,
+  -  `date` -  Дата совершения транзакции
+
+**Ответ:**
+```json
+{
+    "user_id": 1,
+    "operations": [
+        {
+            "transaction_id": 1,
+            "account_id": 1,
+            "category_id": 1,
+            "sum": 80,
+            "name": "Restaurant",
+            "type": "expense",
+            "status": "",
+            "description": "",
+            "receipt": "",
+            "date": "2025-10-13T17:31:51.0501988+03:00"
+        },
+        {
+            "transaction_id": 2,
+            "account_id": 1,
+            "category_id": 1,
+            "sum": 30,
+            "name": "Vkusno i tochka",
+            "type": "expense",
+            "status": "",
+            "description": "",
+            "receipt": "",
+            "date": "2025-10-13T17:31:51.0501988+03:00"
+        },
+        {
+            "transaction_id": 3,
+            "account_id": 1,
+            "category_id": 1,
+            "sum": 70,
+            "name": "Salary",
+            "type": "income",
+            "status": "",
+            "description": "",
+            "receipt": "",
+            "date": "2025-10-13T17:31:51.0501988+03:00"
+        }
+    ]
+}
+```
+
+#### GET /api/v1/account/{acc_id}/operations/{op_id}
+Получение конкретной операции.
+
+**Параметры:**
+- `acc_id` - ID счета
+- `op_id` - ID операции
+
+**Поля ответа:**
+- `transaction_id` - ID операции
+- `category_id` - ID категории
+- `account_id` - ID счета
+- `sum` - Сумма
+- `name` - Название
+- `type` - Тип операции
+- `description` - Описание бюджета
+-  `status` - Стаус операции,
+-  `receipt` - URL чека,
+-  `date` -  Дата совершения транзакции
+
+**Ответ:**
+```json
+{
+    "transaction_id": 1,
+    "account_id": 1,
+    "category_id": 1,
+    "sum": 80,
+    "name": "Restaurant",
+    "type": "expense",
+    "status": "",
+    "description": "",
+    "receipt": "",
+    "date": "2025-10-13T18:37:13.1559998+03:00"
+}
+```
+
+#### POST /api/v1/account/{acc_id}/operations
+Создание операции для счета.
+
+**Параметры:**
+- `acc_id` - ID счета
+
+**Тело запроса:**
+```json
+{
+  "account_id": "int (обязательно)",
+  "category_id": "int (обязательно)",
+  "sum": "float64 (обязательно, >=0)",
+  "name": "string (обязательноб <=50 символов)",
+  "description": "string (обязательноб <=60 символов)",
+}
+```
+
+**Поля ответа:**
+- `transaction_id` - ID операции
+- `category_id` - ID категории
+- `account_id` - ID счета
+- `sum` - Сумма
+- `name` - Название
+- `type` - Тип операции
+- `description` - Описание бюджета
+-  `status` - Стаус операции,
+-  `receipt` - URL чека,
+-  `date` -  Дата совершения транзакции
+
+**Ответ:**
+```json
+{
+    "transaction_id": 4,
+    "account_id": 1,
+    "category_id": 1,
+    "sum": 80,
+    "name": "Restaurant",
+    "type": "expense",
+    "status": "finished",
+    "description": "bbbb",
+    "receipt": "11111111111",
+    "date": "2025-10-13T18:43:52.7213288+03:00"
+}
+```
+
+#### PUT /api/v1/account/{acc_id}/operations/{op_id}
+Изменение операции для счета.
+
+**Параметры:**
+- `acc_id` - ID счета
+- `op_id` - ID операции
+
+**Тело запроса:**
+```json
+{
+  "category_id": "int (необязательно)",
+  "sum": "float64 (необязательно, >=0)",
+  "name": "string (необязательноб <=50 символов)",
+  "description": "string (необязательноб <=60 символов)",
+}
+```
+
+**Поля ответа:**
+- `transaction_id` - ID операции
+- `category_id` - ID категории
+- `account_id` - ID счета
+- `sum` - Сумма
+- `name` - Название
+- `type` - Тип операции
+- `description` - Описание бюджета
+-  `status` - Стаус операции,
+-  `receipt` - URL чека,
+-  `date` -  Дата совершения транзакции
+
+**Ответ:**
+```json
+{
+    "transaction_id": 4,
+    "account_id": 1,
+    "category_id": 1,
+    "sum": 80,
+    "name": "new_name",
+    "type": "expense",
+    "status": "finished",
+    "description": "bbbb",
+    "receipt": "11111111111",
+    "date": "2025-10-13T18:43:52.7213288+03:00"
+}
+```
+
+#### DELETE /api/v1/account/{acc_id}/operations/{op_id}
+Изменение операции для счета.
+
+**Параметры:**
+- `acc_id` - ID счета
+- `op_id` - ID операции
+
+
+**Поля ответа:**
+- `transaction_id` - ID операции
+- `category_id` - ID категории
+- `account_id` - ID счета
+- `sum` - Сумма
+- `name` - Название
+- `type` - Тип операции
+- `description` - Описание бюджета
+-  `status` - Стаус операции,
+-  `receipt` - URL чека,
+-  `date` -  Дата совершения транзакции
+
+**Ответ:**
+```json
+{
+    "transaction_id": 4,
+    "account_id": 1,
+    "category_id": 1,
+    "sum": 80,
+    "name": "new_name",
+    "type": "expense",
+    "status": "reverted",
+    "description": "bbbb",
+    "receipt": "11111111111",
+    "date": "2025-10-13T18:43:52.7213288+03:00"
 }
 ```
 
@@ -222,6 +478,7 @@
 - `400 Bad Request` - Неверные данные запроса
 - `401 Unauthorized` - Требуется аутентификация
 - `404 Not Found` - Ресурс не найден
+- `403 Forbidden` - У пользователя нет прав
 - `409 Conflict` - Конфликт данных
 - `500 Internal Server Error` - Внутренняя ошибка сервера
 
@@ -260,6 +517,7 @@
 - `RESOURCE_CONFLICT` - Конфликт ресурсов
 - `BUDGET_NOT_FOUND` - Бюджет не найден
 - `ACCOUNT_NOT_FOUND` - Счет не найден
+- `ErrCodeTransactionNotFound` - Операция не найдена
 
 ### Примеры ошибок
 
@@ -320,6 +578,15 @@
 }
 ```
 
+## Тестовые пользователи
+
+Для разработки и тестирования доступны следующие пользователи:
+
+| Login | Password | Имя | Email |
+|-------|----------|-----|-------|
+| `hello` | `Test123` | Vlad Sigma | vlad@example.com |
+| `goodbye` | `Test123` | Nikita Go | nikita@example.com |
+
 ## Примеры использования
 
 ### Регистрация и вход
@@ -341,7 +608,7 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "login": "hello",
-    "password": "password123"
+    "password": "Test123"
   }' \
   -c cookies.txt
 ```
@@ -354,6 +621,18 @@ curl -X GET http://localhost:8080/api/v1/profile \
 
 # Получение баланса
 curl -X GET http://localhost:8080/api/v1/balance \
+  -b cookies.txt
+
+# Получение конкретного счета
+curl -X GET http://localhost:8080/api/v1/balance/1 \
+  -b cookies.txt
+
+# Получение списка бюджетов
+curl -X GET http://localhost:8080/api/v1/budgets \
+  -b cookies.txt
+
+# Получение конкретного бюджета
+curl -X GET http://localhost:8080/api/v1/budget/1 \
   -b cookies.txt
 
 # Выход из системы

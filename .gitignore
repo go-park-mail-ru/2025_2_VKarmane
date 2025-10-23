@@ -2,3 +2,5 @@
 logs/
 bin/
 cookies.txt
+coverage.out
+deploy.sh

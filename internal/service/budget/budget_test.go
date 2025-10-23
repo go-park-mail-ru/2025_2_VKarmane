@@ -243,9 +243,9 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 			mockAccountRepo := &mocks.AccountRepository{}
 			mockOperationRepo := &mocks.OperationRepository{}
 
-			mockBudgetRepo.On("GetBudgetsByUser", mock.Anything, tt.userID).Return(tt.mockBudgets)
-			mockAccountRepo.On("GetAccountsByUser", mock.Anything, tt.userID).Return(tt.mockAccounts)
-			mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 1).Return(tt.mockOperations)
+			mockBudgetRepo.On("GetBudgetsByUser", mock.Anything, tt.userID).Return(tt.mockBudgets, nil)
+			mockAccountRepo.On("GetAccountsByUser", mock.Anything, tt.userID).Return(tt.mockAccounts, nil)
+			mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 1).Return(tt.mockOperations, nil)
 
 			service := NewService(mockBudgetRepo, mockAccountRepo, mockOperationRepo)
 
@@ -268,4 +268,27 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 			mockOperationRepo.AssertExpectations(t)
 		})
 	}
+}
+
+func TestService_GetBudgetsForUser_MultipleAccountsAggregation(t *testing.T) {
+	mockBudgetRepo := &mocks.BudgetRepository{}
+	mockAccountRepo := &mocks.AccountRepository{}
+	mockOperationRepo := &mocks.OperationRepository{}
+
+	now := time.Now()
+	budgets := []models.Budget{{ID: 1, UserID: 1, Amount: 1000, CurrencyID: 1, PeriodStart: now.Add(-24 * time.Hour), PeriodEnd: now.Add(24 * time.Hour)}}
+	accounts := []models.Account{{ID: 1, CurrencyID: 1}, {ID: 2, CurrencyID: 1}}
+	ops1 := []models.Operation{{ID: 1, AccountID: 1, Type: "expense", Sum: 100, CurrencyID: 1, CreatedAt: now}}
+	ops2 := []models.Operation{{ID: 2, AccountID: 2, Type: "expense", Sum: 50, CurrencyID: 1, CreatedAt: now}}
+
+	mockBudgetRepo.On("GetBudgetsByUser", mock.Anything, 1).Return(budgets, nil)
+	mockAccountRepo.On("GetAccountsByUser", mock.Anything, 1).Return(accounts, nil)
+	mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 1).Return(ops1, nil)
+	mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 2).Return(ops2, nil)
+
+	svc := NewService(mockBudgetRepo, mockAccountRepo, mockOperationRepo)
+	res, err := svc.GetBudgetsForUser(context.Background(), 1)
+	assert.NoError(t, err)
+	assert.Len(t, res, 1)
+	assert.Equal(t, 150.0, res[0].Actual)
 }

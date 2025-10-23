@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	pkgErrors "github.com/pkg/errors"
+
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
 
@@ -24,12 +26,11 @@ func NewService(budgetRepo BudgetRepository, accountRepo AccountRepository, oper
 func (s *Service) GetBudgetsForUser(ctx context.Context, userID int) ([]models.Budget, error) {
 	budgets, err := s.budgetRepo.GetBudgetsByUser(ctx, userID)
 	if err != nil {
-		return nil, err
+		return []models.Budget{}, pkgErrors.Wrap(err, "Failed to get budgets for user")
 	}
-
 	accounts, err := s.accountRepo.GetAccountsByUser(ctx, userID)
 	if err != nil {
-		return nil, err
+		return []models.Budget{}, pkgErrors.Wrap(err, "Failed to get accounts for user")
 	}
 
 	for i := range budgets {
@@ -37,9 +38,8 @@ func (s *Service) GetBudgetsForUser(ctx context.Context, userID int) ([]models.B
 		for _, account := range accounts {
 			ops, err := s.operationRepo.GetOperationsByAccount(ctx, account.ID)
 			if err != nil {
-				return nil, err
+				return []models.Budget{}, pkgErrors.Wrap(err, "Failed to get budgets for user")
 			}
-
 			for _, op := range ops {
 				if op.CurrencyID != budgets[i].CurrencyID {
 					continue

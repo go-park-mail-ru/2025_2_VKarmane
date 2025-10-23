@@ -14,8 +14,92 @@ type OperationRepository struct {
 	mock.Mock
 }
 
+// CreateOperation provides a mock function with given fields: ctx, op
+func (_m *OperationRepository) CreateOperation(ctx context.Context, op models.Operation) (models.Operation, error) {
+	ret := _m.Called(ctx, op)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateOperation")
+	}
+
+	var r0 models.Operation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.Operation) (models.Operation, error)); ok {
+		return rf(ctx, op)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.Operation) models.Operation); ok {
+		r0 = rf(ctx, op)
+	} else {
+		r0 = ret.Get(0).(models.Operation)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.Operation) error); ok {
+		r1 = rf(ctx, op)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeleteOperation provides a mock function with given fields: ctx, accID, opID
+func (_m *OperationRepository) DeleteOperation(ctx context.Context, accID int, opID int) (models.Operation, error) {
+	ret := _m.Called(ctx, accID, opID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteOperation")
+	}
+
+	var r0 models.Operation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) (models.Operation, error)); ok {
+		return rf(ctx, accID, opID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) models.Operation); ok {
+		r0 = rf(ctx, accID, opID)
+	} else {
+		r0 = ret.Get(0).(models.Operation)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int, int) error); ok {
+		r1 = rf(ctx, accID, opID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetOperationByID provides a mock function with given fields: ctx, accID, opID
+func (_m *OperationRepository) GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error) {
+	ret := _m.Called(ctx, accID, opID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOperationByID")
+	}
+
+	var r0 models.Operation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) (models.Operation, error)); ok {
+		return rf(ctx, accID, opID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) models.Operation); ok {
+		r0 = rf(ctx, accID, opID)
+	} else {
+		r0 = ret.Get(0).(models.Operation)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int, int) error); ok {
+		r1 = rf(ctx, accID, opID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetOperationsByAccount provides a mock function with given fields: ctx, accountID
-func (_m *OperationRepository) GetOperationsByAccount(ctx context.Context, accountID int) []models.Operation {
+func (_m *OperationRepository) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error) {
 	ret := _m.Called(ctx, accountID)
 
 	if len(ret) == 0 {
@@ -23,6 +107,10 @@ func (_m *OperationRepository) GetOperationsByAccount(ctx context.Context, accou
 	}
 
 	var r0 []models.Operation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int) ([]models.Operation, error)); ok {
+		return rf(ctx, accountID)
+	}
 	if rf, ok := ret.Get(0).(func(context.Context, int) []models.Operation); ok {
 		r0 = rf(ctx, accountID)
 	} else {
@@ -31,7 +119,41 @@ func (_m *OperationRepository) GetOperationsByAccount(ctx context.Context, accou
 		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, int) error); ok {
+		r1 = rf(ctx, accountID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateOperation provides a mock function with given fields: ctx, req, accID, opID
+func (_m *OperationRepository) UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error) {
+	ret := _m.Called(ctx, req, accID, opID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateOperation")
+	}
+
+	var r0 models.Operation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UpdateOperationRequest, int, int) (models.Operation, error)); ok {
+		return rf(ctx, req, accID, opID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.UpdateOperationRequest, int, int) models.Operation); ok {
+		r0 = rf(ctx, req, accID, opID)
+	} else {
+		r0 = ret.Get(0).(models.Operation)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.UpdateOperationRequest, int, int) error); ok {
+		r1 = rf(ctx, req, accID, opID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // NewOperationRepository creates a new instance of OperationRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

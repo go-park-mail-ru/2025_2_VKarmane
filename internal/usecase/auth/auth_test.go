@@ -24,18 +24,16 @@ func TestUseCase_Register(t *testing.T) {
 		{
 			name: "successful registration",
 			request: models.RegisterRequest{
-				FirstName: "John",
-				LastName:  "Doe",
-				Email:     "john@example.com",
-				Login:     "johndoe",
-				Password:  "password123",
+				Email:    "john@example.com",
+				Login:    "johndoe",
+				Password: "password123",
 			},
 			mockResponse: models.AuthResponse{
 				Token: "jwt-token-123",
 				User: models.User{
 					ID:        1,
-					FirstName: "John",
-					LastName:  "Doe",
+					FirstName: "",
+					LastName:  "",
 					Email:     "john@example.com",
 					Login:     "johndoe",
 					CreatedAt: time.Now(),
@@ -46,8 +44,8 @@ func TestUseCase_Register(t *testing.T) {
 				Token: "jwt-token-123",
 				User: models.User{
 					ID:        1,
-					FirstName: "John",
-					LastName:  "Doe",
+					FirstName: "",
+					LastName:  "",
 					Email:     "john@example.com",
 					Login:     "johndoe",
 					CreatedAt: time.Now(),
@@ -58,11 +56,9 @@ func TestUseCase_Register(t *testing.T) {
 		{
 			name: "registration with service error",
 			request: models.RegisterRequest{
-				FirstName: "John",
-				LastName:  "Doe",
-				Email:     "john@example.com",
-				Login:     "johndoe",
-				Password:  "password123",
+				Email:    "john@example.com",
+				Login:    "johndoe",
+				Password: "password123",
 			},
 			mockResponse:   models.AuthResponse{},
 			mockError:      errors.New("user already exists"),
@@ -192,8 +188,8 @@ func TestUseCase_GetUserByID(t *testing.T) {
 			userID: 1,
 			mockUser: models.User{
 				ID:        1,
-				FirstName: "John",
-				LastName:  "Doe",
+				FirstName: "",
+				LastName:  "",
 				Email:     "john@example.com",
 				Login:     "johndoe",
 				CreatedAt: time.Now(),
@@ -201,8 +197,8 @@ func TestUseCase_GetUserByID(t *testing.T) {
 			mockError: nil,
 			expectedUser: models.User{
 				ID:        1,
-				FirstName: "John",
-				LastName:  "Doe",
+				FirstName: "",
+				LastName:  "",
 				Email:     "john@example.com",
 				Login:     "johndoe",
 				CreatedAt: time.Now(),

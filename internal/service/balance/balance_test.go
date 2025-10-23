@@ -87,7 +87,7 @@ func TestService_GetBalanceForUser(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockAccountRepo := &mocks.AccountRepository{}
-			mockAccountRepo.On("GetAccountsByUser", mock.Anything, tt.userID).Return(tt.mockAccounts)
+			mockAccountRepo.On("GetAccountsByUser", mock.Anything, tt.userID).Return(tt.mockAccounts, nil)
 
 			service := NewService(mockAccountRepo)
 
@@ -106,4 +106,13 @@ func TestService_GetBalanceForUser(t *testing.T) {
 			mockAccountRepo.AssertExpectations(t)
 		})
 	}
+}
+
+func TestService_GetBalanceForUser_Empty(t *testing.T) {
+	repo := &mocks.AccountRepository{}
+	repo.On("GetAccountsByUser", mock.Anything, 99).Return([]models.Account{}, nil)
+	svc := NewService(repo)
+	res, err := svc.GetBalanceForUser(context.Background(), 99)
+	assert.NoError(t, err)
+	assert.Empty(t, res)
 }
