@@ -27,6 +27,16 @@ func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error)
 	return strconv.Atoi(idStr)
 }
 
+// GetListBalance godoc
+// @Summary Получение баланса пользователя
+// @Description Возвращает список всех счетов пользователя
+// @Tags balance
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} map[string]interface{} "Список счетов пользователя"
+// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
+// @Router /balance [get]
 func (h *Handler) GetListBalance(w http.ResponseWriter, r *http.Request) {
 	userID, ok := h.getUserID(r)
 	if !ok {
@@ -44,6 +54,19 @@ func (h *Handler) GetListBalance(w http.ResponseWriter, r *http.Request) {
 	httputils.Success(w, r, balanceDTO)
 }
 
+// GetBalanceByAccountID godoc
+// @Summary Получение баланса конкретного счета
+// @Description Возвращает информацию о конкретном счете пользователя
+// @Tags balance
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path int true "ID счета"
+// @Success 200 {object} map[string]interface{} "Информация о счете"
+// @Failure 400 {object} models.ErrorResponse "Некорректный ID счета (INVALID_REQUEST)"
+// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
+// @Failure 404 {object} models.ErrorResponse "Счет не найден (ACCOUNT_NOT_FOUND)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
+// @Router /balance/{id} [get]
 func (h *Handler) GetBalanceByAccountID(w http.ResponseWriter, r *http.Request) {
 	id, err := h.parseIDFromURL(r, "id")
 	if err != nil {
