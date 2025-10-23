@@ -2,10 +2,6 @@ package service
 
 import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
-	accountRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
-	budgetRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
-	opRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/balance"
 	budgetService "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/budget"
