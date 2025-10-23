@@ -2,18 +2,20 @@ package operation
 
 import (
 	"context"
-	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type Repository struct {
 	operations []OperationDB
+	clock      clock.Clock
 }
 
-func NewRepository(operations []OperationDB) *Repository {
+func NewRepository(operations []OperationDB, clck clock.Clock) *Repository {
 	return &Repository{
 		operations: operations,
+		clock:      clck,
 	}
 }
 
@@ -51,7 +53,8 @@ func (r *Repository) CreateOperation(ctx context.Context, op models.Operation) (
 		Name:        op.Name,
 		Sum:         op.Sum,
 		CurrencyID:  op.CurrencyID,
-		CreatedAt:   time.Now(),
+		CreatedAt:   op.CreatedAt,
+		ReceiverID:  op.ReceiverID,
 	}
 
 	r.operations = append(r.operations, opDB)
@@ -74,6 +77,9 @@ func (r *Repository) UpdateOperation(ctx context.Context, req models.UpdateOpera
 			}
 			if req.Description != nil {
 				op.Description = *req.Description
+			}
+			if req.CategoryID != nil {
+				op.CreatedAt = *req.CreatedAt
 			}
 
 			return OperationDBToModel(*op), nil

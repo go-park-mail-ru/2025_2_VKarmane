@@ -6,6 +6,7 @@ type OperationAPI struct {
 	ID          int       `json:"transaction_id"`
 	AccountID   int       `json:"account_id"`
 	CategoryID  int       `json:"category_id"`
+	RecevierID  int       `json:"receiver_id"`
 	Sum         float64   `json:"sum"`
 	Name        string    `json:"name"`
 	Type        string    `json:"type"`

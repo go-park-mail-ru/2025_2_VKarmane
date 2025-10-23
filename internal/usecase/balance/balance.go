@@ -4,25 +4,28 @@ import (
 	"context"
 	"fmt"
 
-	pkgErrors "github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/balance"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type UseCase struct {
 	balanceSvc BalanceService
+	clock      clock.Clock
 }
 
-func NewUseCase(store *repository.Store) *UseCase {
-	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts)
-	balanceService := balance.NewService(accountRepo)
+func NewUseCase(store *repository.Store, clck clock.Clock) *UseCase {
+	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts, clck)
+	balanceService := balance.NewService(accountRepo, clck)
 
 	return &UseCase{
 		balanceSvc: balanceService,
+		clock:      clck,
 	}
 }
 
@@ -34,7 +37,7 @@ func (uc *UseCase) GetBalanceForUser(ctx context.Context, userID int) ([]models.
 			log.Error("Failed to get balance for user", "error", err, "user_id", userID)
 		}
 
-		return nil, pkgErrors.Wrap(err, "balance.GetBalanceForUser")
+		return nil, pkgerrors.Wrap(err, "balance.GetBalanceForUser")
 	}
 
 	return accounts, nil
@@ -48,7 +51,7 @@ func (uc *UseCase) GetAccountByID(ctx context.Context, userID, accountID int) (m
 			log.Error("Failed to get balance for user", "error", err, "user_id", userID)
 		}
 
-		return models.Account{}, pkgErrors.Wrap(err, "balance.GetAccountByID")
+		return models.Account{}, pkgerrors.Wrap(err, "balance.GetAccountByID")
 	}
 
 	for _, account := range accounts {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	pkgErrors "github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
@@ -13,20 +13,23 @@ import (
 	budgetRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/budget"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type UseCase struct {
 	budgetSvc BudgetService
+	clock     clock.Clock
 }
 
-func NewUseCase(store *repository.Store) *UseCase {
-	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts)
-	budgetRepo := budgetRepo.NewRepository(store.Budget)
-	operationRepo := operation.NewRepository(store.Operations)
-	budgetService := budget.NewService(budgetRepo, accountRepo, operationRepo)
+func NewUseCase(store *repository.Store, clck clock.Clock) *UseCase {
+	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts, clck)
+	budgetRepo := budgetRepo.NewRepository(store.Budget, clck)
+	operationRepo := operation.NewRepository(store.Operations, clck)
+	budgetService := budget.NewService(budgetRepo, accountRepo, operationRepo, clck)
 
 	return &UseCase{
 		budgetSvc: budgetService,
+		clock:     clck,
 	}
 }
 
@@ -38,7 +41,7 @@ func (uc *UseCase) GetBudgetsForUser(ctx context.Context, userID int) ([]models.
 			log.Error("Failed to get budgets for user", "error", err, "user_id", userID)
 		}
 
-		return nil, pkgErrors.Wrap(err, "budget.GetBudgetsForUser")
+		return nil, pkgerrors.Wrap(err, "budget.GetBudgetsForUser")
 	}
 
 	return budgetsData, nil
@@ -52,7 +55,7 @@ func (uc *UseCase) GetBudgetByID(ctx context.Context, userID, budgetID int) (mod
 			log.Error("Failed to get budgets for user", "error", err, "user_id", userID)
 		}
 
-		return models.Budget{}, pkgErrors.Wrap(err, "budget.GetBudgetByID")
+		return models.Budget{}, pkgerrors.Wrap(err, "budget.GetBudgetByID")
 	}
 
 	for _, budget := range budgetsData {

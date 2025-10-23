@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/mock"
@@ -16,7 +17,8 @@ import (
 
 func TestGetListBalanceUnauthorized(t *testing.T) {
 	m := mocks.NewBalanceUseCase(t)
-	h := NewHandler(m)
+	realClock := clock.RealClock{}
+	h := NewHandler(m, realClock)
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/balance", nil)
 	rr := httptest.NewRecorder()
 	h.GetListBalance(rr, req)
@@ -25,7 +27,8 @@ func TestGetListBalanceUnauthorized(t *testing.T) {
 
 func TestGetBalanceByAccountIDSuccess(t *testing.T) {
 	m := mocks.NewBalanceUseCase(t)
-	h := NewHandler(m)
+	realClock := clock.RealClock{}
+	h := NewHandler(m, realClock)
 
 	m.On("GetAccountByID", mock.Anything, 1, 7).Return(models.Account{ID: 7}, nil)
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	pkgErrors "github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
@@ -12,19 +12,22 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
 	opRepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type UseCase struct {
 	opSvc OperationService
+	clock clock.Clock
 }
 
-func NewUseCase(store *repository.Store) *UseCase {
-	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts)
-	opRepo := opRepo.NewRepository(store.Operations)
-	opService := operation.NewService(accountRepo, opRepo)
+func NewUseCase(store *repository.Store, clck clock.Clock) *UseCase {
+	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts, clck)
+	opRepo := opRepo.NewRepository(store.Operations, clck)
+	opService := operation.NewService(accountRepo, opRepo, clck)
 
 	return &UseCase{
 		opSvc: opService,
+		clock: clck,
 	}
 }
 
@@ -37,7 +40,7 @@ func (uc *UseCase) GetAccountOperations(ctx context.Context, accID int) ([]model
 			log.Error("Failed to get ops for acc", "error", err, "user_id", accID)
 		}
 
-		return nil, pkgErrors.Wrap(err, "operation.GetUserOperations")
+		return nil, pkgerrors.Wrap(err, "operation.GetUserOperations")
 	}
 
 	return opsData, nil
@@ -52,7 +55,7 @@ func (uc *UseCase) GetOperationByID(ctx context.Context, accID int, opID int) (m
 			log.Error("Failed to get op for acc", "error", err, "user_id", accID)
 		}
 
-		return models.Operation{}, pkgErrors.Wrap(err, "operation.GetOperationByID")
+		return models.Operation{}, pkgerrors.Wrap(err, "operation.GetOperationByID")
 	}
 
 	for _, op := range opsData {
@@ -76,7 +79,7 @@ func (uc *UseCase) CreateOperation(ctx context.Context, req models.CreateOperati
 			log.Error("Failed to create op for acc", "error", err, "acc_id", accID)
 		}
 
-		return models.Operation{}, pkgErrors.Wrap(err, "operation.CreateOperation")
+		return models.Operation{}, pkgerrors.Wrap(err, "operation.CreateOperation")
 	}
 
 	return op, nil
@@ -90,7 +93,7 @@ func (uc *UseCase) UpdateOperation(ctx context.Context, req models.UpdateOperati
 			log.Error("Failed to update op for acc", "error", err, "user_id", accID)
 		}
 
-		return models.Operation{}, pkgErrors.Wrap(err, "operation.UpdateOperation")
+		return models.Operation{}, pkgerrors.Wrap(err, "operation.UpdateOperation")
 	}
 
 	return op, nil
@@ -104,7 +107,7 @@ func (uc *UseCase) DeleteOperation(ctx context.Context, accID int, opID int) (mo
 			log.Error("Failed to delete op for acc", "error", err, "acc_id", accID)
 		}
 
-		return models.Operation{}, pkgErrors.Wrap(err, "operation.DeleteOperation")
+		return models.Operation{}, pkgerrors.Wrap(err, "operation.DeleteOperation")
 	}
 
 	return op, nil

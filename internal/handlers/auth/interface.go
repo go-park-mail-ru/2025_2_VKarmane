@@ -10,4 +10,5 @@ type AuthUseCase interface {
 	Register(ctx context.Context, req models.RegisterRequest) (models.AuthResponse, error)
 	Login(ctx context.Context, req models.LoginRequest) (models.AuthResponse, error)
 	GetUserByID(ctx context.Context, userID int) (models.User, error)
+	EditUserByID(ctx context.Context, req models.UpdateUserRequest, userID int) (models.User, error)
 }

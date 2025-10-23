@@ -10,6 +10,7 @@ type OperationDB struct {
 	ID          int                    `db:"operation_id"`
 	AccountID   int                    `db:"account_id"`
 	CategoryID  int                    `db:"category_id"`
+	ReceiverID  int                    `db:"receiver_id"`
 	Type        models.OperationType   `db:"type"`
 	Status      models.OperationStatus `db:"status"`
 	Description string                 `db:"description"`

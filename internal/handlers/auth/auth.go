@@ -12,16 +12,18 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputil "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 )
 
 type Handler struct {
 	authUC AuthUseCase
+	clock  clock.Clock
 	logger logger.Logger
 }
 
-func NewHandler(authUC AuthUseCase, logger logger.Logger) *Handler {
-	return &Handler{authUC: authUC, logger: logger}
+func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger) *Handler {
+	return &Handler{authUC: authUC, clock: clck, logger: logger}
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
@@ -100,12 +102,47 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.authUC.GetUserByID(r.Context(), userID)
+	userDTO := UserToApi(user)
 	if err != nil {
 		httputil.NotFoundError(w, r, "Пользователь не найден")
 		return
 	}
 
-	httputil.Success(w, r, user)
+	httputil.Success(w, r, userDTO)
+}
+
+func (h *Handler) EditUser(w http.ResponseWriter, r *http.Request) {
+	userID, ok := middleware.GetUserIDFromContext(r.Context())
+	if !ok {
+		httputil.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
+		return
+	}
+
+	var req models.UpdateUserRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputil.ValidationError(w, r, "Некорректный формат данных", "body")
+		return
+	}
+
+	validationErrors := utils.ValidateStruct(req)
+	if len(validationErrors) > 0 {
+		httputil.ValidationErrors(w, r, validationErrors)
+		return
+	}
+
+	userInstance, err := h.authUC.EditUserByID(r.Context(), req, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, user.EmailExistsErr):
+			httputil.ConflictError(w, r, "Пользователь с таким email уже существует", models.ErrCodeEmailExists)
+		default:
+			httputil.ConflictError(w, r, "Пользователь уже существует", models.ErrCodeUserExists)
+		}
+		return
+	}
+	userDTO := UserToApi(userInstance)
+	httputil.Success(w, r, userDTO)
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {

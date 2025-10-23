@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -86,10 +87,10 @@ func TestGetOperationByID_ErrorFromService(t *testing.T) {
 
 func TestCreateOperation_Success(t *testing.T) {
 	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc}
+	uc := &UseCase{opSvc: mockSvc, clock: clock.RealClock{}}
 
-	req := models.CreateOperationRequest{Name: "test"}
-	expected := models.Operation{ID: 42, AccountID: 5, Name: "test"}
+	req := models.CreateOperationRequest{Name: "test", CreatedAt: uc.clock.Now()}
+	expected := models.Operation{ID: 42, AccountID: 5, Name: "test", CreatedAt: req.CreatedAt}
 
 	mockSvc.On("CreateOperation", mock.Anything, req, 5).
 		Return(expected, nil).
@@ -99,6 +100,7 @@ func TestCreateOperation_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 42, op.ID)
 	assert.Equal(t, "test", op.Name)
+	assert.Equal(t, req.CreatedAt, op.CreatedAt)
 }
 
 func TestCreateOperation_Error(t *testing.T) {

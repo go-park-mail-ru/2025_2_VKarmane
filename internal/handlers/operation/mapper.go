@@ -9,6 +9,7 @@ func OperationToApi(op models.Operation) OperationAPI {
 		ID:          op.ID,
 		AccountID:   op.AccountID,
 		CategoryID:  op.CategoryID,
+		RecevierID:  op.ReceiverID,
 		Sum:         op.Sum,
 		Name:        op.Name,
 		Status:      string(op.Status),

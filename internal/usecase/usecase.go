@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/balance"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/budget"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type UseCase struct {
@@ -20,15 +21,16 @@ type UseCase struct {
 }
 
 func NewUseCase(service *service.Service, store *repository.Store, jwtSecret string) *UseCase {
-	userRepo := user.NewRepository(store.Users)
-	authService := authService.NewService(userRepo, jwtSecret)
-	authUC := authUC.NewUseCase(authService)
+	realClock := clock.RealClock{}
+	userRepo := user.NewRepository(store.Users, realClock)
+	authService := authService.NewService(userRepo, jwtSecret, realClock)
+	authUC := authUC.NewUseCase(authService, realClock)
 
 	return &UseCase{
 		service:   service,
-		BalanceUC: balance.NewUseCase(store),
-		BudgetUC:  budget.NewUseCase(store),
-		OpUC:      operation.NewUseCase(store),
+		BalanceUC: balance.NewUseCase(store, realClock),
+		BudgetUC:  budget.NewUseCase(store, realClock),
+		OpUC:      operation.NewUseCase(store, realClock),
 		AuthUC:    authUC,
 	}
 }

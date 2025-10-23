@@ -3,8 +3,10 @@ package operation
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,8 +20,11 @@ func sampleOperations() []OperationDB {
 }
 
 func TestGetOperationsByAccount(t *testing.T) {
-	repo := NewRepository(sampleOperations())
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 
+	repo := NewRepository(sampleOperations(), fixedClock)
 	ops, _ := repo.GetOperationsByAccount(context.Background(), 1)
 	require.Len(t, ops, 2, "should exclude reverted ops and match accountID")
 	require.Equal(t, "Op1", ops[0].Name)
@@ -27,7 +32,11 @@ func TestGetOperationsByAccount(t *testing.T) {
 }
 
 func TestGetOperationByID(t *testing.T) {
-	repo := NewRepository(sampleOperations())
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
+
+	repo := NewRepository(sampleOperations(), fixedClock)
 
 	op, _ := repo.GetOperationByID(context.Background(), 1, 2)
 	require.Equal(t, 2, op.ID)
@@ -40,7 +49,11 @@ func TestGetOperationByID(t *testing.T) {
 }
 
 func TestCreateOperation(t *testing.T) {
-	repo := NewRepository([]OperationDB{})
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
+
+	repo := NewRepository([]OperationDB{}, fixedClock)
 
 	op := models.Operation{
 		AccountID:  1,
@@ -49,6 +62,7 @@ func TestCreateOperation(t *testing.T) {
 		Status:     models.OperationFinished,
 		Name:       "NewOp",
 		Sum:        999,
+		CreatedAt:  repo.clock.Now(),
 	}
 
 	created, _ := repo.CreateOperation(context.Background(), op)
@@ -62,9 +76,12 @@ func TestCreateOperation(t *testing.T) {
 }
 
 func TestUpdateOperation(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := NewRepository([]OperationDB{
 		{ID: 1, AccountID: 10, Name: "OldName", Sum: 100},
-	})
+	}, fixedClock)
 
 	newName := "Updated"
 	newSum := float64(200)
@@ -82,9 +99,12 @@ func TestUpdateOperation(t *testing.T) {
 }
 
 func TestDeleteOperation(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := NewRepository([]OperationDB{
 		{ID: 1, AccountID: 7, Name: "Active", Status: models.OperationFinished},
-	})
+	}, fixedClock)
 
 	deleted, _ := repo.DeleteOperation(context.Background(), 7, 1)
 	require.Equal(t, 1, deleted.ID)
@@ -95,9 +115,12 @@ func TestDeleteOperation(t *testing.T) {
 }
 
 func TestCreateOperationAssignsIncrementalIDs(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	repo := NewRepository([]OperationDB{
 		{ID: 1, AccountID: 1, Name: "Old"},
-	})
+	}, fixedClock)
 
 	newOp := models.Operation{
 		AccountID: 1,

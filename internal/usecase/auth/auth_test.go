@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -70,7 +71,7 @@ func TestUseCase_Register(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockAuthService := &mocks.AuthService{}
-			uc := NewUseCase(mockAuthService)
+			uc := NewUseCase(mockAuthService, clock.RealClock{})
 
 			mockAuthService.On("Register", mock.Anything, tt.request).Return(tt.mockResponse, tt.mockError)
 
@@ -150,7 +151,7 @@ func TestUseCase_Login(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockAuthService := &mocks.AuthService{}
-			uc := NewUseCase(mockAuthService)
+			uc := NewUseCase(mockAuthService, clock.RealClock{})
 
 			mockAuthService.On("Login", mock.Anything, tt.request).Return(tt.mockResponse, tt.mockError)
 
@@ -218,11 +219,90 @@ func TestUseCase_GetUserByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockAuthService := &mocks.AuthService{}
-			uc := NewUseCase(mockAuthService)
+			uc := NewUseCase(mockAuthService, clock.RealClock{})
 
 			mockAuthService.On("GetUserByID", mock.Anything, tt.userID).Return(tt.mockUser, tt.mockError)
 
 			user, err := uc.GetUserByID(context.Background(), tt.userID)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedUser.ID, user.ID)
+				assert.Equal(t, tt.expectedUser.FirstName, user.FirstName)
+				assert.Equal(t, tt.expectedUser.LastName, user.LastName)
+				assert.Equal(t, tt.expectedUser.Email, user.Email)
+				assert.Equal(t, tt.expectedUser.Login, user.Login)
+			}
+
+			mockAuthService.AssertExpectations(t)
+		})
+	}
+}
+
+func TestUseCase_EditUserByID(t *testing.T) {
+	tests := []struct {
+		name          string
+		req           models.UpdateUserRequest
+		userID        int
+		mockUser      models.User
+		mockError     error
+		expectedUser  models.User
+		expectedError error
+	}{
+		{
+			name: "successful edit user",
+			req: models.UpdateUserRequest{
+				FirstName: "John",
+				LastName:  "Doe",
+				Email:     "john@example.com",
+			},
+			userID: 1,
+			mockUser: models.User{
+				ID:        1,
+				FirstName: "John",
+				LastName:  "Doe",
+				Email:     "john@example.com",
+				Login:     "johndoe",
+				CreatedAt: time.Now(),
+			},
+			mockError: nil,
+			expectedUser: models.User{
+				ID:        1,
+				FirstName: "John",
+				LastName:  "Doe",
+				Email:     "john@example.com",
+				Login:     "johndoe",
+				CreatedAt: time.Now(),
+			},
+			expectedError: nil,
+		},
+		{
+			name: "edit user email conflict",
+			req: models.UpdateUserRequest{
+				FirstName: "John",
+				LastName:  "Doe",
+				Email:     "john@example.com",
+			},
+			userID:        1,
+			mockUser:      models.User{},
+			mockError:     errors.New("email already exists"),
+			expectedUser:  models.User{},
+			expectedError: errors.New("email already exists"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockAuthService := &mocks.AuthService{}
+			uc := NewUseCase(mockAuthService, clock.RealClock{})
+
+			mockAuthService.On("EditUserByID", mock.Anything, tt.req, tt.userID).
+				Return(tt.mockUser, tt.mockError)
+
+			user, err := uc.EditUserByID(context.Background(), tt.req, tt.userID)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)

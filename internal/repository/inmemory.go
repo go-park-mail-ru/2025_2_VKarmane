@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/dto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type Store struct {
@@ -80,9 +81,10 @@ func NewStore() (*Store, error) {
 		Budget:       budgets,
 	}
 
-	store.AccountRepo = account.NewRepository(accounts, userAccounts)
-	store.BudgetRepo = budget.NewRepository(budgets)
-	store.OperationRepo = operation.NewRepository(operations)
+	clock := clock.RealClock{}
+	store.AccountRepo = account.NewRepository(accounts, userAccounts, clock)
+	store.BudgetRepo = budget.NewRepository(budgets, clock)
+	store.OperationRepo = operation.NewRepository(operations, clock)
 
 	return store, nil
 }
