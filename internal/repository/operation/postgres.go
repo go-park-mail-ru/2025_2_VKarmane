@@ -129,18 +129,18 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op models.Oper
 
 	var id int
 	err := r.db.QueryRowContext(ctx, query,
-		op.AccountID, 
-		nil,            
-		categoryID,     
-		currencyID,    
-		op.Status,      
-		op.Type,        
-		op.Name,        
-		op.Description, 
-		op.ReceiptURL,  
-		op.Sum,         
-		time.Now(),     
-		op.Date,        
+		op.AccountID,
+		nil,
+		categoryID,
+		currencyID,
+		op.Status,
+		op.Type,
+		op.Name,
+		op.Description,
+		op.ReceiptURL,
+		op.Sum,
+		time.Now(),
+		op.Date,
 	).Scan(&id)
 
 	if err != nil {
