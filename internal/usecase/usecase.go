@@ -6,15 +6,19 @@ import (
 	authUC "github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/balance"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/budget"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/category"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/profile"
 )
 
 type UseCase struct {
-	service   *service.Service
-	BalanceUC *balance.UseCase
-	OpUC      *operation.UseCase
-	BudgetUC  *budget.UseCase
-	AuthUC    *authUC.UseCase
+	service    *service.Service
+	BalanceUC  *balance.UseCase
+	OpUC       *operation.UseCase
+	BudgetUC   *budget.UseCase
+	AuthUC     *authUC.UseCase
+	CategoryUC *category.UseCase
+	ProfileUC  *profile.UseCase
 }
 
 func NewUseCase(service *service.Service, store repository.Repository, jwtSecret string) *UseCase {
@@ -22,12 +26,16 @@ func NewUseCase(service *service.Service, store repository.Repository, jwtSecret
 	balanceUC := balance.NewUseCase(store)
 	budgetUC := budget.NewUseCase(store)
 	opUC := operation.NewUseCase(store)
+	categoryUC := category.NewUseCase(service.CategoryUC)
+	profileUC := profile.NewUseCase(service.ProfileUC)
 
 	return &UseCase{
-		service:   service,
-		BalanceUC: balanceUC,
-		BudgetUC:  budgetUC,
-		OpUC:      opUC,
-		AuthUC:    authUC,
+		service:    service,
+		BalanceUC:  balanceUC,
+		BudgetUC:   budgetUC,
+		OpUC:       opUC,
+		AuthUC:     authUC,
+		CategoryUC: categoryUC,
+		ProfileUC:  profileUC,
 	}
 }

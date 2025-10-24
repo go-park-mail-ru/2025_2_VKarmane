@@ -11,4 +11,5 @@ type UserRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (dto.UserDB, error)
 	GetUserByLogin(ctx context.Context, login string) (dto.UserDB, error)
 	GetUserByID(ctx context.Context, id int) (dto.UserDB, error)
+	UpdateUser(ctx context.Context, user dto.UserDB) error
 }

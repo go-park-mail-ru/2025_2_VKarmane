@@ -109,6 +109,24 @@ func (r *PostgresRepository) GetUserByID(ctx context.Context, id int) (dto.UserD
 	return user, err
 }
 
+func (r *PostgresRepository) UpdateUser(ctx context.Context, user dto.UserDB) error {
+	query := `
+		UPDATE "user" 
+		SET user_name = $1, surname = $2, email = $3, updated_at = $4
+		WHERE _id = $5
+	`
+
+	_, err := r.db.ExecContext(ctx, query,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.UpdatedAt,
+		user.ID,
+	)
+
+	return err
+}
+
 func (r *PostgresRepository) CreateUserModel(ctx context.Context, user models.User) (models.User, error) {
 	userDB := dto.UserDB{
 		FirstName:   user.FirstName,
@@ -146,6 +164,22 @@ func (r *PostgresRepository) GetUserByIDModel(ctx context.Context, id int) (mode
 	}
 
 	return dtoToModel(userDB), nil
+}
+
+func (r *PostgresRepository) UpdateUserModel(ctx context.Context, user models.User) error {
+	userDB := dto.UserDB{
+		ID:          user.ID,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
+		Email:       user.Email,
+		Login:       user.Login,
+		Password:    user.Password,
+		Description: user.Description,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+	}
+
+	return r.UpdateUser(ctx, userDB)
 }
 
 func dtoToModel(userDB dto.UserDB) models.User {

@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
@@ -114,32 +113,6 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	response.Token = ""
 	httputil.Success(w, r, response)
-}
-
-// GetProfile godoc
-// @Summary Получение профиля пользователя
-// @Description Возвращает информацию о текущем пользователе
-// @Tags auth
-// @Produce json
-// @Security ApiKeyAuth
-// @Success 200 {object} models.User "Профиль пользователя"
-// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
-// @Failure 404 {object} models.ErrorResponse "Пользователь не найден (USER_NOT_FOUND)"
-// @Router /profile [get]
-func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
-	userID, ok := middleware.GetUserIDFromContext(r.Context())
-	if !ok {
-		httputil.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
-		return
-	}
-
-	user, err := h.authUC.GetUserByID(r.Context(), userID)
-	if err != nil {
-		httputil.NotFoundError(w, r, "Пользователь не найден")
-		return
-	}
-
-	httputil.Success(w, r, user)
 }
 
 // Logout godoc

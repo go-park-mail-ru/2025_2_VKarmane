@@ -29,3 +29,17 @@ type AuthResponse struct {
 	Token string `json:"token"`
 	User  User   `json:"user"`
 }
+
+type ProfileResponse struct {
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	Login     string    `json:"login"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type UpdateProfileRequest struct {
+	FirstName string `json:"first_name" validate:"required,max=50"`
+	LastName  string `json:"last_name" validate:"required,max=50"`
+	Email     string `json:"email" validate:"required,email"`
+}

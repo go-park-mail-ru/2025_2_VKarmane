@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/category"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	_ "github.com/lib/pq"
@@ -19,6 +20,7 @@ type PostgresStore struct {
 	AccountRepo   *account.PostgresRepository
 	BudgetRepo    *budget.PostgresRepository
 	OperationRepo *operation.PostgresRepository
+	CategoryRepo  *category.PostgresRepository
 }
 
 func NewPostgresStore(dsn string) (*PostgresStore, error) {
@@ -39,6 +41,7 @@ func NewPostgresStore(dsn string) (*PostgresStore, error) {
 	store.AccountRepo = account.NewPostgresRepository(db)
 	store.BudgetRepo = budget.NewPostgresRepository(db)
 	store.OperationRepo = operation.NewPostgresRepository(db)
+	store.CategoryRepo = category.NewPostgresRepository(db)
 
 	return store, nil
 }
@@ -62,6 +65,10 @@ func (s *PostgresStore) GetUserByID(ctx context.Context, id int) (models.User, e
 	return s.UserRepo.GetUserByIDModel(ctx, id)
 }
 
+func (s *PostgresStore) UpdateUser(ctx context.Context, user models.User) error {
+	return s.UserRepo.UpdateUserModel(ctx, user)
+}
+
 // AccountRepository
 func (s *PostgresStore) GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error) {
 	return s.AccountRepo.GetAccountsByUser(ctx, userID)
@@ -79,4 +86,28 @@ func (s *PostgresStore) GetOperationsByAccount(ctx context.Context, accountID in
 
 func (s *PostgresStore) GetOperationsByUser(ctx context.Context, userID int) ([]models.Operation, error) {
 	return s.OperationRepo.GetOperationsByUser(ctx, userID)
+}
+
+// CategoryRepository
+func (s *PostgresStore) GetCategoriesByUser(ctx context.Context, userID int) ([]models.Category, error) {
+	categoriesDB, err := s.CategoryRepo.GetCategoriesByUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var categories []models.Category
+	for _, categoryDB := range categoriesDB {
+		categories = append(categories, category.CategoryDBToModel(categoryDB))
+	}
+
+	return categories, nil
+}
+
+func (s *PostgresStore) GetCategoryByID(ctx context.Context, userID, categoryID int) (models.Category, error) {
+	categoryDB, err := s.CategoryRepo.GetCategoryByID(ctx, userID, categoryID)
+	if err != nil {
+		return models.Category{}, err
+	}
+
+	return category.CategoryDBToModel(categoryDB), nil
 }
