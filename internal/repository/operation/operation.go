@@ -21,7 +21,9 @@ func (r *Repository) GetOperationsByAccount(ctx context.Context, accountID int) 
 	out := make([]models.Operation, 0)
 
 	for _, o := range r.operations {
-		if o.AccountID == accountID && o.Status != models.OperationReverted {
+		if ((o.AccountFromID != nil && *o.AccountFromID == accountID) ||
+			(o.AccountToID != nil && *o.AccountToID == accountID)) &&
+			o.Status != models.OperationReverted {
 			out = append(out, OperationDBToModel(o))
 		}
 	}
@@ -31,7 +33,9 @@ func (r *Repository) GetOperationsByAccount(ctx context.Context, accountID int) 
 
 func (r *Repository) GetOperationByID(ctx context.Context, accountID int, opID int) (models.Operation, error) {
 	for _, o := range r.operations {
-		if o.AccountID == accountID && o.ID == opID && o.Status != models.OperationReverted {
+		if ((o.AccountFromID != nil && *o.AccountFromID == accountID) ||
+			(o.AccountToID != nil && *o.AccountToID == accountID)) &&
+			o.ID == opID && o.Status != models.OperationReverted {
 			return OperationDBToModel(o), nil
 		}
 	}
@@ -41,17 +45,18 @@ func (r *Repository) GetOperationByID(ctx context.Context, accountID int, opID i
 
 func (r *Repository) CreateOperation(ctx context.Context, op models.Operation) (models.Operation, error) {
 	opDB := OperationDB{
-		ID:          len(r.operations) + 1,
-		AccountID:   op.AccountID,
-		CategoryID:  op.CategoryID,
-		Type:        op.Type,
-		Status:      op.Status,
-		Description: op.Description,
-		ReceiptURL:  op.ReceiptURL,
-		Name:        op.Name,
-		Sum:         op.Sum,
-		CurrencyID:  op.CurrencyID,
-		CreatedAt:   time.Now(),
+		ID:            len(r.operations) + 1,
+		AccountFromID: &op.AccountID,
+		AccountToID:   nil,
+		CategoryID:    &op.CategoryID,
+		Type:          op.Type,
+		Status:        op.Status,
+		Description:   op.Description,
+		ReceiptURL:    op.ReceiptURL,
+		Name:          op.Name,
+		Sum:           op.Sum,
+		CurrencyID:    &op.CurrencyID,
+		CreatedAt:     time.Now(),
 	}
 
 	r.operations = append(r.operations, opDB)
@@ -61,10 +66,12 @@ func (r *Repository) CreateOperation(ctx context.Context, op models.Operation) (
 func (r *Repository) UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID, opID int) (models.Operation, error) {
 	for i := range r.operations {
 		op := &r.operations[i]
-		if op.AccountID == accID && op.ID == opID {
+		if ((op.AccountFromID != nil && *op.AccountFromID == accID) ||
+			(op.AccountToID != nil && *op.AccountToID == accID)) &&
+			op.ID == opID {
 
 			if req.CategoryID != nil {
-				op.CategoryID = *req.CategoryID
+				op.CategoryID = req.CategoryID
 			}
 			if req.Sum != nil {
 				op.Sum = *req.Sum
@@ -84,7 +91,9 @@ func (r *Repository) UpdateOperation(ctx context.Context, req models.UpdateOpera
 
 func (r *Repository) DeleteOperation(ctx context.Context, accID int, opID int) (models.Operation, error) {
 	for i := range r.operations {
-		if r.operations[i].AccountID == accID && r.operations[i].ID == opID {
+		if ((r.operations[i].AccountFromID != nil && *r.operations[i].AccountFromID == accID) ||
+			(r.operations[i].AccountToID != nil && *r.operations[i].AccountToID == accID)) &&
+			r.operations[i].ID == opID {
 			r.operations[i].Status = models.OperationReverted
 			return OperationDBToModel(r.operations[i]), nil
 		}
