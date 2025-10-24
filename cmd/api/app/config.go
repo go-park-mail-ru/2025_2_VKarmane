@@ -10,8 +10,8 @@ type Config struct {
 	Host      string
 	JWTSecret string
 	LogLevel  string
-<<<<<<< HEAD
 	Database  DatabaseConfig
+	HTTPS     HTTPSConfig
 }
 
 type DatabaseConfig struct {
@@ -21,8 +21,12 @@ type DatabaseConfig struct {
 	Password string
 	DBName   string
 	SSLMode  string
-=======
->>>>>>> origin/main
+}
+
+type HTTPSConfig struct {
+	Enabled  bool
+	CertFile string
+	KeyFile  string
 }
 
 func LoadConfig() *Config {
@@ -31,7 +35,6 @@ func LoadConfig() *Config {
 		Host:      getEnv("HOST", "0.0.0.0"),
 		JWTSecret: getEnv("JWT_SECRET", "your-secret-key"),
 		LogLevel:  getEnv("LOG_LEVEL", "info"),
-<<<<<<< HEAD
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
@@ -40,8 +43,11 @@ func LoadConfig() *Config {
 			DBName:   getEnv("DB_NAME", "vkarmane"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
-=======
->>>>>>> origin/main
+		HTTPS: HTTPSConfig{
+			Enabled:  getEnv("HTTPS_ENABLED", "true") == "true",
+			CertFile: getEnv("HTTPS_CERT_FILE", "ssl/server.crt"),
+			KeyFile:  getEnv("HTTPS_KEY_FILE", "ssl/server.key"),
+		},
 	}
 
 	return config
@@ -54,29 +60,6 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-func (c *Config) IsProduction() bool {
-	return os.Getenv("ENV") == "production"
-}
-
-func (c *Config) GetServerAddress() string {
-	return c.Host + ":" + c.Port
-}
-
-func (c *Config) GetCORSOrigins() []string {
-	if c.IsProduction() {
-		return []string{
-			"http://217.16.23.67:8000",
-			"https://217.16.23.67:8000",
-		}
-	}
-	return []string{
-		"http://localhost:8000",
-		"http://127.0.0.1:8000",
-		"http://217.16.23.67:8000",
-	}
-}
-<<<<<<< HEAD
-
 func (c *Config) GetDatabaseDSN() string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		c.Database.Host,
@@ -87,5 +70,26 @@ func (c *Config) GetDatabaseDSN() string {
 		c.Database.SSLMode,
 	)
 }
-=======
->>>>>>> origin/main
+
+func (c *Config) GetCORSOrigins() []string {
+	origins := getEnv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8080,https://localhost:3000,https://localhost:8080")
+	if origins == "" {
+		return []string{}
+	}
+
+	var result []string
+	for _, origin := range []string{origins} {
+		if origin != "" {
+			result = append(result, origin)
+		}
+	}
+	return result
+}
+
+func (c *Config) IsProduction() bool {
+	return getEnv("ENV", "development") == "production"
+}
+
+func (c *Config) GetServerAddress() string {
+	return fmt.Sprintf("%s:%s", c.Host, c.Port)
+}

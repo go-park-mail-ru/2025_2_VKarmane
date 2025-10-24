@@ -34,6 +34,9 @@ COPY --from=builder /app/main .
 # Copy migrations
 COPY --from=builder /app/migrations ./migrations
 
+# Copy SSL certificates
+COPY --from=builder /app/ssl ./ssl
+
 # Create logs directory
 RUN mkdir -p logs
 

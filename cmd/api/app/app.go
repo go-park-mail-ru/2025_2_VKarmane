@@ -79,9 +79,18 @@ func Run() error {
 	}
 
 	go func() {
-		appLogger.Info("Server running at", "address", config.GetServerAddress())
+		appLogger.Info("Server running at", "address", config.GetServerAddress(), "https_enabled", config.HTTPS.Enabled)
 
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		var err error
+		if config.HTTPS.Enabled {
+			appLogger.Info("Starting HTTPS server", "cert_file", config.HTTPS.CertFile, "key_file", config.HTTPS.KeyFile)
+			err = srv.ListenAndServeTLS(config.HTTPS.CertFile, config.HTTPS.KeyFile)
+		} else {
+			appLogger.Info("Starting HTTP server")
+			err = srv.ListenAndServe()
+		}
+
+		if err != nil && err != http.ErrServerClosed {
 			appLogger.Error("Server failed to start", "error", err)
 		}
 	}()
