@@ -100,6 +100,36 @@ func (_m *OperationService) GetAccountOperations(ctx context.Context, accID int)
 	return r0, r1
 }
 
+// GetOperationByID provides a mock function with given fields: ctx, accID, opID
+func (_m *OperationService) GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error) {
+	ret := _m.Called(ctx, accID, opID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOperationByID")
+	}
+
+	var r0 models.Operation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) (models.Operation, error)); ok {
+		return rf(ctx, accID, opID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) models.Operation); ok {
+		r0 = rf(ctx, accID, opID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(models.Operation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int, int) error); ok {
+		r1 = rf(ctx, accID, opID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdateOperation provides a mock function with given fields: ctx, req, accID, opID
 func (_m *OperationService) UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error) {
 	ret := _m.Called(ctx, req, accID, opID)

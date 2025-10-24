@@ -44,6 +44,36 @@ func (_m *BalanceService) GetBalanceForUser(ctx context.Context, userID int) ([]
 	return r0, r1
 }
 
+// GetAccountByID provides a mock function with given fields: ctx, userID, accountID
+func (_m *BalanceService) GetAccountByID(ctx context.Context, userID int, accountID int) (models.Account, error) {
+	ret := _m.Called(ctx, userID, accountID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAccountByID")
+	}
+
+	var r0 models.Account
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) (models.Account, error)); ok {
+		return rf(ctx, userID, accountID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) models.Account); ok {
+		r0 = rf(ctx, userID, accountID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(models.Account)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int, int) error); ok {
+		r1 = rf(ctx, userID, accountID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewBalanceService creates a new instance of BalanceService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewBalanceService(t interface {

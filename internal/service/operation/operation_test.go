@@ -51,9 +51,10 @@ func TestService_CreateOperation(t *testing.T) {
 
 	mockSvc := mocks.NewOperationService(t)
 
+	categoryID := 2
 	req := models.CreateOperationRequest{
 		AccountID:   accID,
-		CategoryID:  2,
+		CategoryID:  &categoryID,
 		Type:        models.OperationExpense,
 		Name:        "Lunch",
 		Description: "Food",

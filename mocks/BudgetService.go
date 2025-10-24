@@ -44,6 +44,36 @@ func (_m *BudgetService) GetBudgetsForUser(ctx context.Context, userID int) ([]m
 	return r0, r1
 }
 
+// GetBudgetByID provides a mock function with given fields: ctx, userID, budgetID
+func (_m *BudgetService) GetBudgetByID(ctx context.Context, userID int, budgetID int) (models.Budget, error) {
+	ret := _m.Called(ctx, userID, budgetID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBudgetByID")
+	}
+
+	var r0 models.Budget
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) (models.Budget, error)); ok {
+		return rf(ctx, userID, budgetID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, int, int) models.Budget); ok {
+		r0 = rf(ctx, userID, budgetID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(models.Budget)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, int, int) error); ok {
+		r1 = rf(ctx, userID, budgetID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewBudgetService creates a new instance of BudgetService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewBudgetService(t interface {
