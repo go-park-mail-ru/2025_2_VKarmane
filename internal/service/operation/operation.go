@@ -42,54 +42,57 @@ func (s *Service) CheckAccountOwnership(ctx context.Context, accID int) bool {
 }
 
 func (s *Service) GetAccountOperations(ctx context.Context, accID int) ([]models.Operation, error) {
-	if !(s.CheckAccountOwnership(ctx, accID)) {
+	if !s.CheckAccountOwnership(ctx, accID) {
 		return []models.Operation{}, ErrForbidden
 	}
 	ops, err := s.operationRepo.GetOperationsByAccount(ctx, accID)
 	if err != nil {
 		return []models.Operation{}, pkgErrors.Wrap(err, "Failed to get account operations")
 	}
-
 	return ops, nil
 }
 
 func (s *Service) GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error) {
-	if !(s.CheckAccountOwnership(ctx, accID)) {
+	if !s.CheckAccountOwnership(ctx, accID) {
 		return models.Operation{}, ErrForbidden
 	}
-	ops, err := s.operationRepo.GetOperationsByAccount(ctx, accID)
+	op, err := s.operationRepo.GetOperationByID(ctx, accID, opID)
 	if err != nil {
-		return models.Operation{}, pkgErrors.Wrap(err, "Failed to get operation by id")
+		return models.Operation{}, pkgErrors.Wrap(err, "Failed to get operation by ID")
 	}
-
-	for _, op := range ops {
-		if op.ID == opID {
-			return op, nil
-		}
-	}
-
-	return models.Operation{}, nil
+	return op, nil
 }
 
 func (s *Service) CreateOperation(ctx context.Context, req models.CreateOperationRequest, accID int) (models.Operation, error) {
-	if !(s.CheckAccountOwnership(ctx, accID)) {
+	if !s.CheckAccountOwnership(ctx, accID) {
 		return models.Operation{}, ErrForbidden
 	}
-	op := models.Operation{
-		ID:          0,
-		AccountID:   req.AccountID,
-		CategoryID:  req.CategoryID,
+
+	var categoryID int
+	if req.CategoryID != nil {
+		categoryID = *req.CategoryID
+	}
+
+	operationDate := time.Now()
+	if req.Date != nil {
+		operationDate = *req.Date
+	}
+
+	operation := models.Operation{
+		AccountID:   accID,
+		CategoryID:  categoryID,
 		Type:        req.Type,
 		Status:      models.OperationFinished,
 		Description: req.Description,
-		ReceiptURL:  "11111111111",
+		ReceiptURL:  "",
 		Name:        req.Name,
 		Sum:         req.Sum,
-		CurrencyID:  1,
+		CurrencyID:  1, // TODO: получать из аккаунта или запроса
 		CreatedAt:   time.Now(),
+		Date:        operationDate,
 	}
 
-	createdOp, err := s.operationRepo.CreateOperation(ctx, op)
+	createdOp, err := s.operationRepo.CreateOperation(ctx, operation)
 	if err != nil {
 		return models.Operation{}, pkgErrors.Wrap(err, "Failed to create operation")
 	}
@@ -98,9 +101,10 @@ func (s *Service) CreateOperation(ctx context.Context, req models.CreateOperatio
 }
 
 func (s *Service) UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error) {
-	if !(s.CheckAccountOwnership(ctx, accID)) {
+	if !s.CheckAccountOwnership(ctx, accID) {
 		return models.Operation{}, ErrForbidden
 	}
+
 	updatedOp, err := s.operationRepo.UpdateOperation(ctx, req, accID, opID)
 	if err != nil {
 		return models.Operation{}, pkgErrors.Wrap(err, "Failed to update operation")
@@ -110,9 +114,10 @@ func (s *Service) UpdateOperation(ctx context.Context, req models.UpdateOperatio
 }
 
 func (s *Service) DeleteOperation(ctx context.Context, accID int, opID int) (models.Operation, error) {
-	if !(s.CheckAccountOwnership(ctx, accID)) {
+	if !s.CheckAccountOwnership(ctx, accID) {
 		return models.Operation{}, ErrForbidden
 	}
+
 	deletedOp, err := s.operationRepo.DeleteOperation(ctx, accID, opID)
 	if err != nil {
 		return models.Operation{}, pkgErrors.Wrap(err, "Failed to delete operation")

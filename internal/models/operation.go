@@ -17,17 +17,19 @@ const (
 )
 
 type Operation struct {
-	ID          int
-	AccountID   int
-	CategoryID  int
-	Type        OperationType
-	Status      OperationStatus
-	Description string
-	ReceiptURL  string
-	Name        string
-	Sum         float64
-	CurrencyID  int
-	CreatedAt   time.Time
+	ID           int
+	AccountID    int
+	CategoryID   int
+	CategoryName string
+	Type         OperationType
+	Status       OperationStatus
+	Description  string
+	ReceiptURL   string
+	Name         string
+	Sum          float64
+	CurrencyID   int
+	CreatedAt    time.Time
+	Date         time.Time // Дата операции (может отличаться от created_at)
 }
 
 type UpdateOperationRequest struct {
@@ -43,9 +45,26 @@ type DeleteOperationRequest struct {
 
 type CreateOperationRequest struct {
 	AccountID   int           `json:"account_id"`
-	CategoryID  int           `json:"category_id"`
+	CategoryID  *int          `json:"category_id,omitempty"`
 	Type        OperationType `json:"type"`
 	Name        string        `json:"name" validate:"required,max=50"`
 	Description string        `json:"description,omitempty" validate:"max=60"`
 	Sum         float64       `json:"sum" validate:"required,min=0"`
+	Date        *time.Time    `json:"date,omitempty"` // Дата операции
+}
+
+type OperationResponse struct {
+	ID           int       `json:"_id"`
+	AccountID    int       `json:"account_id"`
+	CategoryID   int       `json:"category_id"`
+	CategoryName string    `json:"category_name"`
+	Type         string    `json:"type"`
+	Status       string    `json:"status"`
+	Description  string    `json:"description"`
+	ReceiptURL   string    `json:"receipt_url"`
+	Name         string    `json:"name"`
+	Sum          float64   `json:"sum"`
+	CurrencyID   int       `json:"currency_id"`
+	CreatedAt    time.Time `json:"created_at"`
+	Date         time.Time `json:"date"` // Дата операции
 }
