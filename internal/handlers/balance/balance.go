@@ -27,17 +27,17 @@ func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error)
 	return strconv.Atoi(idStr)
 }
 
-// GetListBalance godoc
-// @Summary Получение баланса пользователя
-// @Description Возвращает список всех счетов пользователя
-// @Tags balance
+// GetAccounts godoc
+// @Summary Получение списка аккаунтов пользователя
+// @Description Возвращает список всех аккаунтов пользователя в формате для фронтенда
+// @Tags accounts
 // @Produce json
 // @Security ApiKeyAuth
-// @Success 200 {object} map[string]interface{} "Список счетов пользователя"
+// @Success 200 {object} map[string]interface{} "Список аккаунтов пользователя"
 // @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
 // @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
-// @Router /balance [get]
-func (h *Handler) GetListBalance(w http.ResponseWriter, r *http.Request) {
+// @Router /accounts [get]
+func (h *Handler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	userID, ok := h.getUserID(r)
 	if !ok {
 		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
@@ -46,46 +46,13 @@ func (h *Handler) GetListBalance(w http.ResponseWriter, r *http.Request) {
 
 	accounts, err := h.balanceUC.GetBalanceForUser(r.Context(), userID)
 	if err != nil {
-		httputils.InternalError(w, r, "Failed to get balance for user")
+		httputils.InternalError(w, r, "Failed to get accounts for user")
 		return
 	}
 
-	balanceDTO := AccountsToBalanceAPI(userID, accounts)
-	httputils.Success(w, r, balanceDTO)
-}
-
-// GetBalanceByAccountID godoc
-// @Summary Получение баланса конкретного счета
-// @Description Возвращает информацию о конкретном счете пользователя
-// @Tags balance
-// @Produce json
-// @Security ApiKeyAuth
-// @Param id path int true "ID счета"
-// @Success 200 {object} map[string]interface{} "Информация о счете"
-// @Failure 400 {object} models.ErrorResponse "Некорректный ID счета (INVALID_REQUEST)"
-// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
-// @Failure 404 {object} models.ErrorResponse "Счет не найден (ACCOUNT_NOT_FOUND)"
-// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
-// @Router /balance/{id} [get]
-func (h *Handler) GetBalanceByAccountID(w http.ResponseWriter, r *http.Request) {
-	id, err := h.parseIDFromURL(r, "id")
-	if err != nil {
-		httputils.ValidationError(w, r, "Invalid account ID format", "id")
-		return
+	// Возвращаем аккаунты в формате, который ожидает фронтенд
+	accountsResponse := map[string]interface{}{
+		"accounts": accounts,
 	}
-
-	userID, ok := h.getUserID(r)
-	if !ok {
-		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
-		return
-	}
-
-	account, err := h.balanceUC.GetAccountByID(r.Context(), userID, id)
-	if err != nil {
-		httputils.NotFoundError(w, r, "Account not found")
-		return
-	}
-
-	accountDTO := AccountToAPI(account)
-	httputils.Success(w, r, accountDTO)
+	httputils.Success(w, r, accountsResponse)
 }
