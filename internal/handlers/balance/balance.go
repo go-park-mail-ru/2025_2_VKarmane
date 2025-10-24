@@ -2,11 +2,9 @@ package balance
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
-	"github.com/gorilla/mux"
 )
 
 type Handler struct {
@@ -21,11 +19,6 @@ func (h *Handler) getUserID(r *http.Request) (int, bool) {
 	return middleware.GetUserIDFromContext(r.Context())
 }
 
-func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error) {
-	vars := mux.Vars(r)
-	idStr := vars[paramName]
-	return strconv.Atoi(idStr)
-}
 
 // GetAccounts godoc
 // @Summary Получение списка аккаунтов пользователя

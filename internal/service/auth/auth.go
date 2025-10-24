@@ -11,7 +11,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 )
 
-var InvalidPassword = errors.New("invalid credentials")
+var ErrInvalidPassword = errors.New("invalid credentials")
 
 type Service struct {
 	userRepo  UserRepository
@@ -89,7 +89,7 @@ func (s *Service) Login(ctx context.Context, req models.LoginRequest) (models.Au
 			log.Warn("Login attempt with invalid password", "login", req.Login, "user_id", user.ID)
 		}
 
-		return models.AuthResponse{}, InvalidPassword
+		return models.AuthResponse{}, ErrInvalidPassword
 	}
 
 	token, err := utils.GenerateJWT(user.ID, user.Login, s.jwtSecret)

@@ -30,7 +30,9 @@ func (r *PostgresRepository) GetAccountsByUser(ctx context.Context, userID int) 
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	var accounts []models.Account
 	for rows.Next() {

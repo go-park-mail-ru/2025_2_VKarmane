@@ -30,7 +30,9 @@ func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) (
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	var budgets []models.Budget
 	for rows.Next() {

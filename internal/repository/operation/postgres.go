@@ -34,7 +34,9 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	var operations []models.Operation
 	for rows.Next() {
@@ -278,7 +280,9 @@ func (r *PostgresRepository) GetOperationsByUser(ctx context.Context, userID int
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	var operations []models.Operation
 	for rows.Next() {

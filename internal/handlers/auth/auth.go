@@ -52,9 +52,9 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	response, err := h.authUC.Register(r.Context(), req)
 	if err != nil {
 		switch {
-		case errors.Is(err, user.EmailExistsErr):
+		case errors.Is(err, user.ErrEmailExists):
 			httputil.ConflictError(w, r, "Пользователь с таким email уже существует", models.ErrCodeEmailExists)
-		case errors.Is(err, user.LoginExistsErr):
+		case errors.Is(err, user.ErrLoginExists):
 			httputil.ConflictError(w, r, "Пользователь с таким логином уже существует", models.ErrCodeLoginExists)
 		default:
 			httputil.ConflictError(w, r, "Пользователь уже существует", models.ErrCodeUserExists)
@@ -98,9 +98,9 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	response, err := h.authUC.Login(r.Context(), req)
 	if err != nil {
 		switch {
-		case errors.Is(err, user.UserNotFound):
+		case errors.Is(err, user.ErrUserNotFound):
 			httputil.UnauthorizedError(w, r, "Пользователь не найден", models.ErrCodeUserNotFound)
-		case errors.Is(err, auth.InvalidPassword):
+		case errors.Is(err, auth.ErrInvalidPassword):
 			httputil.UnauthorizedError(w, r, "Неверный пароль", models.ErrCodeInvalidCredentials)
 		default:
 			httputil.UnauthorizedError(w, r, "Неверные учетные данные", models.ErrCodeInvalidCredentials)

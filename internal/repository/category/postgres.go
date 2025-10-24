@@ -54,7 +54,9 @@ func (r *PostgresRepository) GetCategoriesByUser(ctx context.Context, userID int
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	var categories []dto.CategoryDB
 	for rows.Next() {

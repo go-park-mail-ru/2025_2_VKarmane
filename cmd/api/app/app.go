@@ -32,7 +32,11 @@ func Run() error {
 	if err != nil {
 		return err
 	}
-	defer store.Close()
+	defer func() {
+		if err := store.Close(); err != nil {
+			appLogger.Error("Failed to close database connection", "error", err)
+		}
+	}()
 	service := service.NewService(store, config.JWTSecret)
 	usecase := usecase.NewUseCase(service, store, config.JWTSecret)
 	handler := handlers.NewHandler(usecase, appLogger)

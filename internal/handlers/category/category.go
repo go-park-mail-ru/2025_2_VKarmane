@@ -2,13 +2,11 @@ package category
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/category"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
-	"github.com/gorilla/mux"
 )
 
 type Handler struct {
@@ -26,11 +24,6 @@ func (h *Handler) getUserID(r *http.Request) (int, bool) {
 	return userID, ok
 }
 
-func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error) {
-	vars := mux.Vars(r)
-	idStr := vars[paramName]
-	return strconv.Atoi(idStr)
-}
 
 // GetCategories godoc
 // @Summary Получение списка категорий пользователя
