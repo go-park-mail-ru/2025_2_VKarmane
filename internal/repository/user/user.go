@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/dto"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 var ErrLoginExists = errors.New("login exists")
@@ -16,10 +17,11 @@ var ErrUserNotFound = errors.New("not Found")
 
 type Repository struct {
 	users []dto.UserDB
+	clock clock.Clock
 }
 
-func NewRepository(users []dto.UserDB) *Repository {
-	return &Repository{users: users}
+func NewRepository(users []dto.UserDB, clck clock.Clock) *Repository {
+	return &Repository{users: users, clock: clck}
 }
 
 func (r *Repository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
@@ -48,7 +50,7 @@ func (r *Repository) CreateUser(ctx context.Context, user models.User) (models.U
 		}
 	}
 
-	now := time.Now()
+	now := r.clock.Now()
 	userDB := dto.UserDB{
 		ID:        newID,
 		FirstName: user.FirstName,
@@ -123,4 +125,39 @@ func (r *Repository) GetUserByID(ctx context.Context, id int) (models.User, erro
 
 func (r *Repository) GetAllUsers() []dto.UserDB {
 	return r.users
+}
+
+func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateUserRequest, id int) (models.User, error) {
+	log := logger.FromContext(ctx)
+	now := time.Now()
+	for i := range r.users {
+		if r.users[i].ID != id && r.users[i].Email == req.Email {
+			if log != nil {
+				log.Warn("User update failed: email already exists", "email", req.Email)
+			}
+
+			return models.User{}, EmailExistsErr
+		}
+		if r.users[i].ID == id {
+			r.users[i].Email = req.Email
+			r.users[i].FirstName = req.FirstName
+			r.users[i].LastName = req.LastName
+
+			return models.User{
+				ID:        r.users[i].ID,
+				FirstName: r.users[i].FirstName,
+				LastName:  r.users[i].LastName,
+				Email:     r.users[i].Email,
+				Login:     r.users[i].Login,
+				CreatedAt: r.users[i].CreatedAt,
+				UpdatedAt: now,
+			}, nil
+		}
+	}
+
+	if log != nil {
+		log.Warn("User not found by ID", "user_id", id)
+	}
+
+	return models.User{}, UserNotFound
 }

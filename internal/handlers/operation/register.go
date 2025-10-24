@@ -4,10 +4,13 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 func Register(r *mux.Router, uc OperationUseCase) {
-	handler := NewHandler(uc)
+	realClock := clock.RealClock{}
+	handler := NewHandler(uc, realClock)
 
 	r.HandleFunc("/operations/account/{acc_id}", handler.GetAccountOperations).Methods(http.MethodGet)
 	r.HandleFunc("/operations/account/{acc_id}", handler.CreateOperation).Methods(http.MethodPost)

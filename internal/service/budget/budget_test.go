@@ -6,12 +6,16 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestService_GetBudgetsForUser(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	tests := []struct {
 		name           string
 		userID         int
@@ -247,7 +251,7 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 			mockAccountRepo.On("GetAccountsByUser", mock.Anything, tt.userID).Return(tt.mockAccounts, nil)
 			mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 1).Return(tt.mockOperations, nil)
 
-			service := NewService(mockBudgetRepo, mockAccountRepo, mockOperationRepo)
+			service := NewService(mockBudgetRepo, mockAccountRepo, mockOperationRepo, fixedClock)
 
 			result, err := service.GetBudgetsForUser(context.Background(), tt.userID)
 
@@ -271,6 +275,9 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 }
 
 func TestService_GetBudgetsForUser_MultipleAccountsAggregation(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
 	mockBudgetRepo := &mocks.BudgetRepository{}
 	mockAccountRepo := &mocks.AccountRepository{}
 	mockOperationRepo := &mocks.OperationRepository{}
@@ -286,7 +293,7 @@ func TestService_GetBudgetsForUser_MultipleAccountsAggregation(t *testing.T) {
 	mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 1).Return(ops1, nil)
 	mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 2).Return(ops2, nil)
 
-	svc := NewService(mockBudgetRepo, mockAccountRepo, mockOperationRepo)
+	svc := NewService(mockBudgetRepo, mockAccountRepo, mockOperationRepo, fixedClock)
 	res, err := svc.GetBudgetsForUser(context.Background(), 1)
 	assert.NoError(t, err)
 	assert.Len(t, res, 1)

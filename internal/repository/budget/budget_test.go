@@ -3,12 +3,18 @@ package budget
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 func TestGetBudgetsByUser_Table(t *testing.T) {
-	repo := NewRepository([]BudgetDB{{ID: 1, UserID: 1, Amount: 100}, {ID: 2, UserID: 2, Amount: 200}})
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+	}
+	repo := NewRepository([]BudgetDB{{ID: 1, UserID: 1, Amount: 100}, {ID: 2, UserID: 2, Amount: 200}}, fixedClock)
 
 	tests := []struct {
 		name   string

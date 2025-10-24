@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/mock"
@@ -16,7 +17,8 @@ import (
 
 func TestGetListBudgetsUnauthorized(t *testing.T) {
 	m := mocks.NewBudgetUseCase(t)
-	h := NewHandler(m)
+	clock := clock.RealClock{}
+	h := NewHandler(m, clock)
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/budgets", nil)
 	rr := httptest.NewRecorder()
 	h.GetListBudgets(rr, req)
@@ -25,7 +27,8 @@ func TestGetListBudgetsUnauthorized(t *testing.T) {
 
 func TestGetBudgetByIDSuccess(t *testing.T) {
 	m := mocks.NewBudgetUseCase(t)
-	h := NewHandler(m)
+	clock := clock.RealClock{}
+	h := NewHandler(m, clock)
 
 	m.On("GetBudgetByID", mock.Anything, 1, 5).Return(models.Budget{ID: 5}, nil)
 

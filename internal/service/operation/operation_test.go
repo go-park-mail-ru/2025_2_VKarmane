@@ -66,7 +66,6 @@ func TestService_CreateOperation(t *testing.T) {
 		AccountID: accID,
 		Name:      "Lunch",
 		Status:    models.OperationFinished,
-		CreatedAt: time.Now(),
 	}
 
 	mockSvc.On("CreateOperation", mock.Anything, req, accID).Return(expectedOp, nil).Once()

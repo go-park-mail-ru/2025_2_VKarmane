@@ -33,10 +33,11 @@ type Operation struct {
 }
 
 type UpdateOperationRequest struct {
-	CategoryID  *int     `json:"category_id,omitempty"`
-	Name        *string  `json:"name,omitempty" validate:"omitempty,max=50"`
-	Description *string  `json:"description,omitempty" validate:"omitempty,max=60"`
-	Sum         *float64 `json:"sum,omitempty" validate:"omitempty,min=0"`
+	CategoryID  *int       `json:"category_id,omitempty"`
+	Name        *string    `json:"name,omitempty" validate:"omitempty,max=50"`
+	Description *string    `json:"description,omitempty" validate:"omitempty,max=60"`
+	Sum         *float64   `json:"sum,omitempty" validate:"omitempty,min=0"`
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
 }
 
 type DeleteOperationRequest struct {
@@ -45,6 +46,7 @@ type DeleteOperationRequest struct {
 
 type CreateOperationRequest struct {
 	AccountID   int           `json:"account_id"`
+<<<<<<< HEAD
 	CategoryID  *int          `json:"category_id,omitempty"`
 	Type        OperationType `json:"type"`
 	Name        string        `json:"name" validate:"required,max=50"`

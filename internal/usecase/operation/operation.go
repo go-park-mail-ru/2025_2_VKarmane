@@ -4,25 +4,20 @@ import (
 	"context"
 	"fmt"
 
-	pkgErrors "github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type UseCase struct {
 	opSvc operation.OperationService
 }
 
-func NewUseCase(store repository.Repository) *UseCase {
-	postgresStore := store.(*repository.PostgresStore)
-
-	accountRepoAdapter := operation.NewPostgresAccountRepositoryAdapter(postgresStore)
-	operationRepoAdapter := operation.NewPostgresOperationRepositoryAdapter(postgresStore)
-	opService := operation.NewService(accountRepoAdapter, operationRepoAdapter)
-
+func NewUseCase(opService operation.OperationService) *UseCase {
 	return &UseCase{
 		opSvc: opService,
 	}
@@ -52,7 +47,7 @@ func (uc *UseCase) GetOperationByID(ctx context.Context, accID int, opID int) (m
 			log.Error("Failed to get operation by ID", "error", err, "account_id", accID, "operation_id", opID)
 		}
 
-		return models.Operation{}, pkgErrors.Wrap(err, "operation.GetOperationByID")
+		return models.Operation{}, pkgerrors.Wrap(err, "operation.GetOperationByID")
 	}
 
 	return opData, nil
@@ -76,7 +71,7 @@ func (uc *UseCase) CreateOperation(ctx context.Context, req models.CreateOperati
 			log.Error("Failed to create operation", "error", err, "account_id", accID)
 		}
 
-		return models.Operation{}, pkgErrors.Wrap(err, "operation.CreateOperation")
+		return models.Operation{}, pkgerrors.Wrap(err, "operation.CreateOperation")
 	}
 
 	return opData, nil
@@ -96,7 +91,7 @@ func (uc *UseCase) UpdateOperation(ctx context.Context, req models.UpdateOperati
 			log.Error("Failed to update operation", "error", err, "account_id", accID, "operation_id", opID)
 		}
 
-		return models.Operation{}, pkgErrors.Wrap(err, "operation.UpdateOperation")
+		return models.Operation{}, pkgerrors.Wrap(err, "operation.UpdateOperation")
 	}
 
 	return opData, nil
@@ -111,7 +106,7 @@ func (uc *UseCase) DeleteOperation(ctx context.Context, accID int, opID int) (mo
 			log.Error("Failed to delete operation", "error", err, "account_id", accID, "operation_id", opID)
 		}
 
-		return models.Operation{}, pkgErrors.Wrap(err, "operation.DeleteOperation")
+		return models.Operation{}, pkgerrors.Wrap(err, "operation.DeleteOperation")
 	}
 
 	return opData, nil

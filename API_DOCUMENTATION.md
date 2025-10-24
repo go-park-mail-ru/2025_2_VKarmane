@@ -113,14 +113,40 @@
 **Ответ:**
 ```json
 {
-  "ID": 1,
-  "FirstName": "Vlad",
-  "LastName": "Sigma",
-  "Email": "vlad@example.com", 
-  "Login": "hello",
+  "user_id": 1,
+  "first_name": "Vlad",
+  "last_name": "Sigma",
+  "email": "aaaa@ya.ru",
+  "login": "hello",
   "Password": "",
-  "CreatedAt": "2025-09-26T18:46:15.000000+03:00",
-  "UpdatedAt": "2025-09-26T18:46:15.000000+03:00"
+  "created_at": "2025-10-21T20:52:08.3251177+03:00",
+  "updated_at": "2025-10-21T20:52:08.3251177+03:00"
+}
+```
+
+#### PUT /api/v1/profile/edit
+Изменить профиля текущего пользователя.
+
+**Тело запроса:**
+```json
+{
+  "first_name": "string (необязательно,  масимум 40 символов)",
+  "last_name": "string (необязательно,  масимум 40 символов)",
+  "email":     "string (обязательно, масимум 40 символов)",
+}
+```
+
+**Ответ:**
+```json
+{
+    "user_id": 1,
+    "first_name": "",
+    "last_name": "",
+    "email": "aaaa@ya.ru",
+    "login": "hello",
+    "Password": "",
+    "created_at": "2025-10-21T20:52:08.3251177+03:00",
+    "updated_at": "2025-10-21T20:52:08.3251177+03:00"
 }
 ```
 
@@ -357,9 +383,12 @@
 {
   "account_id": "int (обязательно)",
   "category_id": "int (обязательно)",
+  "receiver_id": "int (необязательно)",
   "sum": "float64 (обязательно, >=0)",
   "name": "string (обязательноб <=50 символов)",
-  "description": "string (обязательноб <=60 символов)",
+  "type": "string (обязательный)",
+  "description": "string (необязательно <=60 символов)",
+  "created_at" : "time.Time (обязательный)",
 }
 ```
 
@@ -381,6 +410,7 @@
     "transaction_id": 4,
     "account_id": 1,
     "category_id": 1,
+    "receiver_id": 1,
     "sum": 80,
     "name": "Restaurant",
     "type": "expense",
@@ -437,7 +467,7 @@
 ```
 
 #### DELETE /api/v1/account/{acc_id}/operations/{op_id}
-Изменение операции для счета.
+Удаление операции для счета.
 
 **Параметры:**
 - `acc_id` - ID счета

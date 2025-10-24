@@ -5,16 +5,18 @@ import (
 	"strconv"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 	"github.com/gorilla/mux"
 )
 
 type Handler struct {
 	budgetUC BudgetUseCase
+	clock    clock.Clock
 }
 
-func NewHandler(budgetUC BudgetUseCase) *Handler {
-	return &Handler{budgetUC: budgetUC}
+func NewHandler(budgetUC BudgetUseCase, clck clock.Clock) *Handler {
+	return &Handler{budgetUC: budgetUC, clock: clck}
 }
 
 func (h *Handler) getUserID(r *http.Request) (int, bool) {

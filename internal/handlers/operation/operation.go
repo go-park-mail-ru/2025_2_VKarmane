@@ -9,16 +9,18 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 	"github.com/gorilla/mux"
 )
 
 type Handler struct {
-	opUC OperationUseCase
+	opUC  OperationUseCase
+	clock clock.Clock
 }
 
-func NewHandler(opUC OperationUseCase) *Handler {
-	return &Handler{opUC: opUC}
+func NewHandler(opUC OperationUseCase, clck clock.Clock) *Handler {
+	return &Handler{opUC: opUC, clock: clck}
 }
 
 func (h *Handler) getUserID(r *http.Request) (int, bool) {

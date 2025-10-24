@@ -21,11 +21,12 @@ type UseCase struct {
 	ProfileUC  *profile.UseCase
 }
 
+<<<<<<< HEAD
 func NewUseCase(service *service.Service, store repository.Repository, jwtSecret string) *UseCase {
 	authUC := authUC.NewUseCase(service.AuthUC)
-	balanceUC := balance.NewUseCase(store)
-	budgetUC := budget.NewUseCase(store)
-	opUC := operation.NewUseCase(store)
+	balanceUC := balance.NewUseCase(service.BalanceUC)
+	budgetUC := budget.NewUseCase(service.BudgetUC)
+	opUC := operation.NewUseCase(service.OpUC)
 	categoryUC := category.NewUseCase(service.CategoryUC)
 	profileUC := profile.NewUseCase(service.ProfileUC)
 

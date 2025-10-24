@@ -3,12 +3,12 @@ package operation
 import (
 	"context"
 	"errors"
-	"time"
 
-	pkgErrors "github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 var ErrForbidden = errors.New("forbidden")
@@ -16,12 +16,14 @@ var ErrForbidden = errors.New("forbidden")
 type Service struct {
 	accountRepo   AccountRepository
 	operationRepo OperationRepository
+	clock         clock.Clock
 }
 
-func NewService(accountRepo AccountRepository, operationRepo OperationRepository) *Service {
+func NewService(accountRepo AccountRepository, operationRepo OperationRepository, clck clock.Clock) *Service {
 	return &Service{
 		accountRepo:   accountRepo,
 		operationRepo: operationRepo,
+		clock:         clck,
 	}
 }
 
@@ -47,7 +49,7 @@ func (s *Service) GetAccountOperations(ctx context.Context, accID int) ([]models
 	}
 	ops, err := s.operationRepo.GetOperationsByAccount(ctx, accID)
 	if err != nil {
-		return []models.Operation{}, pkgErrors.Wrap(err, "Failed to get account operations")
+		return []models.Operation{}, pkgerrors.Wrap(err, "Failed to get account operations")
 	}
 	return ops, nil
 }
@@ -94,7 +96,7 @@ func (s *Service) CreateOperation(ctx context.Context, req models.CreateOperatio
 
 	createdOp, err := s.operationRepo.CreateOperation(ctx, operation)
 	if err != nil {
-		return models.Operation{}, pkgErrors.Wrap(err, "Failed to create operation")
+		return models.Operation{}, pkgerrors.Wrap(err, "Failed to create operation")
 	}
 
 	return createdOp, nil
@@ -107,7 +109,7 @@ func (s *Service) UpdateOperation(ctx context.Context, req models.UpdateOperatio
 
 	updatedOp, err := s.operationRepo.UpdateOperation(ctx, req, accID, opID)
 	if err != nil {
-		return models.Operation{}, pkgErrors.Wrap(err, "Failed to update operation")
+		return models.Operation{}, pkgerrors.Wrap(err, "Failed to update operation")
 	}
 
 	return updatedOp, nil
@@ -120,7 +122,7 @@ func (s *Service) DeleteOperation(ctx context.Context, accID int, opID int) (mod
 
 	deletedOp, err := s.operationRepo.DeleteOperation(ctx, accID, opID)
 	if err != nil {
-		return models.Operation{}, pkgErrors.Wrap(err, "Failed to delete operation")
+		return models.Operation{}, pkgerrors.Wrap(err, "Failed to delete operation")
 	}
 
 	return deletedOp, nil
