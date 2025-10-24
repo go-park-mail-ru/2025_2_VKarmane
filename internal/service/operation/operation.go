@@ -3,6 +3,7 @@ package operation
 import (
 	"context"
 	"errors"
+	"time"
 
 	pkgerrors "github.com/pkg/errors"
 
@@ -60,7 +61,7 @@ func (s *Service) GetOperationByID(ctx context.Context, accID int, opID int) (mo
 	}
 	op, err := s.operationRepo.GetOperationByID(ctx, accID, opID)
 	if err != nil {
-		return models.Operation{}, pkgErrors.Wrap(err, "Failed to get operation by ID")
+		return models.Operation{}, pkgerrors.Wrap(err, "Failed to get operation by ID")
 	}
 	return op, nil
 }

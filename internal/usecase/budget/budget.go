@@ -8,8 +8,6 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/budget"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 

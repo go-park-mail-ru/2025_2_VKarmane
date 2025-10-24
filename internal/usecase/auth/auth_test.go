@@ -245,7 +245,7 @@ func TestUseCase_GetUserByID(t *testing.T) {
 func TestUseCase_EditUserByID(t *testing.T) {
 	tests := []struct {
 		name          string
-		req           models.UpdateUserRequest
+		req           models.UpdateProfileRequest
 		userID        int
 		mockUser      models.User
 		mockError     error
@@ -254,7 +254,7 @@ func TestUseCase_EditUserByID(t *testing.T) {
 	}{
 		{
 			name: "successful edit user",
-			req: models.UpdateUserRequest{
+			req: models.UpdateProfileRequest{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "john@example.com",
@@ -281,7 +281,7 @@ func TestUseCase_EditUserByID(t *testing.T) {
 		},
 		{
 			name: "edit user email conflict",
-			req: models.UpdateUserRequest{
+			req: models.UpdateProfileRequest{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "john@example.com",

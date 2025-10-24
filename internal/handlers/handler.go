@@ -28,10 +28,10 @@ type Handler struct {
 func NewHandler(uc *usecase.UseCase, logger logger.Logger) *Handler {
 	realClock := clock.RealClock{}
 	return &Handler{
-		balanceHandler:  balance.NewHandler(uc.BalanceUC),
-		budgetHandler:   budget.NewHandler(uc.BudgetUC),
-		authHandler:     auth.NewHandler(uc.AuthUC, logger),
-		opHandler:       operation.NewHandler(uc.OpUC),
+		balanceHandler:  balance.NewHandler(uc.BalanceUC, realClock),
+		budgetHandler:   budget.NewHandler(uc.BudgetUC, realClock),
+		authHandler:     auth.NewHandler(uc.AuthUC, realClock, logger),
+		opHandler:       operation.NewHandler(uc.OpUC, realClock),
 		categoryHandler: category.NewHandler(uc.CategoryUC),
 		profileHandler:  profile.NewHandler(uc.ProfileUC),
 		logger:          logger,

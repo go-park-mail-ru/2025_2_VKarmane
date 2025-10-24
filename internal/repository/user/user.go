@@ -127,7 +127,7 @@ func (r *Repository) GetAllUsers() []dto.UserDB {
 	return r.users
 }
 
-func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateUserRequest, id int) (models.User, error) {
+func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateProfileRequest, id int) (models.User, error) {
 	log := logger.FromContext(ctx)
 	now := time.Now()
 	for i := range r.users {
@@ -136,7 +136,7 @@ func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateUserRequ
 				log.Warn("User update failed: email already exists", "email", req.Email)
 			}
 
-			return models.User{}, EmailExistsErr
+			return models.User{}, ErrEmailExists
 		}
 		if r.users[i].ID == id {
 			r.users[i].Email = req.Email
@@ -159,5 +159,5 @@ func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateUserRequ
 		log.Warn("User not found by ID", "user_id", id)
 	}
 
-	return models.User{}, UserNotFound
+	return models.User{}, ErrUserNotFound
 }

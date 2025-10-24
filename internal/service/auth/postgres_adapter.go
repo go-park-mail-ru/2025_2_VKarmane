@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/dto"
@@ -55,6 +56,11 @@ func (a *PostgresUserRepositoryAdapter) GetUserByID(ctx context.Context, id int)
 	}
 
 	return dtoToModel(userDB), nil
+}
+
+func (a *PostgresUserRepositoryAdapter) EditUserByID(ctx context.Context, req models.UpdateProfileRequest, userID int) (models.User, error) {
+	// Пока что просто возвращаем ошибку, так как метод не реализован в user.UserRepository
+	return models.User{}, errors.New("EditUserByID not implemented")
 }
 
 func dtoToModel(userDB dto.UserDB) models.User {

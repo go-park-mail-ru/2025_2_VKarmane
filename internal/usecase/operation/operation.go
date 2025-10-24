@@ -8,9 +8,7 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type UseCase struct {
@@ -32,7 +30,7 @@ func (uc *UseCase) GetAccountOperations(ctx context.Context, accID int) ([]model
 			log.Error("Failed to get ops for acc", "error", err, "account_id", accID)
 		}
 
-		return nil, pkgErrors.Wrap(err, "operation.GetAccountOperations")
+		return nil, pkgerrors.Wrap(err, "operation.GetAccountOperations")
 	}
 
 	return opsData, nil

@@ -46,7 +46,6 @@ type DeleteOperationRequest struct {
 
 type CreateOperationRequest struct {
 	AccountID   int           `json:"account_id"`
-<<<<<<< HEAD
 	CategoryID  *int          `json:"category_id,omitempty"`
 	Type        OperationType `json:"type"`
 	Name        string        `json:"name" validate:"required,max=50"`

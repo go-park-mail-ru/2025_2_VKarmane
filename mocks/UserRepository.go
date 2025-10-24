@@ -43,7 +43,7 @@ func (_m *UserRepository) CreateUser(ctx context.Context, user models.User) (mod
 }
 
 // EditUserByID provides a mock function with given fields: ctx, req, userID
-func (_m *UserRepository) EditUserByID(ctx context.Context, req models.UpdateUserRequest, userID int) (models.User, error) {
+func (_m *UserRepository) EditUserByID(ctx context.Context, req models.UpdateProfileRequest, userID int) (models.User, error) {
 	ret := _m.Called(ctx, req, userID)
 
 	if len(ret) == 0 {
@@ -52,16 +52,16 @@ func (_m *UserRepository) EditUserByID(ctx context.Context, req models.UpdateUse
 
 	var r0 models.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.UpdateUserRequest, int) (models.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.UpdateProfileRequest, int) (models.User, error)); ok {
 		return rf(ctx, req, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.UpdateUserRequest, int) models.User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, models.UpdateProfileRequest, int) models.User); ok {
 		r0 = rf(ctx, req, userID)
 	} else {
 		r0 = ret.Get(0).(models.User)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.UpdateUserRequest, int) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, models.UpdateProfileRequest, int) error); ok {
 		r1 = rf(ctx, req, userID)
 	} else {
 		r1 = ret.Error(1)

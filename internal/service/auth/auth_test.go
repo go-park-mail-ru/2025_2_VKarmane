@@ -215,7 +215,7 @@ func TestService_EditUserByID(t *testing.T) {
 	realClock := clock.RealClock{}
 	tests := []struct {
 		name          string
-		req           models.UpdateUserRequest
+		req           models.UpdateProfileRequest
 		userID        int
 		mockUser      models.User
 		mockError     error
@@ -224,7 +224,7 @@ func TestService_EditUserByID(t *testing.T) {
 	}{
 		{
 			name: "successful edit user",
-			req: models.UpdateUserRequest{
+			req: models.UpdateProfileRequest{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "john@example.com",
@@ -250,7 +250,7 @@ func TestService_EditUserByID(t *testing.T) {
 		},
 		{
 			name: "edit user conflict error",
-			req: models.UpdateUserRequest{
+			req: models.UpdateProfileRequest{
 				FirstName: "John",
 				LastName:  "Doe",
 				Email:     "john@example.com",

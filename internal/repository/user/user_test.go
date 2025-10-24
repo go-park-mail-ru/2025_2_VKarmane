@@ -82,7 +82,7 @@ func TestUserRepository_EditUserByID_Success(t *testing.T) {
 		{ID: 1, FirstName: "Old", LastName: "Name", Email: "old@mail.com", Login: "user1"},
 	}, fixedClock)
 
-	req := models.UpdateUserRequest{
+	req := models.UpdateProfileRequest{
 		FirstName: "New",
 		LastName:  "Name",
 		Email:     "new@mail.com",
@@ -106,7 +106,7 @@ func TestUserRepository_EditUserByID_EmailExists(t *testing.T) {
 		{ID: 2, FirstName: "C", LastName: "D", Email: "x@y.z", Login: "cd"},
 	}, fixedClock)
 
-	req := models.UpdateUserRequest{
+	req := models.UpdateProfileRequest{
 		FirstName: "C",
 		LastName:  "D",
 		Email:     "a@b.c",
@@ -114,7 +114,7 @@ func TestUserRepository_EditUserByID_EmailExists(t *testing.T) {
 
 	_, err := repo.EditUserByID(context.Background(), req, 2)
 	assert.Error(t, err)
-	assert.Equal(t, EmailExistsErr, err)
+	assert.Equal(t, ErrEmailExists, err)
 }
 
 func TestUserRepository_EditUserByID_NotFound(t *testing.T) {
@@ -125,7 +125,7 @@ func TestUserRepository_EditUserByID_NotFound(t *testing.T) {
 		{ID: 1, FirstName: "A", LastName: "B", Email: "a@b.c", Login: "ab"},
 	}, fixedClock)
 
-	req := models.UpdateUserRequest{
+	req := models.UpdateProfileRequest{
 		FirstName: "Z",
 		LastName:  "Y",
 		Email:     "z@y.x",
@@ -133,5 +133,5 @@ func TestUserRepository_EditUserByID_NotFound(t *testing.T) {
 
 	_, err := repo.EditUserByID(context.Background(), req, 99)
 	assert.Error(t, err)
-	assert.Equal(t, UserNotFound, err)
+	assert.Equal(t, ErrUserNotFound, err)
 }

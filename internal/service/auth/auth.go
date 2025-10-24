@@ -126,7 +126,7 @@ func (s *Service) GetUserByID(ctx context.Context, userID int) (models.User, err
 	return user, nil
 }
 
-func (s *Service) EditUserByID(ctx context.Context, req models.UpdateUserRequest, userID int) (models.User, error) {
+func (s *Service) EditUserByID(ctx context.Context, req models.UpdateProfileRequest, userID int) (models.User, error) {
 	log := logger.FromContext(ctx)
 	user, err := s.userRepo.EditUserByID(ctx, req, userID)
 	if err != nil {
