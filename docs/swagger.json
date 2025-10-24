@@ -3,20 +3,50 @@
     "info": {
         "description": "API для управления личными финансами",
         "title": "VKarmane API",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "VKarmane Team",
-            "email": "support@vkarmane.com"
-        },
-        "license": {
-            "name": "MIT",
-            "url": "https://opensource.org/licenses/MIT"
-        },
+        "contact": {},
         "version": "1.0"
     },
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
+        "/accounts": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Возвращает список всех аккаунтов пользователя в формате для фронтенда",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "Получение списка аккаунтов пользователя",
+                "responses": {
+                    "200": {
+                        "description": "Список аккаунтов пользователя",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Аутентификация пользователя по логину и паролю",
@@ -155,103 +185,6 @@
                 }
             }
         },
-        "/balance": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Возвращает список всех счетов пользователя",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "balance"
-                ],
-                "summary": "Получение баланса пользователя",
-                "responses": {
-                    "200": {
-                        "description": "Список счетов пользователя",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/balance/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Возвращает информацию о конкретном счете пользователя",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "balance"
-                ],
-                "summary": "Получение баланса конкретного счета",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID счета",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Информация о счете",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Некорректный ID счета (INVALID_REQUEST)",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Счет не найден (ACCOUNT_NOT_FOUND)",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/budget/{id}": {
             "get": {
                 "security": [
@@ -349,26 +282,27 @@
                 }
             }
         },
-        "/profile": {
+        "/categories": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Возвращает информацию о текущем пользователе",
+                "description": "Возвращает список всех категорий пользователя с количеством операций",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "categories"
                 ],
-                "summary": "Получение профиля пользователя",
+                "summary": "Получение списка категорий пользователя",
                 "responses": {
                     "200": {
-                        "description": "Профиль пользователя",
+                        "description": "Список категорий пользователя",
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "401": {
@@ -377,8 +311,236 @@
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Пользователь не найден (USER_NOT_FOUND)",
+                    "500": {
+                        "description": "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/operations/account/{acc_id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Возвращает список всех операций для указанного счета",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "operations"
+                ],
+                "summary": "Получение операций по счету",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID счета",
+                        "name": "acc_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список операций",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректный ID счета (INVALID_REQUEST)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещен (FORBIDDEN, ACCESS_DENIED)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Создает новую операцию для указанного счета",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "operations"
+                ],
+                "summary": "Создание новой операции",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID счета",
+                        "name": "acc_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Данные для создания операции",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateOperationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Операция успешно создана",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные (INVALID_REQUEST, MISSING_FIELDS, INVALID_AMOUNT)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Доступ запрещен (FORBIDDEN, ACCESS_DENIED)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Возвращает информацию о профиле текущего пользователя",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Получение профиля пользователя",
+                "responses": {
+                    "200": {
+                        "description": "Профиль пользователя",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProfileResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/edit": {
+            "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Обновляет информацию о профиле текущего пользователя",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile"
+                ],
+                "summary": "Обновление профиля пользователя",
+                "parameters": [
+                    {
+                        "description": "Данные для обновления профиля",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Обновленный профиль пользователя",
+                        "schema": {
+                            "$ref": "#/definitions/models.ProfileResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Некорректные данные (INVALID_REQUEST, MISSING_FIELDS)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Email уже используется (RESOURCE_EXISTS)",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -396,6 +558,40 @@
                 },
                 "user": {
                     "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "models.CreateOperationRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "sum"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "integer"
+                },
+                "category_id": {
+                    "type": "integer"
+                },
+                "date": {
+                    "description": "Дата операции",
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 60
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "sum": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "type": {
+                    "$ref": "#/definitions/models.OperationType"
                 }
             }
         },
@@ -425,6 +621,7 @@
                 "RESOURCE_CONFLICT",
                 "BUDGET_NOT_FOUND",
                 "ACCOUNT_NOT_FOUND",
+                "OPERATION_NOT_FOUND",
                 "INVALID_AMOUNT",
                 "INVALID_CURRENCY",
                 "INVALID_DATE",
@@ -457,6 +654,7 @@
                 "ErrCodeResourceConflict",
                 "ErrCodeBudgetNotFound",
                 "ErrCodeAccountNotFound",
+                "ErrCodeTransactionNotFound",
                 "ErrCodeInvalidAmount",
                 "ErrCodeInvalidCurrency",
                 "ErrCodeInvalidDate",
@@ -504,28 +702,47 @@
                 }
             }
         },
+        "models.OperationType": {
+            "type": "string",
+            "enum": [
+                "income",
+                "expense"
+            ],
+            "x-enum-varnames": [
+                "OperationIncome",
+                "OperationExpense"
+            ]
+        },
+        "models.ProfileResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "login": {
+                    "type": "string"
+                }
+            }
+        },
         "models.RegisterRequest": {
             "type": "object",
             "required": [
                 "email",
-                "first_name",
-                "last_name",
                 "login",
                 "password"
             ],
             "properties": {
                 "email": {
                     "type": "string"
-                },
-                "first_name": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 2
-                },
-                "last_name": {
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 2
                 },
                 "login": {
                     "type": "string",
@@ -536,6 +753,27 @@
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 6
+                }
+            }
+        },
+        "models.UpdateProfileRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "first_name",
+                "last_name"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string",
+                    "maxLength": 50
+                },
+                "last_name": {
+                    "type": "string",
+                    "maxLength": 50
                 }
             }
         },

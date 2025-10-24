@@ -7,6 +7,30 @@ definitions:
       user:
         $ref: '#/definitions/models.User'
     type: object
+  models.CreateOperationRequest:
+    properties:
+      account_id:
+        type: integer
+      category_id:
+        type: integer
+      date:
+        description: Дата операции
+        type: string
+      description:
+        maxLength: 60
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      sum:
+        minimum: 0
+        type: number
+      type:
+        $ref: '#/definitions/models.OperationType'
+    required:
+    - name
+    - sum
+    type: object
   models.ErrorCode:
     enum:
     - INVALID_REQUEST
@@ -32,6 +56,7 @@ definitions:
     - RESOURCE_CONFLICT
     - BUDGET_NOT_FOUND
     - ACCOUNT_NOT_FOUND
+    - OPERATION_NOT_FOUND
     - INVALID_AMOUNT
     - INVALID_CURRENCY
     - INVALID_DATE
@@ -64,6 +89,7 @@ definitions:
     - ErrCodeResourceConflict
     - ErrCodeBudgetNotFound
     - ErrCodeAccountNotFound
+    - ErrCodeTransactionNotFound
     - ErrCodeInvalidAmount
     - ErrCodeInvalidCurrency
     - ErrCodeInvalidDate
@@ -97,17 +123,30 @@ definitions:
     - login
     - password
     type: object
-  models.RegisterRequest:
+  models.OperationType:
+    enum:
+    - income
+    - expense
+    type: string
+    x-enum-varnames:
+    - OperationIncome
+    - OperationExpense
+  models.ProfileResponse:
     properties:
+      created_at:
+        type: string
       email:
         type: string
       first_name:
-        maxLength: 50
-        minLength: 2
         type: string
       last_name:
-        maxLength: 50
-        minLength: 2
+        type: string
+      login:
+        type: string
+    type: object
+  models.RegisterRequest:
+    properties:
+      email:
         type: string
       login:
         maxLength: 30
@@ -119,10 +158,23 @@ definitions:
         type: string
     required:
     - email
-    - first_name
-    - last_name
     - login
     - password
+    type: object
+  models.UpdateProfileRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        maxLength: 50
+        type: string
+      last_name:
+        maxLength: 50
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
     type: object
   models.User:
     properties:
@@ -147,17 +199,36 @@ definitions:
     type: object
 host: localhost:8080
 info:
-  contact:
-    email: support@vkarmane.com
-    name: VKarmane Team
+  contact: {}
   description: API для управления личными финансами
-  license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
-  termsOfService: http://swagger.io/terms/
   title: VKarmane API
   version: "1.0"
 paths:
+  /accounts:
+    get:
+      description: Возвращает список всех аккаунтов пользователя в формате для фронтенда
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список аккаунтов пользователя
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение списка аккаунтов пользователя
+      tags:
+      - accounts
   /auth/login:
     post:
       consumes:
@@ -251,70 +322,6 @@ paths:
       summary: Регистрация нового пользователя
       tags:
       - auth
-  /balance:
-    get:
-      description: Возвращает список всех счетов пользователя
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Список счетов пользователя
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
-            TOKEN_EXPIRED)
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-        "500":
-          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Получение баланса пользователя
-      tags:
-      - balance
-  /balance/{id}:
-    get:
-      description: Возвращает информацию о конкретном счете пользователя
-      parameters:
-      - description: ID счета
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Информация о счете
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Некорректный ID счета (INVALID_REQUEST)
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-        "401":
-          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
-            TOKEN_EXPIRED)
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-        "404":
-          description: Счет не найден (ACCOUNT_NOT_FOUND)
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-        "500":
-          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-      security:
-      - ApiKeyAuth: []
-      summary: Получение баланса конкретного счета
-      tags:
-      - balance
   /budget/{id}:
     get:
       description: Возвращает информацию о конкретном бюджете пользователя
@@ -380,30 +387,181 @@ paths:
       summary: Получение списка бюджетов пользователя
       tags:
       - budget
+  /categories:
+    get:
+      description: Возвращает список всех категорий пользователя с количеством операций
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список категорий пользователя
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение списка категорий пользователя
+      tags:
+      - categories
+  /operations/account/{acc_id}:
+    get:
+      description: Возвращает список всех операций для указанного счета
+      parameters:
+      - description: ID счета
+        in: path
+        name: acc_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список операций
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Некорректный ID счета (INVALID_REQUEST)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Доступ запрещен (FORBIDDEN, ACCESS_DENIED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение операций по счету
+      tags:
+      - operations
+    post:
+      consumes:
+      - application/json
+      description: Создает новую операцию для указанного счета
+      parameters:
+      - description: ID счета
+        in: path
+        name: acc_id
+        required: true
+        type: integer
+      - description: Данные для создания операции
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateOperationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Операция успешно создана
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, MISSING_FIELDS, INVALID_AMOUNT)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Доступ запрещен (FORBIDDEN, ACCESS_DENIED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Создание новой операции
+      tags:
+      - operations
   /profile:
     get:
-      description: Возвращает информацию о текущем пользователе
+      description: Возвращает информацию о профиле текущего пользователя
       produces:
       - application/json
       responses:
         "200":
           description: Профиль пользователя
           schema:
-            $ref: '#/definitions/models.User'
+            $ref: '#/definitions/models.ProfileResponse'
         "401":
           description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
             TOKEN_EXPIRED)
           schema:
             $ref: '#/definitions/models.ErrorResponse'
-        "404":
-          description: Пользователь не найден (USER_NOT_FOUND)
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Получение профиля пользователя
       tags:
-      - auth
+      - profile
+  /profile/edit:
+    put:
+      consumes:
+      - application/json
+      description: Обновляет информацию о профиле текущего пользователя
+      parameters:
+      - description: Данные для обновления профиля
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновленный профиль пользователя
+          schema:
+            $ref: '#/definitions/models.ProfileResponse'
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, MISSING_FIELDS)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Email уже используется (RESOURCE_EXISTS)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Обновление профиля пользователя
+      tags:
+      - profile
 securityDefinitions:
   ApiKeyAuth:
     description: JWT токен в HTTP-only cookie
