@@ -1,7 +1,8 @@
-.idea/
+.*/
 logs/
 bin/
 cookies.txt
 coverage.out
 deploy.sh
 ssl/
+.DS_Store
