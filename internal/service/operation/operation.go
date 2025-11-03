@@ -15,22 +15,34 @@ import (
 var ErrForbidden = errors.New("forbidden")
 
 type Service struct {
-	accountRepo   AccountRepository
-	operationRepo OperationRepository
-	clock         clock.Clock
+	repo interface {
+		GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
+		GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+		GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error)
+		CreateOperation(ctx context.Context, op models.Operation) (models.Operation, error)
+		UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error)
+		DeleteOperation(ctx context.Context, accID int, opID int) (models.Operation, error)
+	}
+	clock clock.Clock
 }
 
-func NewService(accountRepo AccountRepository, operationRepo OperationRepository, clck clock.Clock) *Service {
+func NewService(repo interface {
+	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
+	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+	GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error)
+	CreateOperation(ctx context.Context, op models.Operation) (models.Operation, error)
+	UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error)
+	DeleteOperation(ctx context.Context, accID int, opID int) (models.Operation, error)
+}, clck clock.Clock) *Service {
 	return &Service{
-		accountRepo:   accountRepo,
-		operationRepo: operationRepo,
-		clock:         clck,
+		repo:  repo,
+		clock: clck,
 	}
 }
 
 func (s *Service) CheckAccountOwnership(ctx context.Context, accID int) bool {
 	userID, _ := middleware.GetUserIDFromContext(ctx)
-	accs, err := s.accountRepo.GetAccountsByUser(ctx, userID)
+	accs, err := s.repo.GetAccountsByUser(ctx, userID)
 	if err != nil {
 		return false
 	}
@@ -48,7 +60,7 @@ func (s *Service) GetAccountOperations(ctx context.Context, accID int) ([]models
 	if !s.CheckAccountOwnership(ctx, accID) {
 		return []models.Operation{}, ErrForbidden
 	}
-	ops, err := s.operationRepo.GetOperationsByAccount(ctx, accID)
+	ops, err := s.repo.GetOperationsByAccount(ctx, accID)
 	if err != nil {
 		return []models.Operation{}, pkgerrors.Wrap(err, "Failed to get account operations")
 	}
@@ -59,7 +71,7 @@ func (s *Service) GetOperationByID(ctx context.Context, accID int, opID int) (mo
 	if !s.CheckAccountOwnership(ctx, accID) {
 		return models.Operation{}, ErrForbidden
 	}
-	op, err := s.operationRepo.GetOperationByID(ctx, accID, opID)
+	op, err := s.repo.GetOperationByID(ctx, accID, opID)
 	if err != nil {
 		return models.Operation{}, pkgerrors.Wrap(err, "Failed to get operation by ID")
 	}
@@ -95,7 +107,7 @@ func (s *Service) CreateOperation(ctx context.Context, req models.CreateOperatio
 		Date:        operationDate,
 	}
 
-	createdOp, err := s.operationRepo.CreateOperation(ctx, operation)
+	createdOp, err := s.repo.CreateOperation(ctx, operation)
 	if err != nil {
 		return models.Operation{}, pkgerrors.Wrap(err, "Failed to create operation")
 	}
@@ -108,7 +120,7 @@ func (s *Service) UpdateOperation(ctx context.Context, req models.UpdateOperatio
 		return models.Operation{}, ErrForbidden
 	}
 
-	updatedOp, err := s.operationRepo.UpdateOperation(ctx, req, accID, opID)
+	updatedOp, err := s.repo.UpdateOperation(ctx, req, accID, opID)
 	if err != nil {
 		return models.Operation{}, pkgerrors.Wrap(err, "Failed to update operation")
 	}
@@ -121,7 +133,7 @@ func (s *Service) DeleteOperation(ctx context.Context, accID int, opID int) (mod
 		return models.Operation{}, ErrForbidden
 	}
 
-	deletedOp, err := s.operationRepo.DeleteOperation(ctx, accID, opID)
+	deletedOp, err := s.repo.DeleteOperation(ctx, accID, opID)
 	if err != nil {
 		return models.Operation{}, pkgerrors.Wrap(err, "Failed to delete operation")
 	}

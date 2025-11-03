@@ -28,10 +28,7 @@ func (uc *UseCase) GetBalanceForUser(ctx context.Context, userID int) ([]models.
 	log := logger.FromContext(ctx)
 	accounts, err := uc.balanceSvc.GetBalanceForUser(ctx, userID)
 	if err != nil {
-		if log != nil {
-			log.Error("Failed to get balance for user", "error", err, "user_id", userID)
-		}
-
+		log.Error("Failed to get balance for user", "error", err, "user_id", userID)
 		return nil, pkgerrors.Wrap(err, "balance.GetBalanceForUser")
 	}
 
@@ -42,10 +39,7 @@ func (uc *UseCase) GetAccountByID(ctx context.Context, userID, accountID int) (m
 	log := logger.FromContext(ctx)
 	accounts, err := uc.balanceSvc.GetBalanceForUser(ctx, userID)
 	if err != nil {
-		if log != nil {
-			log.Error("Failed to get balance for user", "error", err, "user_id", userID)
-		}
-
+		log.Error("Failed to get balance for user", "error", err, "user_id", userID)
 		return models.Account{}, pkgerrors.Wrap(err, "balance.GetAccountByID")
 	}
 
@@ -55,9 +49,6 @@ func (uc *UseCase) GetAccountByID(ctx context.Context, userID, accountID int) (m
 		}
 	}
 
-	if log != nil {
-		log.Warn("Account not found", "user_id", userID, "account_id", accountID)
-	}
-
+	log.Warn("Account not found", "user_id", userID, "account_id", accountID)
 	return models.Account{}, fmt.Errorf("balance.GetAccountByID: %s", models.ErrCodeAccountNotFound)
 }

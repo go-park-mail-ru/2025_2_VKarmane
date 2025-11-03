@@ -3,6 +3,7 @@ package category
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/dto"
@@ -36,7 +37,7 @@ func (r *PostgresRepository) CreateCategory(ctx context.Context, category dto.Ca
 	).Scan(&id)
 
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to create category: %w", err)
 	}
 
 	return id, nil
@@ -52,7 +53,7 @@ func (r *PostgresRepository) GetCategoriesByUser(ctx context.Context, userID int
 
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get categories by user: %w", err)
 	}
 	defer func() {
 		_ = rows.Close()
@@ -71,7 +72,7 @@ func (r *PostgresRepository) GetCategoriesByUser(ctx context.Context, userID int
 			&category.UpdatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to scan category: %w", err)
 		}
 		categories = append(categories, category)
 	}
@@ -101,7 +102,7 @@ func (r *PostgresRepository) GetCategoryByID(ctx context.Context, userID, catego
 		if err == sql.ErrNoRows {
 			return dto.CategoryDB{}, sql.ErrNoRows
 		}
-		return dto.CategoryDB{}, err
+		return dto.CategoryDB{}, fmt.Errorf("failed to get category by ID: %w", err)
 	}
 
 	return category, nil
@@ -123,7 +124,11 @@ func (r *PostgresRepository) UpdateCategory(ctx context.Context, category dto.Ca
 		category.UserID,
 	)
 
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to update category: %w", err)
+	}
+
+	return nil
 }
 
 func (r *PostgresRepository) DeleteCategory(ctx context.Context, userID, categoryID int) error {
@@ -133,7 +138,11 @@ func (r *PostgresRepository) DeleteCategory(ctx context.Context, userID, categor
 	`
 
 	_, err := r.db.ExecContext(ctx, query, categoryID, userID)
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to delete category: %w", err)
+	}
+
+	return nil
 }
 
 func (r *PostgresRepository) GetCategoryStats(ctx context.Context, userID, categoryID int) (int, error) {
@@ -150,7 +159,7 @@ func (r *PostgresRepository) GetCategoryStats(ctx context.Context, userID, categ
 	var count int
 	err := r.db.QueryRowContext(ctx, query, categoryID, userID).Scan(&count)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to get category stats: %w", err)
 	}
 
 	return count, nil

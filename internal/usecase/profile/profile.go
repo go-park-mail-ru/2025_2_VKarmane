@@ -20,11 +20,10 @@ func NewUseCase(profileSvc profile.ProfileService) *UseCase {
 }
 
 func (uc *UseCase) GetProfile(ctx context.Context, userID int) (models.ProfileResponse, error) {
+	log := logger.FromContext(ctx)
 	profile, err := uc.profileSvc.GetProfile(ctx, userID)
 	if err != nil {
-		if log := logger.FromContext(ctx); log != nil {
-			log.Error("Failed to get profile", "error", err, "user_id", userID)
-		}
+		log.Error("Failed to get profile", "error", err, "user_id", userID)
 		return models.ProfileResponse{}, fmt.Errorf("profile.GetProfile: %w", err)
 	}
 
@@ -32,11 +31,10 @@ func (uc *UseCase) GetProfile(ctx context.Context, userID int) (models.ProfileRe
 }
 
 func (uc *UseCase) UpdateProfile(ctx context.Context, req models.UpdateProfileRequest, userID int) (models.ProfileResponse, error) {
+	log := logger.FromContext(ctx)
 	profile, err := uc.profileSvc.UpdateProfile(ctx, req, userID)
 	if err != nil {
-		if log := logger.FromContext(ctx); log != nil {
-			log.Error("Failed to update profile", "error", err, "user_id", userID)
-		}
+		log.Error("Failed to update profile", "error", err, "user_id", userID)
 		return models.ProfileResponse{}, fmt.Errorf("profile.UpdateProfile: %w", err)
 	}
 

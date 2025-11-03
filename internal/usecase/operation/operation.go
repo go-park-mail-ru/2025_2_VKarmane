@@ -2,7 +2,6 @@ package operation
 
 import (
 	"context"
-	"fmt"
 
 	pkgerrors "github.com/pkg/errors"
 
@@ -26,10 +25,7 @@ func (uc *UseCase) GetAccountOperations(ctx context.Context, accID int) ([]model
 
 	opsData, err := uc.opSvc.GetAccountOperations(ctx, accID)
 	if err != nil {
-		if log != nil {
-			log.Error("Failed to get ops for acc", "error", err, "account_id", accID)
-		}
-
+		log.Error("Failed to get ops for acc", "error", err, "account_id", accID)
 		return nil, pkgerrors.Wrap(err, "operation.GetAccountOperations")
 	}
 
@@ -41,10 +37,7 @@ func (uc *UseCase) GetOperationByID(ctx context.Context, accID int, opID int) (m
 
 	opData, err := uc.opSvc.GetOperationByID(ctx, accID, opID)
 	if err != nil {
-		if log != nil {
-			log.Error("Failed to get operation by ID", "error", err, "account_id", accID, "operation_id", opID)
-		}
-
+		log.Error("Failed to get operation by ID", "error", err, "account_id", accID, "operation_id", opID)
 		return models.Operation{}, pkgerrors.Wrap(err, "operation.GetOperationByID")
 	}
 
@@ -54,21 +47,13 @@ func (uc *UseCase) GetOperationByID(ctx context.Context, accID int, opID int) (m
 func (uc *UseCase) CreateOperation(ctx context.Context, req models.CreateOperationRequest, accID int) (models.Operation, error) {
 	log := logger.FromContext(ctx)
 
-	// Валидация запроса
-	if req.Sum <= 0 {
-		return models.Operation{}, fmt.Errorf("invalid sum: %s", models.ErrCodeInvalidAmount)
-	}
-
-	if req.Name == "" {
-		return models.Operation{}, fmt.Errorf("name is required: %s", models.ErrCodeMissingFields)
+	if err := req.Validate(); err != nil {
+		return models.Operation{}, pkgerrors.Wrap(err, "operation.CreateOperation: validation failed")
 	}
 
 	opData, err := uc.opSvc.CreateOperation(ctx, req, accID)
 	if err != nil {
-		if log != nil {
-			log.Error("Failed to create operation", "error", err, "account_id", accID)
-		}
-
+		log.Error("Failed to create operation", "error", err, "account_id", accID)
 		return models.Operation{}, pkgerrors.Wrap(err, "operation.CreateOperation")
 	}
 
@@ -78,17 +63,13 @@ func (uc *UseCase) CreateOperation(ctx context.Context, req models.CreateOperati
 func (uc *UseCase) UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error) {
 	log := logger.FromContext(ctx)
 
-	// Валидация запроса
-	if req.Sum != nil && *req.Sum <= 0 {
-		return models.Operation{}, fmt.Errorf("invalid sum: %s", models.ErrCodeInvalidAmount)
+	if err := req.Validate(); err != nil {
+		return models.Operation{}, pkgerrors.Wrap(err, "operation.UpdateOperation: validation failed")
 	}
 
 	opData, err := uc.opSvc.UpdateOperation(ctx, req, accID, opID)
 	if err != nil {
-		if log != nil {
-			log.Error("Failed to update operation", "error", err, "account_id", accID, "operation_id", opID)
-		}
-
+		log.Error("Failed to update operation", "error", err, "account_id", accID, "operation_id", opID)
 		return models.Operation{}, pkgerrors.Wrap(err, "operation.UpdateOperation")
 	}
 
@@ -100,10 +81,7 @@ func (uc *UseCase) DeleteOperation(ctx context.Context, accID int, opID int) (mo
 
 	opData, err := uc.opSvc.DeleteOperation(ctx, accID, opID)
 	if err != nil {
-		if log != nil {
-			log.Error("Failed to delete operation", "error", err, "account_id", accID, "operation_id", opID)
-		}
-
+		log.Error("Failed to delete operation", "error", err, "account_id", accID, "operation_id", opID)
 		return models.Operation{}, pkgerrors.Wrap(err, "operation.DeleteOperation")
 	}
 

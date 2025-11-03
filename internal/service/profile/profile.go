@@ -9,17 +9,23 @@ import (
 )
 
 type Service struct {
-	profileRepo ProfileRepository
+	repo interface {
+		GetUserByID(ctx context.Context, id int) (models.User, error)
+		UpdateUser(ctx context.Context, user models.User) error
+	}
 }
 
-func NewService(profileRepo ProfileRepository) *Service {
+func NewService(repo interface {
+	GetUserByID(ctx context.Context, id int) (models.User, error)
+	UpdateUser(ctx context.Context, user models.User) error
+}) *Service {
 	return &Service{
-		profileRepo: profileRepo,
+		repo: repo,
 	}
 }
 
 func (s *Service) GetProfile(ctx context.Context, userID int) (models.ProfileResponse, error) {
-	user, err := s.profileRepo.GetUserByID(ctx, userID)
+	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
 		return models.ProfileResponse{}, fmt.Errorf("failed to get user: %w", err)
 	}
@@ -34,7 +40,7 @@ func (s *Service) GetProfile(ctx context.Context, userID int) (models.ProfileRes
 }
 
 func (s *Service) UpdateProfile(ctx context.Context, req models.UpdateProfileRequest, userID int) (models.ProfileResponse, error) {
-	user, err := s.profileRepo.GetUserByID(ctx, userID)
+	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
 		return models.ProfileResponse{}, fmt.Errorf("failed to get user: %w", err)
 	}
@@ -44,7 +50,7 @@ func (s *Service) UpdateProfile(ctx context.Context, req models.UpdateProfileReq
 	user.Email = req.Email
 	user.UpdatedAt = time.Now()
 
-	err = s.profileRepo.UpdateUser(ctx, user)
+	err = s.repo.UpdateUser(ctx, user)
 	if err != nil {
 		return models.ProfileResponse{}, fmt.Errorf("failed to update user: %w", err)
 	}

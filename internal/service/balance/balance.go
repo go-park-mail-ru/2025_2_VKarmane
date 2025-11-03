@@ -11,16 +11,20 @@ import (
 )
 
 type Service struct {
-	accountRepo AccountRepository
-	clock       clock.Clock
+	repo interface {
+		GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
+	}
+	clock clock.Clock
 }
 
-func NewService(accountRepo AccountRepository, clck clock.Clock) *Service {
-	return &Service{accountRepo: accountRepo, clock: clck}
+func NewService(repo interface {
+	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
+}, clck clock.Clock) *Service {
+	return &Service{repo: repo, clock: clck}
 }
 
 func (s *Service) GetBalanceForUser(ctx context.Context, userID int) ([]models.Account, error) {
-	accounts, err := s.accountRepo.GetAccountsByUser(ctx, userID)
+	accounts, err := s.repo.GetAccountsByUser(ctx, userID)
 	if err != nil {
 		return []models.Account{}, pkgerrors.Wrap(err, "Failed to get balance for user")
 	}
@@ -29,9 +33,9 @@ func (s *Service) GetBalanceForUser(ctx context.Context, userID int) ([]models.A
 }
 
 func (s *Service) GetAccountByID(ctx context.Context, userID, accountID int) (models.Account, error) {
-	accounts, err := s.accountRepo.GetAccountsByUser(ctx, userID)
+	accounts, err := s.repo.GetAccountsByUser(ctx, userID)
 	if err != nil {
-		return models.Account{}, err
+		return models.Account{}, pkgerrors.Wrap(err, "balance.GetAccountByID: failed to get accounts")
 	}
 
 	for _, account := range accounts {

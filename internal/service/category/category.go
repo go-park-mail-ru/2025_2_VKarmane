@@ -8,12 +8,26 @@ import (
 )
 
 type Service struct {
-	categoryRepo CategoryRepository
+	repo interface {
+		CreateCategory(ctx context.Context, category models.Category) (models.Category, error)
+		GetCategoriesByUser(ctx context.Context, userID int) ([]models.Category, error)
+		GetCategoryByID(ctx context.Context, userID, categoryID int) (models.Category, error)
+		UpdateCategory(ctx context.Context, category models.Category) error
+		DeleteCategory(ctx context.Context, userID, categoryID int) error
+		GetCategoryStats(ctx context.Context, userID, categoryID int) (int, error)
+	}
 }
 
-func NewService(categoryRepo CategoryRepository) *Service {
+func NewService(repo interface {
+	CreateCategory(ctx context.Context, category models.Category) (models.Category, error)
+	GetCategoriesByUser(ctx context.Context, userID int) ([]models.Category, error)
+	GetCategoryByID(ctx context.Context, userID, categoryID int) (models.Category, error)
+	UpdateCategory(ctx context.Context, category models.Category) error
+	DeleteCategory(ctx context.Context, userID, categoryID int) error
+	GetCategoryStats(ctx context.Context, userID, categoryID int) (int, error)
+}) *Service {
 	return &Service{
-		categoryRepo: categoryRepo,
+		repo: repo,
 	}
 }
 
@@ -30,7 +44,7 @@ func (s *Service) CreateCategory(ctx context.Context, req models.CreateCategoryR
 		LogoHashedID: logoHashedID,
 	}
 
-	createdCategory, err := s.categoryRepo.CreateCategory(ctx, category)
+	createdCategory, err := s.repo.CreateCategory(ctx, category)
 	if err != nil {
 		return models.Category{}, fmt.Errorf("failed to create category: %w", err)
 	}
@@ -39,14 +53,14 @@ func (s *Service) CreateCategory(ctx context.Context, req models.CreateCategoryR
 }
 
 func (s *Service) GetCategoriesByUser(ctx context.Context, userID int) ([]models.CategoryWithStats, error) {
-	categories, err := s.categoryRepo.GetCategoriesByUser(ctx, userID)
+	categories, err := s.repo.GetCategoriesByUser(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get categories: %w", err)
 	}
 
 	var categoriesWithStats []models.CategoryWithStats
 	for _, category := range categories {
-		stats, err := s.categoryRepo.GetCategoryStats(ctx, userID, category.ID)
+		stats, err := s.repo.GetCategoryStats(ctx, userID, category.ID)
 		if err != nil {
 			stats = 0
 		}
@@ -61,12 +75,12 @@ func (s *Service) GetCategoriesByUser(ctx context.Context, userID int) ([]models
 }
 
 func (s *Service) GetCategoryByID(ctx context.Context, userID, categoryID int) (models.CategoryWithStats, error) {
-	category, err := s.categoryRepo.GetCategoryByID(ctx, userID, categoryID)
+	category, err := s.repo.GetCategoryByID(ctx, userID, categoryID)
 	if err != nil {
 		return models.CategoryWithStats{}, fmt.Errorf("failed to get category: %w", err)
 	}
 
-	stats, err := s.categoryRepo.GetCategoryStats(ctx, userID, categoryID)
+	stats, err := s.repo.GetCategoryStats(ctx, userID, categoryID)
 	if err != nil {
 		stats = 0
 	}
@@ -78,7 +92,7 @@ func (s *Service) GetCategoryByID(ctx context.Context, userID, categoryID int) (
 }
 
 func (s *Service) UpdateCategory(ctx context.Context, req models.UpdateCategoryRequest, userID, categoryID int) (models.Category, error) {
-	existingCategory, err := s.categoryRepo.GetCategoryByID(ctx, userID, categoryID)
+	existingCategory, err := s.repo.GetCategoryByID(ctx, userID, categoryID)
 	if err != nil {
 		return models.Category{}, fmt.Errorf("failed to get category: %w", err)
 	}
@@ -93,7 +107,7 @@ func (s *Service) UpdateCategory(ctx context.Context, req models.UpdateCategoryR
 		existingCategory.LogoHashedID = *req.LogoHashedID
 	}
 
-	err = s.categoryRepo.UpdateCategory(ctx, existingCategory)
+	err = s.repo.UpdateCategory(ctx, existingCategory)
 	if err != nil {
 		return models.Category{}, fmt.Errorf("failed to update category: %w", err)
 	}
@@ -102,7 +116,7 @@ func (s *Service) UpdateCategory(ctx context.Context, req models.UpdateCategoryR
 }
 
 func (s *Service) DeleteCategory(ctx context.Context, userID, categoryID int) error {
-	err := s.categoryRepo.DeleteCategory(ctx, userID, categoryID)
+	err := s.repo.DeleteCategory(ctx, userID, categoryID)
 	if err != nil {
 		return fmt.Errorf("failed to delete category: %w", err)
 	}

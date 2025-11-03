@@ -11,27 +11,31 @@ import (
 )
 
 type Service struct {
-	budgetRepo    BudgetRepository
-	accountRepo   AccountRepository
-	operationRepo OperationRepository
-	clock         clock.Clock
+	repo interface {
+		GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error)
+		GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
+		GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+	}
+	clock clock.Clock
 }
 
-func NewService(budgetRepo BudgetRepository, accountRepo AccountRepository, operationRepo OperationRepository, clck clock.Clock) *Service {
+func NewService(repo interface {
+	GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error)
+	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
+	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+}, clck clock.Clock) *Service {
 	return &Service{
-		budgetRepo:    budgetRepo,
-		accountRepo:   accountRepo,
-		operationRepo: operationRepo,
-		clock:         clck,
+		repo:  repo,
+		clock: clck,
 	}
 }
 
 func (s *Service) GetBudgetsForUser(ctx context.Context, userID int) ([]models.Budget, error) {
-	budgets, err := s.budgetRepo.GetBudgetsByUser(ctx, userID)
+	budgets, err := s.repo.GetBudgetsByUser(ctx, userID)
 	if err != nil {
 		return []models.Budget{}, pkgerrors.Wrap(err, "Failed to get budgets for user")
 	}
-	accounts, err := s.accountRepo.GetAccountsByUser(ctx, userID)
+	accounts, err := s.repo.GetAccountsByUser(ctx, userID)
 	if err != nil {
 		return []models.Budget{}, pkgerrors.Wrap(err, "Failed to get accounts for user")
 	}
@@ -39,7 +43,7 @@ func (s *Service) GetBudgetsForUser(ctx context.Context, userID int) ([]models.B
 	for i := range budgets {
 		var actual float64
 		for _, account := range accounts {
-			ops, err := s.operationRepo.GetOperationsByAccount(ctx, account.ID)
+			ops, err := s.repo.GetOperationsByAccount(ctx, account.ID)
 			if err != nil {
 				return []models.Budget{}, pkgerrors.Wrap(err, "Failed to get budgets for user")
 			}
@@ -63,9 +67,9 @@ func (s *Service) GetBudgetsForUser(ctx context.Context, userID int) ([]models.B
 }
 
 func (s *Service) GetBudgetByID(ctx context.Context, userID, budgetID int) (models.Budget, error) {
-	budgets, err := s.budgetRepo.GetBudgetsByUser(ctx, userID)
+	budgets, err := s.repo.GetBudgetsByUser(ctx, userID)
 	if err != nil {
-		return models.Budget{}, err
+		return models.Budget{}, pkgerrors.Wrap(err, "budget.GetBudgetByID: failed to get budgets")
 	}
 
 	for _, budget := range budgets {

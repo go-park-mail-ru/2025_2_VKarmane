@@ -3,6 +3,7 @@ package budget
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
@@ -28,7 +29,7 @@ func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) (
 
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get budgets by user: %w", err)
 	}
 	defer func() {
 		_ = rows.Close()
@@ -51,7 +52,7 @@ func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) (
 			&budget.PeriodEnd,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to scan budget: %w", err)
 		}
 		budgets = append(budgets, BudgetDBToModel(budget))
 	}
@@ -80,7 +81,11 @@ func (r *PostgresRepository) CreateBudget(ctx context.Context, budget BudgetDB) 
 		budget.PeriodEnd,
 	).Scan(&id)
 
-	return id, err
+	if err != nil {
+		return 0, fmt.Errorf("failed to create budget: %w", err)
+	}
+
+	return id, nil
 }
 
 func (r *PostgresRepository) UpdateBudget(ctx context.Context, budget BudgetDB) error {
@@ -91,7 +96,11 @@ func (r *PostgresRepository) UpdateBudget(ctx context.Context, budget BudgetDB) 
 	`
 
 	_, err := r.db.ExecContext(ctx, query, budget.Amount, budget.Description, budget.ID)
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to update budget: %w", err)
+	}
+
+	return nil
 }
 
 func (r *PostgresRepository) CloseBudget(ctx context.Context, budgetID int) error {
@@ -102,6 +111,10 @@ func (r *PostgresRepository) CloseBudget(ctx context.Context, budgetID int) erro
 	`
 
 	_, err := r.db.ExecContext(ctx, query, budgetID)
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to close budget: %w", err)
+	}
+
+	return nil
 }
 

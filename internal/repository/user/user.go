@@ -28,17 +28,11 @@ func (r *Repository) CreateUser(ctx context.Context, user models.User) (models.U
 	log := logger.FromContext(ctx)
 	for _, u := range r.users {
 		if u.Login == user.Login {
-			if log != nil {
-				log.Warn("User creation failed: login already exists", "login", user.Login)
-			}
-
+			log.Warn("User creation failed: login already exists", "login", user.Login)
 			return models.User{}, ErrLoginExists
 		}
 		if u.Email == user.Email {
-			if log != nil {
-				log.Warn("User creation failed: email already exists", "email", user.Email)
-			}
-
+			log.Warn("User creation failed: email already exists", "email", user.Email)
 			return models.User{}, ErrEmailExists
 		}
 	}
@@ -93,10 +87,7 @@ func (r *Repository) GetUserByLogin(ctx context.Context, login string) (models.U
 		}
 	}
 
-	if log != nil {
-		log.Warn("User not found by login", "login", login)
-	}
-
+	log.Warn("User not found by login", "login", login)
 	return models.User{}, ErrUserNotFound
 }
 
@@ -116,10 +107,7 @@ func (r *Repository) GetUserByID(ctx context.Context, id int) (models.User, erro
 			}, nil
 		}
 	}
-	if log != nil {
-		log.Warn("User not found by ID", "user_id", id)
-	}
-
+	log.Warn("User not found by ID", "user_id", id)
 	return models.User{}, ErrUserNotFound
 }
 
@@ -132,10 +120,7 @@ func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateProfileR
 	now := time.Now()
 	for i := range r.users {
 		if r.users[i].ID != id && r.users[i].Email == req.Email {
-			if log != nil {
-				log.Warn("User update failed: email already exists", "email", req.Email)
-			}
-
+			log.Warn("User update failed: email already exists", "email", req.Email)
 			return models.User{}, ErrEmailExists
 		}
 		if r.users[i].ID == id {
@@ -155,9 +140,6 @@ func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateProfileR
 		}
 	}
 
-	if log != nil {
-		log.Warn("User not found by ID", "user_id", id)
-	}
-
+	log.Warn("User not found by ID", "user_id", id)
 	return models.User{}, ErrUserNotFound
 }

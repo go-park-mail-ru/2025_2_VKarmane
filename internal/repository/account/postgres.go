@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
@@ -28,7 +29,7 @@ func (r *PostgresRepository) GetAccountsByUser(ctx context.Context, userID int) 
 
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get accounts by user: %w", err)
 	}
 	defer func() {
 		_ = rows.Close()
@@ -46,7 +47,7 @@ func (r *PostgresRepository) GetAccountsByUser(ctx context.Context, userID int) 
 			&account.UpdatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to scan account: %w", err)
 		}
 		accounts = append(accounts, AccountDBToModel(account))
 	}
@@ -70,7 +71,11 @@ func (r *PostgresRepository) CreateAccount(ctx context.Context, account AccountD
 		account.UpdatedAt,
 	).Scan(&id)
 
-	return id, err
+	if err != nil {
+		return 0, fmt.Errorf("failed to create account: %w", err)
+	}
+
+	return id, nil
 }
 
 func (r *PostgresRepository) CreateUserAccount(ctx context.Context, userAccount UserAccountDB) error {
@@ -86,7 +91,11 @@ func (r *PostgresRepository) CreateUserAccount(ctx context.Context, userAccount 
 		userAccount.UpdatedAt,
 	)
 
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to create user account: %w", err)
+	}
+
+	return nil
 }
 
 func (r *PostgresRepository) UpdateAccountBalance(ctx context.Context, accountID int, newBalance float64) error {
@@ -97,6 +106,10 @@ func (r *PostgresRepository) UpdateAccountBalance(ctx context.Context, accountID
 	`
 
 	_, err := r.db.ExecContext(ctx, query, newBalance, accountID)
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to update account balance: %w", err)
+	}
+
+	return nil
 }
 

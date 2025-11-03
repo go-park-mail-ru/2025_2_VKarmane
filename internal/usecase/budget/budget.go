@@ -28,10 +28,7 @@ func (uc *UseCase) GetBudgetsForUser(ctx context.Context, userID int) ([]models.
 	log := logger.FromContext(ctx)
 	budgetsData, err := uc.budgetSvc.GetBudgetsForUser(ctx, userID)
 	if err != nil {
-		if log != nil {
-			log.Error("Failed to get budgets for user", "error", err, "user_id", userID)
-		}
-
+		log.Error("Failed to get budgets for user", "error", err, "user_id", userID)
 		return nil, pkgerrors.Wrap(err, "budget.GetBudgetsForUser")
 	}
 
@@ -42,10 +39,7 @@ func (uc *UseCase) GetBudgetByID(ctx context.Context, userID, budgetID int) (mod
 	log := logger.FromContext(ctx)
 	budgetsData, err := uc.budgetSvc.GetBudgetsForUser(ctx, userID)
 	if err != nil {
-		if log != nil {
-			log.Error("Failed to get budgets for user", "error", err, "user_id", userID)
-		}
-
+		log.Error("Failed to get budgets for user", "error", err, "user_id", userID)
 		return models.Budget{}, pkgerrors.Wrap(err, "budget.GetBudgetByID")
 	}
 
@@ -55,9 +49,6 @@ func (uc *UseCase) GetBudgetByID(ctx context.Context, userID, budgetID int) (mod
 		}
 	}
 
-	if log != nil {
-		log.Warn("Budget not found", "user_id", userID, "budget_id", budgetID)
-	}
-
+	log.Warn("Budget not found", "user_id", userID, "budget_id", budgetID)
 	return models.Budget{}, fmt.Errorf("budget.GetBudgetByID: %s", models.ErrCodeBudgetNotFound)
 }
