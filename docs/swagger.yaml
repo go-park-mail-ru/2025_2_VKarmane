@@ -457,6 +457,152 @@ paths:
       summary: Получение списка категорий пользователя
       tags:
       - categories
+    post:
+      consumes:
+      - application/json
+      description: Создает новую категорию для пользователя
+      parameters:
+      - description: Данные категории
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Созданная категория
+          schema:
+            $ref: '#/definitions/models.Category'
+        "400":
+          description: Некорректные данные (VALIDATION_ERROR, INVALID_INPUT)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Создание новой категории
+      tags:
+      - categories
+  /categories/{id}:
+    get:
+      description: Возвращает информацию о категории по её ID с количеством операций
+      parameters:
+      - description: ID категории
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о категории
+          schema:
+            $ref: '#/definitions/models.CategoryWithStats'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Категория не найдена (RESOURCE_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение категории по ID
+      tags:
+      - categories
+    put:
+      consumes:
+      - application/json
+      description: Обновляет информацию о категории
+      parameters:
+      - description: ID категории
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновленная категория
+          schema:
+            $ref: '#/definitions/models.Category'
+        "400":
+          description: Некорректные данные (VALIDATION_ERROR, INVALID_INPUT)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Категория не найдена (RESOURCE_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Обновление категории
+      tags:
+      - categories
+    delete:
+      description: Удаляет категорию пользователя
+      parameters:
+      - description: ID категории
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Категория успешно удалена
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Категория не найдена (RESOURCE_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удаление категории
+      tags:
+      - categories
   /operations/account/{acc_id}:
     get:
       description: Возвращает список всех операций для указанного счета
