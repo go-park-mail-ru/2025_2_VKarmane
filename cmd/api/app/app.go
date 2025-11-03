@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/storage/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 
@@ -38,9 +40,22 @@ func Run() error {
 			appLogger.Error("Failed to close database connection", "error", err)
 		}
 	}()
-	service := service.NewService(store, config.JWTSecret)
-	usecase := usecase.NewUseCase(service, store, config.JWTSecret)
-	handler := handlers.NewHandler(usecase, appLogger)
+
+	imageStorage, err := image.NewMinIOStorage(
+		fmt.Sprintf("%s:%s", config.MinIO.Endpoint, config.MinIO.Port),
+		config.MinIO.AccessKey,
+		config.MinIO.SecretKey,
+		config.MinIO.BucketName,
+		config.MinIO.UseSSL,
+	)
+	if err != nil {
+		return err
+	}
+
+	var repo service.Repository = store
+	serviceInstance := service.NewService(repo, config.JWTSecret, imageStorage)
+	usecaseInstance := usecase.NewUseCase(serviceInstance, repo, config.JWTSecret)
+	handler := handlers.NewHandler(usecaseInstance, appLogger)
 
 	r := mux.NewRouter()
 
@@ -69,16 +84,6 @@ func Run() error {
 	// Swagger документация
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
-	// Добавляем обработку OPTIONS запросов для всех маршрутов (для preflight запросов)
-	r.PathPrefix("/api/v1").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodOptions {
-			appLogger.Info("Handling OPTIONS request", "path", r.URL.Path)
-			w.WriteHeader(http.StatusOK)
-
-			return
-		}
-		http.NotFound(w, r)
-	}).Methods(http.MethodOptions)
 	srv := &http.Server{
 		Addr:    config.GetServerAddress(),
 		Handler: r,

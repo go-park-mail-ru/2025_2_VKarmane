@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Config struct {
@@ -12,6 +13,7 @@ type Config struct {
 	LogLevel  string
 	Database  DatabaseConfig
 	HTTPS     HTTPSConfig
+	MinIO     MinIOConfig
 }
 
 type DatabaseConfig struct {
@@ -27,6 +29,15 @@ type HTTPSConfig struct {
 	Enabled  bool
 	CertFile string
 	KeyFile  string
+}
+
+type MinIOConfig struct {
+	Endpoint   string
+	Port       string
+	AccessKey  string
+	SecretKey  string
+	UseSSL     bool
+	BucketName string
 }
 
 func LoadConfig() *Config {
@@ -47,6 +58,14 @@ func LoadConfig() *Config {
 			Enabled:  getEnv("HTTPS_ENABLED", "true") == "true",
 			CertFile: getEnv("HTTPS_CERT_FILE", "ssl/server.crt"),
 			KeyFile:  getEnv("HTTPS_KEY_FILE", "ssl/server.key"),
+		},
+		MinIO: MinIOConfig{
+			Endpoint:   getEnv("MINIO_ENDPOINT", "localhost"),
+			Port:       getEnv("MINIO_PORT", "9000"),
+			AccessKey:  getEnv("MINIO_ACCESS_KEY", "minioadmin"),
+			SecretKey:  getEnv("MINIO_SECRET_KEY", "minioadmin123"),
+			UseSSL:     getEnv("MINIO_USE_SSL", "false") == "true",
+			BucketName: getEnv("MINIO_BUCKET_NAME", "images"),
 		},
 	}
 
@@ -72,17 +91,43 @@ func (c *Config) GetDatabaseDSN() string {
 }
 
 func (c *Config) GetCORSOrigins() []string {
-	origins := getEnv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8080,https://localhost:3000,https://localhost:8080")
-	if origins == "" {
-		return []string{}
-	}
-
 	var result []string
-	for _, origin := range []string{origins} {
-		if origin != "" {
-			result = append(result, origin)
+	
+	corsHost := getEnv("CORS_HOST", "localhost")
+	corsFrontendPort := getEnv("CORS_FRONTEND_PORT", "3000")
+	
+	if corsHost != "" {
+		if corsFrontendPort != "" {
+			result = append(result, fmt.Sprintf("http://%s:%s", corsHost, corsFrontendPort))
+			result = append(result, fmt.Sprintf("https://%s:%s", corsHost, corsFrontendPort))
+		} else {
+			result = append(result, fmt.Sprintf("http://%s", corsHost))
+			result = append(result, fmt.Sprintf("https://%s", corsHost))
 		}
 	}
+
+	serverHost := c.Host
+	if serverHost == "0.0.0.0" {
+		serverHost = "localhost"
+	}
+	serverPort := c.Port
+	
+	result = append(result, fmt.Sprintf("http://%s:%s", serverHost, serverPort))
+	if c.HTTPS.Enabled {
+		result = append(result, fmt.Sprintf("https://%s:%s", serverHost, serverPort))
+	}
+
+	corsOriginsEnv := getEnv("CORS_ORIGINS", "")
+	if corsOriginsEnv != "" {
+		origins := strings.Split(corsOriginsEnv, ",")
+		for _, origin := range origins {
+			origin = strings.TrimSpace(origin)
+			if origin != "" {
+				result = append(result, origin)
+			}
+		}
+	}
+
 	return result
 }
 
@@ -92,4 +137,12 @@ func (c *Config) IsProduction() bool {
 
 func (c *Config) GetServerAddress() string {
 	return fmt.Sprintf("%s:%s", c.Host, c.Port)
+}
+
+func (c *Config) GetMinIOEndpoint() string {
+	schema := "http"
+	if c.MinIO.UseSSL {
+		schema = "https"
+	}
+	return fmt.Sprintf("%s://%s:%s", schema, c.MinIO.Endpoint, c.MinIO.Port)
 }

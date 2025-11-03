@@ -7,6 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/balance"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/budget"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/category"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/profile"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
@@ -33,4 +34,5 @@ func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux
 	operation.Register(protectedRouter, uc.OpUC)
 	category.Register(protectedRouter, uc.CategoryUC)
 	profile.Register(protectedRouter, uc.ProfileUC)
+	image.Register(protectedRouter, uc.ImageUC)
 }
