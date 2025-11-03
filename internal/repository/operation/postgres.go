@@ -3,6 +3,7 @@ package operation
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
@@ -32,7 +33,7 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 
 	rows, err := r.db.QueryContext(ctx, query, accountID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get operations by account: %w", err)
 	}
 	defer func() {
 		_ = rows.Close()
@@ -58,7 +59,7 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 			&operation.CategoryName,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to scan operation: %w", err)
 		}
 		operations = append(operations, OperationDBToModel(operation))
 	}
@@ -92,13 +93,14 @@ func (r *PostgresRepository) GetOperationByID(ctx context.Context, accID int, op
 		&operation.Sum,
 		&operation.CreatedAt,
 		&operation.Date,
+		&operation.CategoryName,
 	)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return models.Operation{}, sql.ErrNoRows
 		}
-		return models.Operation{}, err
+		return models.Operation{}, fmt.Errorf("failed to get operation by ID: %w", err)
 	}
 
 	return OperationDBToModel(operation), nil
@@ -144,7 +146,7 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op models.Oper
 	).Scan(&id)
 
 	if err != nil {
-		return models.Operation{}, err
+		return models.Operation{}, fmt.Errorf("failed to create operation: %w", err)
 	}
 
 	op.ID = id
@@ -165,46 +167,60 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op models.Oper
 }
 
 func (r *PostgresRepository) UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error) {
-	existingOp, err := r.GetOperationByID(ctx, accID, opID)
-	if err != nil {
-		return models.Operation{}, err
-	}
-
-	if req.CategoryID != nil {
-		existingOp.CategoryID = *req.CategoryID
-	}
-	if req.Name != nil {
-		existingOp.Name = *req.Name
-	}
-	if req.Description != nil {
-		existingOp.Description = *req.Description
-	}
-	if req.Sum != nil {
-		existingOp.Sum = *req.Sum
-	}
-
 	query := `
-		UPDATE operation 
-		SET category_id = $1, operation_name = $2, operation_description = $3, sum = $4
-		WHERE _id = $5 AND (account_from_id = $6 OR account_to_id = $6) AND operation_status != 'reverted'
-		RETURNING _id, account_from_id, account_to_id, category_id, currency_id, 
-		          operation_status, operation_type, operation_name, operation_description, 
-		          receipt_url, sum, created_at, operation_date
+		WITH updated_operation AS (
+			UPDATE operation 
+			SET category_id = CASE 
+			        WHEN $1::bigint IS NULL THEN category_id
+			        WHEN $1::bigint = -1 THEN NULL
+			        ELSE $1::bigint
+			    END,
+			    operation_name = COALESCE($2, operation_name),
+			    operation_description = COALESCE($3, operation_description),
+			    sum = COALESCE($4, sum)
+			WHERE _id = $5 AND (account_from_id = $6 OR account_to_id = $6) AND operation_status != 'reverted'
+			RETURNING _id, account_from_id, account_to_id, category_id, currency_id, 
+			          operation_status, operation_type, operation_name, operation_description, 
+			          receipt_url, sum, created_at, operation_date
+		)
+		SELECT o._id, o.account_from_id, o.account_to_id, o.category_id, o.currency_id, 
+		       o.operation_status, o.operation_type, o.operation_name, o.operation_description, 
+		       o.receipt_url, o.sum, o.created_at, o.operation_date,
+		       COALESCE(c.category_name, 'Без категории') as category_name
+		FROM updated_operation o
+		LEFT JOIN category c ON o.category_id = c._id
 	`
 
-	var categoryID interface{}
-	if existingOp.CategoryID > 0 {
-		categoryID = existingOp.CategoryID
-	} else {
-		categoryID = nil
+	var categoryID sql.NullInt64
+	if req.CategoryID != nil {
+		if *req.CategoryID > 0 {
+			categoryID = sql.NullInt64{Int64: int64(*req.CategoryID), Valid: true}
+		} else {
+			categoryID = sql.NullInt64{Int64: -1, Valid: true}
+		}
+	}
+
+	var name *string
+	if req.Name != nil {
+		name = req.Name
+	}
+
+	var description *string
+	if req.Description != nil {
+		description = req.Description
+	}
+
+	var sum *float64
+	if req.Sum != nil {
+		sum = req.Sum
 	}
 
 	var operation OperationDB
-	err = r.db.QueryRowContext(ctx, query,
+	err := r.db.QueryRowContext(ctx, query,
 		categoryID,
-		existingOp.Name,
-		existingOp.Description,
-		existingOp.Sum,
+		name,
+		description,
+		sum,
 		opID,
 		accID,
 	).Scan(
@@ -221,46 +237,57 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req models.Upd
 		&operation.Sum,
 		&operation.CreatedAt,
 		&operation.Date,
+		&operation.CategoryName,
 	)
 
 	if err != nil {
-		return models.Operation{}, err
-	}
-
-	if operation.CategoryID != nil && *operation.CategoryID > 0 {
-		var categoryName string
-		err = r.db.QueryRowContext(ctx, "SELECT category_name FROM category WHERE _id = $1", *operation.CategoryID).Scan(&categoryName)
-		if err != nil {
-			operation.CategoryName = "Без категории"
-		} else {
-			operation.CategoryName = categoryName
-		}
-	} else {
-		operation.CategoryName = "Без категории"
+		return models.Operation{}, fmt.Errorf("failed to update operation: %w", err)
 	}
 
 	return OperationDBToModel(operation), nil
 }
 
 func (r *PostgresRepository) DeleteOperation(ctx context.Context, accID int, opID int) (models.Operation, error) {
-	operation, err := r.GetOperationByID(ctx, accID, opID)
-	if err != nil {
-		return models.Operation{}, err
-	}
-
 	query := `
-		UPDATE operation 
-		SET operation_status = 'reverted'
-		WHERE _id = $1 AND (account_from_id = $2 OR account_to_id = $2) AND operation_status != 'reverted'
+		WITH updated_operation AS (
+			UPDATE operation 
+			SET operation_status = 'reverted'
+			WHERE _id = $1 AND (account_from_id = $2 OR account_to_id = $2) AND operation_status != 'reverted'
+			RETURNING _id, account_from_id, account_to_id, category_id, currency_id, 
+			          operation_status, operation_type, operation_name, operation_description, 
+			          receipt_url, sum, created_at, operation_date
+		)
+		SELECT o._id, o.account_from_id, o.account_to_id, o.category_id, o.currency_id, 
+		       o.operation_status, o.operation_type, o.operation_name, o.operation_description, 
+		       o.receipt_url, o.sum, o.created_at, o.operation_date,
+		       COALESCE(c.category_name, 'Без категории') as category_name
+		FROM updated_operation o
+		LEFT JOIN category c ON o.category_id = c._id
 	`
 
-	_, err = r.db.ExecContext(ctx, query, opID, accID)
+	var operation OperationDB
+	err := r.db.QueryRowContext(ctx, query, opID, accID).Scan(
+		&operation.ID,
+		&operation.AccountFromID,
+		&operation.AccountToID,
+		&operation.CategoryID,
+		&operation.CurrencyID,
+		&operation.Status,
+		&operation.Type,
+		&operation.Name,
+		&operation.Description,
+		&operation.ReceiptURL,
+		&operation.Sum,
+		&operation.CreatedAt,
+		&operation.Date,
+		&operation.CategoryName,
+	)
+
 	if err != nil {
-		return models.Operation{}, err
+		return models.Operation{}, fmt.Errorf("failed to delete operation: %w", err)
 	}
 
-	operation.Status = models.OperationReverted
-	return operation, nil
+	return OperationDBToModel(operation), nil
 }
 
 func (r *PostgresRepository) GetOperationsByUser(ctx context.Context, userID int) ([]models.Operation, error) {
@@ -278,7 +305,7 @@ func (r *PostgresRepository) GetOperationsByUser(ctx context.Context, userID int
 
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get operations by user: %w", err)
 	}
 	defer func() {
 		_ = rows.Close()
@@ -304,7 +331,7 @@ func (r *PostgresRepository) GetOperationsByUser(ctx context.Context, userID int
 			&operation.CategoryName,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to scan operation: %w", err)
 		}
 		operations = append(operations, OperationDBToModel(operation))
 	}
