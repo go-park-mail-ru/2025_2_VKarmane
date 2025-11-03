@@ -1,6 +1,7 @@
 package operation
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -151,4 +152,179 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 
 	operationResponse := OperationToResponse(op)
 	httputils.Created(w, r, operationResponse)
+}
+
+// GetOperationByID godoc
+// @Summary Получение операции по ID
+// @Description Возвращает информацию об операции по её ID
+// @Tags operations
+// @Produce json
+// @Security ApiKeyAuth
+// @Param acc_id path int true "ID счета"
+// @Param op_id path int true "ID операции"
+// @Success 200 {object} models.OperationResponse "Операция"
+// @Failure 400 {object} models.ErrorResponse "Некорректный ID (INVALID_REQUEST)"
+// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
+// @Failure 403 {object} models.ErrorResponse "Доступ запрещен (FORBIDDEN, ACCESS_DENIED)"
+// @Failure 404 {object} models.ErrorResponse "Операция не найдена (NOT_FOUND)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
+// @Router /operations/account/{acc_id}/operation/{op_id} [get]
+func (h *Handler) GetOperationByID(w http.ResponseWriter, r *http.Request) {
+	_, ok := h.getUserID(r)
+	if !ok {
+		httputils.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
+		return
+	}
+
+	accID, err := h.parseIDFromURL(r, "acc_id")
+	if err != nil {
+		httputils.ValidationError(w, r, "Некорректный ID счета", "acc_id")
+		return
+	}
+
+	opID, err := h.parseIDFromURL(r, "op_id")
+	if err != nil {
+		httputils.ValidationError(w, r, "Некорректный ID операции", "op_id")
+		return
+	}
+
+	op, err := h.opUC.GetOperationByID(r.Context(), accID, opID)
+	if err != nil {
+		if errors.Is(err, errors.New("forbidden")) {
+			httputils.Error(w, r, "Доступ к операции запрещен", 403)
+			return
+		}
+		if errors.Is(err, sql.ErrNoRows) {
+			httputils.Error(w, r, "Операция не найдена", 404)
+			return
+		}
+		httputils.InternalError(w, r, "Ошибка получения операции")
+		return
+	}
+
+	operationResponse := OperationToResponse(op)
+	httputils.Success(w, r, operationResponse)
+}
+
+// UpdateOperation godoc
+// @Summary Изменение операции
+// @Description Обновляет информацию об операции
+// @Tags operations
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param acc_id path int true "ID счета"
+// @Param op_id path int true "ID операции"
+// @Param request body models.UpdateOperationRequest true "Данные для обновления операции"
+// @Success 200 {object} models.OperationResponse "Операция успешно обновлена"
+// @Failure 400 {object} models.ErrorResponse "Некорректные данные (INVALID_REQUEST, INVALID_AMOUNT)"
+// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
+// @Failure 403 {object} models.ErrorResponse "Доступ запрещен (FORBIDDEN, ACCESS_DENIED)"
+// @Failure 404 {object} models.ErrorResponse "Операция не найдена (NOT_FOUND)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
+// @Router /operations/account/{acc_id}/operation/{op_id} [put]
+func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
+	_, ok := h.getUserID(r)
+	if !ok {
+		httputils.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
+		return
+	}
+
+	accID, err := h.parseIDFromURL(r, "acc_id")
+	if err != nil {
+		httputils.ValidationError(w, r, "Некорректный ID счета", "acc_id")
+		return
+	}
+
+	opID, err := h.parseIDFromURL(r, "op_id")
+	if err != nil {
+		httputils.ValidationError(w, r, "Некорректный ID операции", "op_id")
+		return
+	}
+
+	var req models.UpdateOperationRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ValidationError(w, r, "Некорректный формат данных", "body")
+		return
+	}
+
+	validationErrors := utils.ValidateStruct(req)
+	if len(validationErrors) > 0 {
+		httputils.ValidationErrors(w, r, validationErrors)
+		return
+	}
+
+	if err := req.Validate(); err != nil {
+		httputils.ValidationError(w, r, err.Error(), "sum")
+		return
+	}
+
+	op, err := h.opUC.UpdateOperation(r.Context(), req, accID, opID)
+	if err != nil {
+		if errors.Is(err, errors.New("forbidden")) {
+			httputils.Error(w, r, "Доступ к операции запрещен", 403)
+			return
+		}
+		if errors.Is(err, sql.ErrNoRows) {
+			httputils.Error(w, r, "Операция не найдена", 404)
+			return
+		}
+		httputils.InternalError(w, r, "Ошибка обновления операции")
+		return
+	}
+
+	operationResponse := OperationToResponse(op)
+	httputils.Success(w, r, operationResponse)
+}
+
+// DeleteOperation godoc
+// @Summary Удаление операции
+// @Description Помечает операцию как удаленную (reverted)
+// @Tags operations
+// @Produce json
+// @Security ApiKeyAuth
+// @Param acc_id path int true "ID счета"
+// @Param op_id path int true "ID операции"
+// @Success 200 {object} models.OperationResponse "Операция успешно удалена"
+// @Failure 400 {object} models.ErrorResponse "Некорректный ID (INVALID_REQUEST)"
+// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
+// @Failure 403 {object} models.ErrorResponse "Доступ запрещен (FORBIDDEN, ACCESS_DENIED)"
+// @Failure 404 {object} models.ErrorResponse "Операция не найдена (NOT_FOUND)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
+// @Router /operations/account/{acc_id}/operation/{op_id} [delete]
+func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
+	_, ok := h.getUserID(r)
+	if !ok {
+		httputils.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
+		return
+	}
+
+	accID, err := h.parseIDFromURL(r, "acc_id")
+	if err != nil {
+		httputils.ValidationError(w, r, "Некорректный ID счета", "acc_id")
+		return
+	}
+
+	opID, err := h.parseIDFromURL(r, "op_id")
+	if err != nil {
+		httputils.ValidationError(w, r, "Некорректный ID операции", "op_id")
+		return
+	}
+
+	op, err := h.opUC.DeleteOperation(r.Context(), accID, opID)
+	if err != nil {
+		if errors.Is(err, errors.New("forbidden")) {
+			httputils.Error(w, r, "Доступ к операции запрещен", 403)
+			return
+		}
+		if errors.Is(err, sql.ErrNoRows) {
+			httputils.Error(w, r, "Операция не найдена", 404)
+			return
+		}
+		httputils.InternalError(w, r, "Ошибка удаления операции")
+		return
+	}
+
+	operationResponse := OperationToResponse(op)
+	httputils.Success(w, r, operationResponse)
 }

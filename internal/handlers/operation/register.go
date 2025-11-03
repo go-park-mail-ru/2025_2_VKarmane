@@ -14,4 +14,7 @@ func Register(r *mux.Router, uc OperationUseCase) {
 
 	r.HandleFunc("/operations/account/{acc_id}", handler.GetAccountOperations).Methods(http.MethodGet)
 	r.HandleFunc("/operations/account/{acc_id}", handler.CreateOperation).Methods(http.MethodPost)
+	r.HandleFunc("/operations/account/{acc_id}/operation/{op_id}", handler.GetOperationByID).Methods(http.MethodGet)
+	r.HandleFunc("/operations/account/{acc_id}/operation/{op_id}", handler.UpdateOperation).Methods(http.MethodPut)
+	r.HandleFunc("/operations/account/{acc_id}/operation/{op_id}", handler.DeleteOperation).Methods(http.MethodDelete)
 }

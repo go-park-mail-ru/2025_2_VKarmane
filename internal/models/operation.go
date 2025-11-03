@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type OperationType string
 
@@ -40,6 +43,13 @@ type UpdateOperationRequest struct {
 	CreatedAt   *time.Time `json:"created_at,omitempty"`
 }
 
+func (r *UpdateOperationRequest) Validate() error {
+	if r.Sum != nil && *r.Sum <= 0 {
+		return fmt.Errorf("invalid sum: %s", ErrCodeInvalidAmount)
+	}
+	return nil
+}
+
 type DeleteOperationRequest struct {
 	Status string `json:"status"`
 }
@@ -50,8 +60,18 @@ type CreateOperationRequest struct {
 	Type        OperationType `json:"type"`
 	Name        string        `json:"name" validate:"required,max=50"`
 	Description string        `json:"description,omitempty" validate:"max=60"`
-	Sum         float64       `json:"sum" validate:"required,min=0"`
+	Sum         float64       `json:"sum" validate:"min=0"`
 	Date        *time.Time    `json:"date,omitempty"` // Дата операции
+}
+
+func (r *CreateOperationRequest) Validate() error {
+	if r.Sum < 0 {
+		return fmt.Errorf("invalid sum: %s", ErrCodeInvalidAmount)
+	}
+	if r.Name == "" {
+		return fmt.Errorf("name is required: %s", ErrCodeMissingFields)
+	}
+	return nil
 }
 
 type OperationResponse struct {
