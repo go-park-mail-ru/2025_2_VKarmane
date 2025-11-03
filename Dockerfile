@@ -34,11 +34,8 @@ COPY --from=builder /app/main .
 # Copy migrations
 COPY --from=builder /app/migrations ./migrations
 
-# Copy SSL certificates
-COPY --from=builder /app/ssl ./ssl
-
-# Create logs directory
-RUN mkdir -p logs
+# Create directories for volumes (SSL certificates and logs will be mounted)
+RUN mkdir -p ssl logs
 
 # Expose port
 EXPOSE 8080

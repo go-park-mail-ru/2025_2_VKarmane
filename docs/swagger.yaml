@@ -29,7 +29,6 @@ definitions:
         $ref: '#/definitions/models.OperationType'
     required:
     - name
-    - sum
     type: object
   models.ErrorCode:
     enum:
@@ -123,6 +122,36 @@ definitions:
     - login
     - password
     type: object
+  models.OperationResponse:
+    properties:
+      _id:
+        type: integer
+      account_id:
+        type: integer
+      category_id:
+        type: integer
+      category_name:
+        type: string
+      created_at:
+        type: string
+      currency_id:
+        type: integer
+      date:
+        description: Дата операции
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      receipt_url:
+        type: string
+      status:
+        type: string
+      sum:
+        type: number
+      type:
+        type: string
+    type: object
   models.OperationType:
     enum:
     - income
@@ -160,6 +189,22 @@ definitions:
     - email
     - login
     - password
+    type: object
+  models.UpdateOperationRequest:
+    properties:
+      category_id:
+        type: integer
+      created_at:
+        type: string
+      description:
+        maxLength: 60
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      sum:
+        minimum: 0
+        type: number
     type: object
   models.UpdateProfileRequest:
     properties:
@@ -495,6 +540,153 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Создание новой операции
+      tags:
+      - operations
+  /operations/account/{acc_id}/operation/{op_id}:
+    delete:
+      description: Помечает операцию как удаленную (reverted)
+      parameters:
+      - description: ID счета
+        in: path
+        name: acc_id
+        required: true
+        type: integer
+      - description: ID операции
+        in: path
+        name: op_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Операция успешно удалена
+          schema:
+            $ref: '#/definitions/models.OperationResponse'
+        "400":
+          description: Некорректный ID (INVALID_REQUEST)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Доступ запрещен (FORBIDDEN, ACCESS_DENIED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Операция не найдена (NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удаление операции
+      tags:
+      - operations
+    get:
+      description: Возвращает информацию об операции по её ID
+      parameters:
+      - description: ID счета
+        in: path
+        name: acc_id
+        required: true
+        type: integer
+      - description: ID операции
+        in: path
+        name: op_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Операция
+          schema:
+            $ref: '#/definitions/models.OperationResponse'
+        "400":
+          description: Некорректный ID (INVALID_REQUEST)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Доступ запрещен (FORBIDDEN, ACCESS_DENIED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Операция не найдена (NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение операции по ID
+      tags:
+      - operations
+    put:
+      consumes:
+      - application/json
+      description: Обновляет информацию об операции
+      parameters:
+      - description: ID счета
+        in: path
+        name: acc_id
+        required: true
+        type: integer
+      - description: ID операции
+        in: path
+        name: op_id
+        required: true
+        type: integer
+      - description: Данные для обновления операции
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateOperationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Операция успешно обновлена
+          schema:
+            $ref: '#/definitions/models.OperationResponse'
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, INVALID_AMOUNT)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Доступ запрещен (FORBIDDEN, ACCESS_DENIED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Операция не найдена (NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Изменение операции
       tags:
       - operations
   /profile:

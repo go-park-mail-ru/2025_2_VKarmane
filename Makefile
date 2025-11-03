@@ -85,7 +85,15 @@ dev: build up
 
 # Generate Swagger documentation
 swagger:
-	docker-compose exec api swag init -g cmd/api/main.go
+	@echo "Generating Swagger documentation..."
+	@export PATH=$$PATH:$$(go env GOPATH)/bin && \
+	if ! command -v swag >/dev/null 2>&1; then \
+		echo "Installing swag..."; \
+		go install github.com/swaggo/swag/cmd/swag@latest; \
+	fi && \
+	export PATH=$$PATH:$$(go env GOPATH)/bin && \
+	swag init -g cmd/api/main.go -o docs || \
+	(docker-compose exec api swag init -g cmd/api/main.go -o docs 2>/dev/null || echo "Please install swag: go install github.com/swaggo/swag/cmd/swag@latest")
 
 # Production deployment
 deploy: build up
