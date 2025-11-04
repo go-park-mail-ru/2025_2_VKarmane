@@ -59,7 +59,8 @@ func Run() error {
 
 	r := mux.NewRouter()
 
-	// CORS middleware должен быть первым
+	r.Use(middleware.SecurityHeadersMiddleware())
+
 	corsOrigins := config.GetCORSOrigins()
 	appLogger.Info("CORS Configuration", "origins", corsOrigins, "is_production", config.IsProduction())
 	r.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
@@ -71,12 +72,14 @@ func Run() error {
 	r.Use(middleware.SecurityLoggerMiddleware(appLogger))
 
 	public := r.PathPrefix("/api/v1").Subrouter()
+	public.Use(middleware.CSRFMiddleware(config.GetCSRFAuthKey()))
 
 	protected := r.PathPrefix("/api/v1").Subrouter()
 	protected.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
 	protected.Use(middleware.LoggerMiddleware(appLogger))
 	protected.Use(middleware.RequestLoggerMiddleware(appLogger))
 	protected.Use(middleware.SecurityLoggerMiddleware(appLogger))
+	protected.Use(middleware.CSRFMiddleware(config.GetCSRFAuthKey()))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
 	handler.Register(public, protected)

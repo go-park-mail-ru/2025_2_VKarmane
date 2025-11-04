@@ -146,3 +146,11 @@ func (c *Config) GetMinIOEndpoint() string {
 	}
 	return fmt.Sprintf("%s://%s:%s", schema, c.MinIO.Endpoint, c.MinIO.Port)
 }
+
+func (c *Config) GetCSRFAuthKey() []byte {
+	csrfKey := getEnv("CSRF_AUTH_KEY", c.JWTSecret)
+	if len(csrfKey) < 32 {
+		return []byte(c.JWTSecret + "csrf-key-padding-to-32-chars")
+	}
+	return []byte(csrfKey[:32])
+}
