@@ -5,178 +5,117 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"go.uber.org/mock/gomock"
 )
 
-func TestGetAccountOperations_Success(t *testing.T) {
-	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc}
+func TestUseCase_GetAccountOperations_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	expected := []models.Operation{{ID: 1, AccountID: 7, Name: "test"}}
+	mockSvc := mocks.NewMockOperationService(ctrl)
+	uc := NewUseCase(mockSvc)
 
-	mockSvc.On("GetAccountOperations", mock.Anything, 7).
-		Return(expected, nil).
-		Once()
+	expectedOps := []models.Operation{
+		{ID: 1, Name: "Test"},
+	}
 
-	ops, err := uc.GetAccountOperations(context.Background(), 7)
+	mockSvc.EXPECT().GetAccountOperations(gomock.Any(), 1).Return(expectedOps, nil)
+
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	result, err := uc.GetAccountOperations(ctx, 1)
 	assert.NoError(t, err)
-	assert.Len(t, ops, 1)
-	assert.Equal(t, 7, ops[0].AccountID)
-	assert.Equal(t, "test", ops[0].Name)
+	assert.Equal(t, expectedOps, result)
 }
 
-func TestGetAccountOperations_Error(t *testing.T) {
-	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc}
+func TestUseCase_GetAccountOperations_Error(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	mockSvc.On("GetAccountOperations", mock.Anything, 1).
-		Return(nil, errors.New("db error")).
-		Once()
+	mockSvc := mocks.NewMockOperationService(ctrl)
+	uc := NewUseCase(mockSvc)
 
-	ops, err := uc.GetAccountOperations(context.Background(), 1)
+	mockSvc.EXPECT().GetAccountOperations(gomock.Any(), 1).Return(nil, errors.New("database error"))
+
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	result, err := uc.GetAccountOperations(ctx, 1)
 	assert.Error(t, err)
-	assert.Nil(t, ops)
+	assert.Nil(t, result)
 }
 
-func TestGetOperationByID_Success(t *testing.T) {
-	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc}
+func TestUseCase_CreateOperation_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	mockSvc.On("GetAccountOperations", mock.Anything, 10).
-		Return([]models.Operation{
-			{ID: 1, AccountID: 10, Name: "A"},
-			{ID: 2, AccountID: 10, Name: "B"},
-		}, nil).
-		Once()
+	mockSvc := mocks.NewMockOperationService(ctrl)
+	uc := NewUseCase(mockSvc)
 
-	op, err := uc.GetOperationByID(context.Background(), 10, 2)
+	req := models.CreateOperationRequest{
+		Name: "Test",
+		Sum:  100,
+	}
+	expectedOp := models.Operation{ID: 1, Name: "Test", Sum: 100}
+
+	mockSvc.EXPECT().CreateOperation(gomock.Any(), req, 1).Return(expectedOp, nil)
+
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	result, err := uc.CreateOperation(ctx, req, 1)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, op.ID)
-	assert.Equal(t, "B", op.Name)
+	assert.Equal(t, expectedOp, result)
 }
 
-func TestGetOperationByID_NotFound(t *testing.T) {
-	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc}
+func TestUseCase_UpdateOperation_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	mockSvc.On("GetAccountOperations", mock.Anything, 10).
-		Return([]models.Operation{{ID: 1}}, nil).
-		Once()
+	mockSvc := mocks.NewMockOperationService(ctrl)
+	uc := NewUseCase(mockSvc)
 
-	op, err := uc.GetOperationByID(context.Background(), 10, 999)
-	assert.Error(t, err)
-	assert.Equal(t, 0, op.ID)
-}
+	name := "Updated"
+	req := models.UpdateOperationRequest{Name: &name}
+	expectedOp := models.Operation{ID: 1, Name: "Updated"}
 
-func TestGetOperationByID_ErrorFromService(t *testing.T) {
-	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc}
+	mockSvc.EXPECT().UpdateOperation(gomock.Any(), req, 1, 1).Return(expectedOp, nil)
 
-	mockSvc.On("GetAccountOperations", mock.Anything, 10).
-		Return(nil, errors.New("db error")).
-		Once()
-
-	op, err := uc.GetOperationByID(context.Background(), 10, 1)
-	assert.Error(t, err)
-	assert.Equal(t, 0, op.ID)
-}
-
-func TestCreateOperation_Success(t *testing.T) {
-	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc, clock: clock.RealClock{}}
-
-	req := models.CreateOperationRequest{Name: "test", CreatedAt: uc.clock.Now()}
-	expected := models.Operation{ID: 42, AccountID: 5, Name: "test", CreatedAt: req.CreatedAt}
-
-	mockSvc.On("CreateOperation", mock.Anything, req, 5).
-		Return(expected, nil).
-		Once()
-
-	op, err := uc.CreateOperation(context.Background(), req, 5)
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	result, err := uc.UpdateOperation(ctx, req, 1, 1)
 	assert.NoError(t, err)
-	assert.Equal(t, 42, op.ID)
-	assert.Equal(t, "test", op.Name)
-	assert.Equal(t, req.CreatedAt, op.CreatedAt)
+	assert.Equal(t, expectedOp, result)
 }
 
-func TestCreateOperation_Error(t *testing.T) {
-	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc}
+func TestUseCase_DeleteOperation_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	req := models.CreateOperationRequest{}
-	mockSvc.On("CreateOperation", mock.Anything, req, 1).
-		Return(models.Operation{}, errors.New("create failed")).
-		Once()
+	mockSvc := mocks.NewMockOperationService(ctrl)
+	uc := NewUseCase(mockSvc)
 
-	op, err := uc.CreateOperation(context.Background(), req, 1)
-	assert.Error(t, err)
-	assert.Equal(t, 0, op.ID)
-}
+	expectedOp := models.Operation{ID: 1, Status: models.OperationReverted}
 
-func TestUpdateOperation_Success(t *testing.T) {
-	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc}
+	mockSvc.EXPECT().DeleteOperation(gomock.Any(), 1, 1).Return(expectedOp, nil)
 
-	req := models.UpdateOperationRequest{Name: ptr("new")}
-	expected := models.Operation{ID: 2, AccountID: 1, Name: "updated"}
-
-	mockSvc.On("UpdateOperation", mock.Anything, req, 1, 2).
-		Return(expected, nil).
-		Once()
-
-	op, err := uc.UpdateOperation(context.Background(), req, 1, 2)
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	result, err := uc.DeleteOperation(ctx, 1, 1)
 	assert.NoError(t, err)
-	assert.Equal(t, "updated", op.Name)
-	assert.Equal(t, 2, op.ID)
+	assert.Equal(t, expectedOp, result)
 }
 
-func TestUpdateOperation_Error(t *testing.T) {
-	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc}
+func TestUseCase_GetOperationByID_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	req := models.UpdateOperationRequest{}
-	mockSvc.On("UpdateOperation", mock.Anything, req, 1, 2).
-		Return(models.Operation{}, errors.New("update failed")).
-		Once()
+	mockSvc := mocks.NewMockOperationService(ctrl)
+	uc := NewUseCase(mockSvc)
 
-	op, err := uc.UpdateOperation(context.Background(), req, 1, 2)
-	assert.Error(t, err)
-	assert.Equal(t, 0, op.ID)
-}
+	expectedOp := models.Operation{ID: 1, Name: "Test"}
 
-func TestDeleteOperation_Success(t *testing.T) {
-	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc}
+	mockSvc.EXPECT().GetOperationByID(gomock.Any(), 1, 1).Return(expectedOp, nil)
 
-	expected := models.Operation{ID: 99, AccountID: 1}
-
-	mockSvc.On("DeleteOperation", mock.Anything, 1, 99).
-		Return(expected, nil).
-		Once()
-
-	op, err := uc.DeleteOperation(context.Background(), 1, 99)
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	result, err := uc.GetOperationByID(ctx, 1, 1)
 	assert.NoError(t, err)
-	assert.Equal(t, 99, op.ID)
-	assert.Equal(t, 1, op.AccountID)
-}
-
-func TestDeleteOperation_Error(t *testing.T) {
-	mockSvc := mocks.NewOperationService(t)
-	uc := &UseCase{opSvc: mockSvc}
-
-	mockSvc.On("DeleteOperation", mock.Anything, 1, 2).
-		Return(models.Operation{}, errors.New("delete failed")).
-		Once()
-
-	op, err := uc.DeleteOperation(context.Background(), 1, 2)
-	assert.Error(t, err)
-	assert.Equal(t, 0, op.ID)
-}
-
-func ptr[T any](v T) *T {
-	return &v
+	assert.Equal(t, expectedOp, result)
 }

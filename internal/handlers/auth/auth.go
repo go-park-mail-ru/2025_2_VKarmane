@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
@@ -26,6 +25,18 @@ func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger) *Han
 	return &Handler{authUC: authUC, clock: clck, logger: logger}
 }
 
+// Register godoc
+// @Summary Регистрация нового пользователя
+// @Description Создает нового пользователя в системе
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body models.RegisterRequest true "Данные для регистрации"
+// @Success 201 {object} models.AuthResponse "Пользователь успешно создан"
+// @Failure 400 {object} models.ErrorResponse "Некорректные данные (INVALID_REQUEST, MISSING_FIELDS, INVALID_EMAIL, INVALID_PASSWORD, INVALID_LOGIN, WEAK_PASSWORD)"
+// @Failure 409 {object} models.ErrorResponse "Конфликт (USER_EXISTS, EMAIL_EXISTS, LOGIN_EXISTS)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
+// @Router /auth/register [post]
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var req models.RegisterRequest
 
@@ -43,9 +54,9 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	response, err := h.authUC.Register(r.Context(), req)
 	if err != nil {
 		switch {
-		case errors.Is(err, user.EmailExistsErr):
+		case errors.Is(err, user.ErrEmailExists):
 			httputil.ConflictError(w, r, "Пользователь с таким email уже существует", models.ErrCodeEmailExists)
-		case errors.Is(err, user.LoginExistsErr):
+		case errors.Is(err, user.ErrLoginExists):
 			httputil.ConflictError(w, r, "Пользователь с таким логином уже существует", models.ErrCodeLoginExists)
 		default:
 			httputil.ConflictError(w, r, "Пользователь уже существует", models.ErrCodeUserExists)
@@ -60,6 +71,18 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	httputil.Created(w, r, response)
 }
 
+// Login godoc
+// @Summary Вход в систему
+// @Description Аутентификация пользователя по логину и паролю
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body models.LoginRequest true "Данные для входа"
+// @Success 200 {object} models.AuthResponse "Успешный вход"
+// @Failure 400 {object} models.ErrorResponse "Некорректные данные (INVALID_REQUEST, MISSING_FIELDS, INVALID_LOGIN, INVALID_PASSWORD)"
+// @Failure 401 {object} models.ErrorResponse "Неверные учетные данные (INVALID_CREDENTIALS, USER_NOT_FOUND, ACCOUNT_LOCKED)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
+// @Router /auth/login [post]
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var req models.LoginRequest
 
@@ -77,9 +100,9 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	response, err := h.authUC.Login(r.Context(), req)
 	if err != nil {
 		switch {
-		case errors.Is(err, user.UserNotFound):
+		case errors.Is(err, user.ErrUserNotFound):
 			httputil.UnauthorizedError(w, r, "Пользователь не найден", models.ErrCodeUserNotFound)
-		case errors.Is(err, auth.InvalidPassword):
+		case errors.Is(err, auth.ErrInvalidPassword):
 			httputil.UnauthorizedError(w, r, "Неверный пароль", models.ErrCodeInvalidCredentials)
 		default:
 			httputil.UnauthorizedError(w, r, "Неверные учетные данные", models.ErrCodeInvalidCredentials)
@@ -94,57 +117,15 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	httputil.Success(w, r, response)
 }
 
-func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
-	userID, ok := middleware.GetUserIDFromContext(r.Context())
-	if !ok {
-		httputil.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
-		return
-	}
-
-	user, err := h.authUC.GetUserByID(r.Context(), userID)
-	userDTO := UserToApi(user)
-	if err != nil {
-		httputil.NotFoundError(w, r, "Пользователь не найден")
-		return
-	}
-
-	httputil.Success(w, r, userDTO)
-}
-
-func (h *Handler) EditUser(w http.ResponseWriter, r *http.Request) {
-	userID, ok := middleware.GetUserIDFromContext(r.Context())
-	if !ok {
-		httputil.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
-		return
-	}
-
-	var req models.UpdateUserRequest
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputil.ValidationError(w, r, "Некорректный формат данных", "body")
-		return
-	}
-
-	validationErrors := utils.ValidateStruct(req)
-	if len(validationErrors) > 0 {
-		httputil.ValidationErrors(w, r, validationErrors)
-		return
-	}
-
-	userInstance, err := h.authUC.EditUserByID(r.Context(), req, userID)
-	if err != nil {
-		switch {
-		case errors.Is(err, user.EmailExistsErr):
-			httputil.ConflictError(w, r, "Пользователь с таким email уже существует", models.ErrCodeEmailExists)
-		default:
-			httputil.ConflictError(w, r, "Пользователь уже существует", models.ErrCodeUserExists)
-		}
-		return
-	}
-	userDTO := UserToApi(userInstance)
-	httputil.Success(w, r, userDTO)
-}
-
+// Logout godoc
+// @Summary Выход из системы
+// @Description Завершает сессию пользователя
+// @Tags auth
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} map[string]string "Успешный выход"
+// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
+// @Router /auth/logout [post]
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	isProduction := os.Getenv("ENV") == "production"
 	utils.ClearAuthCookie(w, isProduction)

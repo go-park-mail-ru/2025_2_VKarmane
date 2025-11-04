@@ -29,6 +29,16 @@ func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error)
 	return strconv.Atoi(idStr)
 }
 
+// GetListBudgets godoc
+// @Summary Получение списка бюджетов пользователя
+// @Description Возвращает список всех бюджетов пользователя с расчетом фактических расходов
+// @Tags budget
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} map[string]interface{} "Список бюджетов пользователя"
+// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
+// @Router /budgets [get]
 func (h *Handler) GetListBudgets(w http.ResponseWriter, r *http.Request) {
 	userID, ok := h.getUserID(r)
 	if !ok {
@@ -46,6 +56,19 @@ func (h *Handler) GetListBudgets(w http.ResponseWriter, r *http.Request) {
 	httputils.Success(w, r, budgetsDTO)
 }
 
+// GetBudgetByID godoc
+// @Summary Получение конкретного бюджета
+// @Description Возвращает информацию о конкретном бюджете пользователя
+// @Tags budget
+// @Produce json
+// @Security ApiKeyAuth
+// @Param id path int true "ID бюджета"
+// @Success 200 {object} map[string]interface{} "Информация о бюджете"
+// @Failure 400 {object} models.ErrorResponse "Некорректный ID бюджета (INVALID_REQUEST)"
+// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
+// @Failure 404 {object} models.ErrorResponse "Бюджет не найден (BUDGET_NOT_FOUND)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
+// @Router /budget/{id} [get]
 func (h *Handler) GetBudgetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := h.parseIDFromURL(r, "id")
 	if err != nil {

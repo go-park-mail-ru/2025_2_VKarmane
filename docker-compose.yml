@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: vkarmane-postgres
+    environment:
+      POSTGRES_DB: vkarmane
+      POSTGRES_USER: vkarmane
+      POSTGRES_PASSWORD: vkarmane_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - vkarmane-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vkarmane -d vkarmane"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: vkarmane-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - vkarmane-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vkarmane-api
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: vkarmane
+      DB_PASSWORD: vkarmane_password
+      DB_NAME: vkarmane
+      DB_SSLMODE: disable
+      PORT: 8080
+      HOST: 0.0.0.0
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      LOG_LEVEL: info
+      HTTPS_ENABLED: "true"
+      HTTPS_CERT_FILE: ssl/server.crt
+      HTTPS_KEY_FILE: ssl/server.key
+      CORS_HOST: "localhost"
+      CORS_FRONTEND_PORT: "3000"
+      CORS_ORIGINS: "https://vkarmane.duckdns.org:8080"
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: "9000"
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_USE_SSL: "false"
+      MINIO_BUCKET_NAME: images
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./ssl:/root/ssl:ro
+      - ./logs:/root/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    networks:
+      - vkarmane-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  minio_data:
+
+networks:
+  vkarmane-network:
+    driver: bridge

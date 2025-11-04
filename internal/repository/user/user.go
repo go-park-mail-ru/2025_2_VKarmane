@@ -11,9 +11,9 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
-var LoginExistsErr = errors.New("login exists")
-var EmailExistsErr = errors.New("email exists")
-var UserNotFound = errors.New("not Found")
+var ErrLoginExists = errors.New("login exists")
+var ErrEmailExists = errors.New("email exists")
+var ErrUserNotFound = errors.New("not Found")
 
 type Repository struct {
 	users []dto.UserDB
@@ -28,18 +28,12 @@ func (r *Repository) CreateUser(ctx context.Context, user models.User) (models.U
 	log := logger.FromContext(ctx)
 	for _, u := range r.users {
 		if u.Login == user.Login {
-			if log != nil {
-				log.Warn("User creation failed: login already exists", "login", user.Login)
-			}
-
-			return models.User{}, LoginExistsErr
+			log.Warn("User creation failed: login already exists", "login", user.Login)
+			return models.User{}, ErrLoginExists
 		}
 		if u.Email == user.Email {
-			if log != nil {
-				log.Warn("User creation failed: email already exists", "email", user.Email)
-			}
-
-			return models.User{}, EmailExistsErr
+			log.Warn("User creation failed: email already exists", "email", user.Email)
+			return models.User{}, ErrEmailExists
 		}
 	}
 
@@ -93,11 +87,8 @@ func (r *Repository) GetUserByLogin(ctx context.Context, login string) (models.U
 		}
 	}
 
-	if log != nil {
-		log.Warn("User not found by login", "login", login)
-	}
-
-	return models.User{}, UserNotFound
+	log.Warn("User not found by login", "login", login)
+	return models.User{}, ErrUserNotFound
 }
 
 func (r *Repository) GetUserByID(ctx context.Context, id int) (models.User, error) {
@@ -116,27 +107,21 @@ func (r *Repository) GetUserByID(ctx context.Context, id int) (models.User, erro
 			}, nil
 		}
 	}
-	if log != nil {
-		log.Warn("User not found by ID", "user_id", id)
-	}
-
-	return models.User{}, UserNotFound
+	log.Warn("User not found by ID", "user_id", id)
+	return models.User{}, ErrUserNotFound
 }
 
 func (r *Repository) GetAllUsers() []dto.UserDB {
 	return r.users
 }
 
-func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateUserRequest, id int) (models.User, error) {
+func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateProfileRequest, id int) (models.User, error) {
 	log := logger.FromContext(ctx)
 	now := time.Now()
 	for i := range r.users {
 		if r.users[i].ID != id && r.users[i].Email == req.Email {
-			if log != nil {
-				log.Warn("User update failed: email already exists", "email", req.Email)
-			}
-
-			return models.User{}, EmailExistsErr
+			log.Warn("User update failed: email already exists", "email", req.Email)
+			return models.User{}, ErrEmailExists
 		}
 		if r.users[i].ID == id {
 			r.users[i].Email = req.Email
@@ -155,9 +140,6 @@ func (r *Repository) EditUserByID(ctx context.Context, req models.UpdateUserRequ
 		}
 	}
 
-	if log != nil {
-		log.Warn("User not found by ID", "user_id", id)
-	}
-
-	return models.User{}, UserNotFound
+	log.Warn("User not found by ID", "user_id", id)
+	return models.User{}, ErrUserNotFound
 }

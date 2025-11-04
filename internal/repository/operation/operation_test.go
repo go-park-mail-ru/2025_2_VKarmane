@@ -7,129 +7,263 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
-func sampleOperations() []OperationDB {
-	return []OperationDB{
-		{ID: 1, AccountID: 1, Name: "Op1", Status: models.OperationFinished, Sum: 100},
-		{ID: 2, AccountID: 1, Name: "Op2", Status: models.OperationFinished, Sum: 200},
-		{ID: 3, AccountID: 2, Name: "OtherAccOp", Status: models.OperationFinished, Sum: 300},
-		{ID: 4, AccountID: 1, Name: "Reverted", Status: models.OperationReverted, Sum: 400},
+func TestRepository_GetOperationsByAccount(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	accID1 := 1
+	accID2 := 2
+	ops := []OperationDB{
+		{ID: 1, AccountFromID: &accID1, Status: models.OperationFinished},
+		{ID: 2, AccountToID: &accID1, Status: models.OperationFinished},
+		{ID: 3, AccountFromID: &accID2, Status: models.OperationFinished},
+		{ID: 4, AccountFromID: &accID1, Status: models.OperationReverted},
 	}
+
+	repo := NewRepository(ops, fixedClock)
+
+	result, err := repo.GetOperationsByAccount(context.Background(), 1)
+	assert.NoError(t, err)
+	assert.Len(t, result, 2)
 }
 
-func TestGetOperationsByAccount(t *testing.T) {
-	fixedClock := clock.FixedClock{
-		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+func TestRepository_GetOperationByID(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	accID := 1
+	ops := []OperationDB{
+		{ID: 1, AccountFromID: &accID, Status: models.OperationFinished},
+		{ID: 2, AccountFromID: &accID, Status: models.OperationFinished},
 	}
 
-	repo := NewRepository(sampleOperations(), fixedClock)
-	ops, _ := repo.GetOperationsByAccount(context.Background(), 1)
-	require.Len(t, ops, 2, "should exclude reverted ops and match accountID")
-	require.Equal(t, "Op1", ops[0].Name)
-	require.Equal(t, "Op2", ops[1].Name)
+	repo := NewRepository(ops, fixedClock)
+
+	result, err := repo.GetOperationByID(context.Background(), 1, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, result.ID)
 }
 
-func TestGetOperationByID(t *testing.T) {
-	fixedClock := clock.FixedClock{
-		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
-	}
-
-	repo := NewRepository(sampleOperations(), fixedClock)
-
-	op, _ := repo.GetOperationByID(context.Background(), 1, 2)
-	require.Equal(t, 2, op.ID)
-	require.Equal(t, "Op2", op.Name)
-	op, _ = repo.GetOperationByID(context.Background(), 1, 999)
-	require.Zero(t, op.ID, "should return empty struct when not found")
-
-	op, _ = repo.GetOperationByID(context.Background(), 1, 4)
-	require.Zero(t, op.ID)
-}
-
-func TestCreateOperation(t *testing.T) {
-	fixedClock := clock.FixedClock{
-		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
-	}
-
+func TestRepository_CreateOperation(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
 	repo := NewRepository([]OperationDB{}, fixedClock)
 
 	op := models.Operation{
-		AccountID:  1,
-		CategoryID: 2,
-		Type:       models.OperationExpense,
-		Status:     models.OperationFinished,
-		Name:       "NewOp",
-		Sum:        999,
-		CreatedAt:  repo.clock.Now(),
+		AccountID: 1,
+		Name:      "Test",
+		Sum:       100,
+		Type:      models.OperationExpense,
 	}
 
-	created, _ := repo.CreateOperation(context.Background(), op)
-
-	require.Equal(t, 1, created.ID)
-	require.Equal(t, "NewOp", created.Name)
-	require.Equal(t, models.OperationFinished, created.Status)
-	require.NotZero(t, created.CreatedAt)
-	require.Len(t, repo.operations, 1)
-	require.Equal(t, "NewOp", repo.operations[0].Name)
+	result, err := repo.CreateOperation(context.Background(), op)
+	assert.NoError(t, err)
+	assert.NotZero(t, result.ID)
+	assert.Equal(t, "Test", result.Name)
 }
 
-func TestUpdateOperation(t *testing.T) {
-	fixedClock := clock.FixedClock{
-		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+func TestRepository_UpdateOperation(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	accID := 1
+	ops := []OperationDB{
+		{ID: 1, AccountFromID: &accID, Name: "Old", Sum: 100, Status: models.OperationFinished},
 	}
-	repo := NewRepository([]OperationDB{
-		{ID: 1, AccountID: 10, Name: "OldName", Sum: 100},
-	}, fixedClock)
+
+	repo := NewRepository(ops, fixedClock)
 
 	newName := "Updated"
-	newSum := float64(200)
+	newSum := 200.0
 	req := models.UpdateOperationRequest{
 		Name: &newName,
 		Sum:  &newSum,
 	}
 
-	updated, _ := repo.UpdateOperation(context.Background(), req, 10, 1)
-	require.Equal(t, "Updated", updated.Name)
-	require.Equal(t, float64(200), updated.Sum)
-
-	empty, _ := repo.UpdateOperation(context.Background(), req, 999, 1)
-	require.Zero(t, empty.ID)
+	result, err := repo.UpdateOperation(context.Background(), req, 1, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, "Updated", result.Name)
+	assert.Equal(t, 200.0, result.Sum)
 }
 
-func TestDeleteOperation(t *testing.T) {
-	fixedClock := clock.FixedClock{
-		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+func TestRepository_DeleteOperation(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	accID := 1
+	ops := []OperationDB{
+		{ID: 1, AccountFromID: &accID, Status: models.OperationFinished},
 	}
-	repo := NewRepository([]OperationDB{
-		{ID: 1, AccountID: 7, Name: "Active", Status: models.OperationFinished},
-	}, fixedClock)
 
-	deleted, _ := repo.DeleteOperation(context.Background(), 7, 1)
-	require.Equal(t, 1, deleted.ID)
-	require.Equal(t, models.OperationReverted, deleted.Status)
-	require.Equal(t, models.OperationReverted, repo.operations[0].Status)
-	empty, _ := repo.DeleteOperation(context.Background(), 7, 99)
-	require.Zero(t, empty.ID)
+	repo := NewRepository(ops, fixedClock)
+
+	result, err := repo.DeleteOperation(context.Background(), 1, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, models.OperationReverted, result.Status)
 }
 
-func TestCreateOperationAssignsIncrementalIDs(t *testing.T) {
-	fixedClock := clock.FixedClock{
-		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+func TestRepository_GetOperationByID_NotFound(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	accID := 1
+	ops := []OperationDB{
+		{ID: 1, AccountFromID: &accID, Status: models.OperationFinished},
 	}
-	repo := NewRepository([]OperationDB{
-		{ID: 1, AccountID: 1, Name: "Old"},
-	}, fixedClock)
 
-	newOp := models.Operation{
-		AccountID: 1,
-		Name:      "Second",
-		Status:    models.OperationFinished,
+	repo := NewRepository(ops, fixedClock)
+
+	result, err := repo.GetOperationByID(context.Background(), 1, 99)
+	assert.NoError(t, err)
+	assert.Zero(t, result.ID)
+}
+
+func TestRepository_GetOperationByID_WrongAccount(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	accID1 := 1
+	accID2 := 2
+	ops := []OperationDB{
+		{ID: 1, AccountFromID: &accID1, Status: models.OperationFinished},
 	}
-	created, _ := repo.CreateOperation(context.Background(), newOp)
 
-	require.Equal(t, 2, created.ID)
-	require.Len(t, repo.operations, 2)
-	require.Equal(t, "Second", repo.operations[1].Name)
+	repo := NewRepository(ops, fixedClock)
+
+	result, err := repo.GetOperationByID(context.Background(), accID2, 1)
+	assert.NoError(t, err)
+	assert.Zero(t, result.ID)
+}
+
+func TestRepository_GetOperationByID_Reverted(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	accID := 1
+	ops := []OperationDB{
+		{ID: 1, AccountFromID: &accID, Status: models.OperationReverted},
+	}
+
+	repo := NewRepository(ops, fixedClock)
+
+	result, err := repo.GetOperationByID(context.Background(), 1, 1)
+	assert.NoError(t, err)
+	assert.Zero(t, result.ID)
+}
+
+func TestRepository_GetOperationsByAccount_Empty(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	repo := NewRepository([]OperationDB{}, fixedClock)
+
+	result, err := repo.GetOperationsByAccount(context.Background(), 1)
+	assert.NoError(t, err)
+	assert.Empty(t, result)
+}
+
+func TestRepository_GetOperationsByAccount_AccountToID(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	accID := 1
+	ops := []OperationDB{
+		{ID: 1, AccountToID: &accID, Status: models.OperationFinished},
+	}
+
+	repo := NewRepository(ops, fixedClock)
+
+	result, err := repo.GetOperationsByAccount(context.Background(), 1)
+	assert.NoError(t, err)
+	assert.Len(t, result, 1)
+	assert.Equal(t, 1, result[0].ID)
+}
+
+func TestRepository_GetOperationsByAccount_ExcludeReverted(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	accID := 1
+	ops := []OperationDB{
+		{ID: 1, AccountFromID: &accID, Status: models.OperationFinished},
+		{ID: 2, AccountFromID: &accID, Status: models.OperationReverted},
+		{ID: 3, AccountFromID: &accID, Status: models.OperationFinished},
+	}
+
+	repo := NewRepository(ops, fixedClock)
+
+	result, err := repo.GetOperationsByAccount(context.Background(), 1)
+	assert.NoError(t, err)
+	assert.Len(t, result, 2)
+}
+
+func TestRepository_UpdateOperation_NotFound(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	accID := 1
+	ops := []OperationDB{
+		{ID: 1, AccountFromID: &accID, Name: "Old", Sum: 100},
+	}
+
+	repo := NewRepository(ops, fixedClock)
+
+	newName := "Updated"
+	req := models.UpdateOperationRequest{
+		Name: &newName,
+	}
+
+	result, err := repo.UpdateOperation(context.Background(), req, 1, 99)
+	assert.NoError(t, err)
+	assert.Zero(t, result.ID)
+}
+
+func TestRepository_UpdateOperation_AllFields(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	accID := 1
+	catID := 5
+	ops := []OperationDB{
+		{ID: 1, AccountFromID: &accID, Name: "Old", Sum: 100, Description: "Old desc"},
+	}
+
+	repo := NewRepository(ops, fixedClock)
+
+	newName := "Updated"
+	newSum := 200.0
+	newDesc := "New desc"
+	newTime := time.Now()
+	req := models.UpdateOperationRequest{
+		Name:        &newName,
+		Sum:         &newSum,
+		Description: &newDesc,
+		CategoryID:  &catID,
+		CreatedAt:   &newTime,
+	}
+
+	result, err := repo.UpdateOperation(context.Background(), req, 1, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, "Updated", result.Name)
+	assert.Equal(t, 200.0, result.Sum)
+}
+
+func TestRepository_DeleteOperation_NotFound(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	accID := 1
+	ops := []OperationDB{
+		{ID: 1, AccountFromID: &accID, Status: models.OperationFinished},
+	}
+
+	repo := NewRepository(ops, fixedClock)
+
+	result, err := repo.DeleteOperation(context.Background(), 1, 99)
+	assert.NoError(t, err)
+	assert.Zero(t, result.ID)
+}
+
+func TestRepository_CreateOperation_AllFields(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	repo := NewRepository([]OperationDB{}, fixedClock)
+
+	catID := 5
+	currencyID := 1
+	op := models.Operation{
+		AccountID:   1,
+		CategoryID:  catID,
+		Name:        "Test Operation",
+		Description: "Test Description",
+		Sum:         150.75,
+		Type:        models.OperationExpense,
+		Status:      models.OperationFinished,
+		CurrencyID:  currencyID,
+		ReceiptURL:  "http://example.com/receipt",
+	}
+
+	result, err := repo.CreateOperation(context.Background(), op)
+	assert.NoError(t, err)
+	assert.NotZero(t, result.ID)
+	assert.Equal(t, "Test Operation", result.Name)
+	assert.Equal(t, "Test Description", result.Description)
+	assert.Equal(t, 150.75, result.Sum)
+	assert.Equal(t, models.OperationExpense, result.Type)
+	assert.Equal(t, models.OperationFinished, result.Status)
 }

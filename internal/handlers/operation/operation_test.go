@@ -4,202 +4,375 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
-func TestGetAccountOperationsUnauthorized(t *testing.T) {
-	mockUC := mocks.NewOperationUseCase(t)
-	realClock := clock.RealClock{}
-	h := NewHandler(mockUC, realClock)
+func TestGetAccountOperations_Unauthorized(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/account/1/operations/", nil)
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	req := httptest.NewRequest(http.MethodGet, "/operations/account/1", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1"})
 	rr := httptest.NewRecorder()
 
-	h.GetAccountOperations(rr, req)
+	handler.GetAccountOperations(rr, req)
 
 	require.Equal(t, http.StatusUnauthorized, rr.Code)
 }
 
-func TestGetAccountOperationsSuccess(t *testing.T) {
-	mockUC := mocks.NewOperationUseCase(t)
-	realClock := clock.RealClock{}
-	h := NewHandler(mockUC, realClock)
+func TestGetAccountOperations_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	mockUC.On("GetAccountOperations", mock.Anything, 7).
-		Return([]models.Operation{{ID: 1, Name: "test", Sum: 100}}, nil)
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/account/7/operations/", nil)
-	req = mux.SetURLVars(req, map[string]string{"acc_id": "7"})
+	operations := []models.Operation{
+		{ID: 1, AccountID: 1, Name: "Test", Sum: 100},
+	}
+
+	mockUC.EXPECT().GetAccountOperations(gomock.Any(), 1).Return(operations, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/operations/account/1", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1"})
 	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
 	rr := httptest.NewRecorder()
 
-	h.GetAccountOperations(rr, req)
+	handler.GetAccountOperations(rr, req)
 
 	require.Equal(t, http.StatusOK, rr.Code)
-	mockUC.AssertExpectations(t)
 }
 
-func TestGetOperationByIDNotFound(t *testing.T) {
-	mockUC := mocks.NewOperationUseCase(t)
-	realClock := clock.RealClock{}
-	h := NewHandler(mockUC, realClock)
+func TestGetAccountOperations_InvalidID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	mockUC.On("GetOperationByID", mock.Anything, 1, 7).
-		Return(models.Operation{}, errors.New("not found"))
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/accounts/1/operations/7", nil)
-	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "7"})
+	req := httptest.NewRequest(http.MethodGet, "/operations/account/invalid", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "invalid"})
 	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
 	rr := httptest.NewRecorder()
 
-	h.GetOperationByID(rr, req)
+	handler.GetAccountOperations(rr, req)
 
-	require.Equal(t, http.StatusNotFound, rr.Code)
-	mockUC.AssertExpectations(t)
+	require.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
-func TestCreateOperationSuccess(t *testing.T) {
-	mockUC := mocks.NewOperationUseCase(t)
-	fixedClock := clock.FixedClock{
-		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+func TestCreateOperation_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	createReq := models.CreateOperationRequest{
+		AccountID: 1,
+		Type:      models.OperationExpense,
+		Name:      "Test",
+		Sum:       100,
 	}
 
-	h := NewHandler(mockUC, fixedClock)
-
-	reqBody := models.CreateOperationRequest{
-		AccountID:   1,
-		CategoryID:  1,
-		Type:        models.OperationIncome,
-		Name:        "test",
-		Description: "desc",
-		Sum:         100,
-		CreatedAt:   h.clock.Now(),
-	}
-	expectedOp := models.Operation{
+	operation := models.Operation{
 		ID:        1,
-		Name:      reqBody.Name,
-		Sum:       reqBody.Sum,
-		CreatedAt: reqBody.CreatedAt,
+		AccountID: 1,
+		Name:      "Test",
+		Sum:       100,
+		Type:      models.OperationExpense,
+		Status:    models.OperationFinished,
 	}
 
-	mockUC.On("CreateOperation", mock.Anything, reqBody, 7).
-		Return(expectedOp, nil)
+	mockUC.EXPECT().CreateOperation(gomock.Any(), gomock.Any(), 1).Return(operation, nil)
 
-	bodyBytes, _ := json.Marshal(reqBody)
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/accounts/7/operation/create", bytes.NewReader(bodyBytes))
-	req = mux.SetURLVars(req, map[string]string{"acc_id": "7"})
+	body, _ := json.Marshal(createReq)
+	req := httptest.NewRequest(http.MethodPost, "/operations/account/1", bytes.NewBuffer(body))
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1"})
 	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
 	rr := httptest.NewRecorder()
 
-	h.CreateOperation(rr, req)
+	handler.CreateOperation(rr, req)
 
 	require.Equal(t, http.StatusCreated, rr.Code)
-	mockUC.AssertExpectations(t)
 }
 
-func TestDeleteOperationSuccess(t *testing.T) {
-	mockUC := mocks.NewOperationUseCase(t)
-	realClock := clock.RealClock{}
-	h := NewHandler(mockUC, realClock)
+func TestGetOperationByID_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	mockUC.On("GetOperationByID", mock.Anything, 7, 1).
-		Return(models.Operation{ID: 1, Name: "deleted"}, nil)
-	mockUC.On("DeleteOperation", mock.Anything, 7, 1).
-		Return(models.Operation{ID: 1, Name: "deleted"}, nil)
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
 
-	req := httptest.NewRequest(http.MethodDelete, "/api/v1/accounts/7/operations/delete/1", nil)
-	req = mux.SetURLVars(req, map[string]string{"acc_id": "7", "op_id": "1"})
+	operation := models.Operation{
+		ID:        1,
+		AccountID: 1,
+		Name:      "Test",
+		Sum:       100,
+	}
+
+	mockUC.EXPECT().GetOperationByID(gomock.Any(), 1, 1).Return(operation, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/operations/account/1/operation/1", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
 	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
 	rr := httptest.NewRecorder()
 
-	h.DeleteOperation(rr, req)
+	handler.GetOperationByID(rr, req)
 
 	require.Equal(t, http.StatusOK, rr.Code)
-	mockUC.AssertExpectations(t)
 }
 
-func TestUpdateOperationUnauthorized(t *testing.T) {
-	mockUC := mocks.NewOperationUseCase(t)
-	realClock := clock.RealClock{}
-	h := NewHandler(mockUC, realClock)
+func TestUpdateOperation_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	reqBody := models.UpdateOperationRequest{Name: utilsPtr("Updated name")}
-	bodyBytes, _ := json.Marshal(reqBody)
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
 
-	req := httptest.NewRequest(http.MethodPatch, "/api/v1/accounts/7/operation/update/1", bytes.NewReader(bodyBytes))
-	req = mux.SetURLVars(req, map[string]string{"acc_id": "7", "op_id": "1"})
+	name := "Updated"
+	sum := 200.0
+	updateReq := models.UpdateOperationRequest{
+		Name: &name,
+		Sum:  &sum,
+	}
+
+	operation := models.Operation{
+		ID:        1,
+		AccountID: 1,
+		Name:      "Updated",
+		Sum:       200,
+	}
+
+	mockUC.EXPECT().UpdateOperation(gomock.Any(), gomock.Any(), 1, 1).Return(operation, nil)
+
+	body, _ := json.Marshal(updateReq)
+	req := httptest.NewRequest(http.MethodPut, "/operations/account/1/operation/1", bytes.NewBuffer(body))
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
+	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
 	rr := httptest.NewRecorder()
 
-	h.UpdateOperation(rr, req)
+	handler.UpdateOperation(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestDeleteOperation_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	operation := models.Operation{
+		ID:        1,
+		AccountID: 1,
+		Status:    models.OperationReverted,
+	}
+
+	mockUC.EXPECT().DeleteOperation(gomock.Any(), 1, 1).Return(operation, nil)
+
+	req := httptest.NewRequest(http.MethodDelete, "/operations/account/1/operation/1", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
+	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
+	rr := httptest.NewRecorder()
+
+	handler.DeleteOperation(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestCreateOperation_Unauthorized(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	req := httptest.NewRequest(http.MethodPost, "/operations/account/1", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1"})
+	rr := httptest.NewRecorder()
+
+	handler.CreateOperation(rr, req)
 
 	require.Equal(t, http.StatusUnauthorized, rr.Code)
 }
 
-func TestUpdateOperationNotFound(t *testing.T) {
-	mockUC := mocks.NewOperationUseCase(t)
-	realClock := clock.RealClock{}
-	h := NewHandler(mockUC, realClock)
+func TestGetOperationByID_Unauthorized(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	mockUC.On("GetOperationByID", mock.Anything, 7, 1).
-		Return(models.Operation{}, errors.New("not found"))
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
 
-	reqBody := models.UpdateOperationRequest{Name: utilsPtr("Updated name")}
-	bodyBytes, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodGet, "/operations/account/1/operation/1", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
+	rr := httptest.NewRecorder()
 
-	req := httptest.NewRequest(http.MethodPatch, "/api/v1/accounts/7/operation/update/1", bytes.NewReader(bodyBytes))
-	req = mux.SetURLVars(req, map[string]string{"acc_id": "7", "op_id": "1"})
+	handler.GetOperationByID(rr, req)
+
+	require.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+func TestUpdateOperation_Unauthorized(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	req := httptest.NewRequest(http.MethodPut, "/operations/account/1/operation/1", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
+	rr := httptest.NewRecorder()
+
+	handler.UpdateOperation(rr, req)
+
+	require.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+func TestDeleteOperation_Unauthorized(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	req := httptest.NewRequest(http.MethodDelete, "/operations/account/1/operation/1", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
+	rr := httptest.NewRecorder()
+
+	handler.DeleteOperation(rr, req)
+
+	require.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+func TestCreateOperation_InvalidJSON(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	req := httptest.NewRequest(http.MethodPost, "/operations/account/1", bytes.NewBufferString("invalid"))
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1"})
 	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
 	rr := httptest.NewRecorder()
 
-	h.UpdateOperation(rr, req)
+	handler.CreateOperation(rr, req)
 
-	require.Equal(t, http.StatusNotFound, rr.Code)
-	mockUC.AssertExpectations(t)
+	require.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
-func TestUpdateOperationSuccess(t *testing.T) {
-	mockUC := mocks.NewOperationUseCase(t)
-	fixedClock := clock.FixedClock{
-		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
-	}
+func TestUpdateOperation_InvalidJSON(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	h := NewHandler(mockUC, fixedClock)
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
 
-	mockUC.On("GetOperationByID", mock.Anything, 7, 1).
-		Return(models.Operation{ID: 1, AccountID: 7, Name: "Old name"}, nil)
-
-	reqBody := models.UpdateOperationRequest{
-		Name:      utilsPtr("Updated name"),
-		CreatedAt: utilsPtr(h.clock.Now()),
-	}
-
-	mockUC.On("UpdateOperation", mock.Anything, reqBody, 7, 1).
-		Return(models.Operation{ID: 1, AccountID: 7, Name: *reqBody.Name, CreatedAt: *reqBody.CreatedAt}, nil)
-
-	bodyBytes, _ := json.Marshal(reqBody)
-	req := httptest.NewRequest(http.MethodPatch, "/api/v1/accounts/7/operation/update/1", bytes.NewReader(bodyBytes))
-	req = mux.SetURLVars(req, map[string]string{"acc_id": "7", "op_id": "1"})
+	req := httptest.NewRequest(http.MethodPut, "/operations/account/1/operation/1", bytes.NewBufferString("invalid"))
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
 	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
 	rr := httptest.NewRecorder()
 
-	h.UpdateOperation(rr, req)
+	handler.UpdateOperation(rr, req)
 
-	require.Equal(t, http.StatusOK, rr.Code)
-	mockUC.AssertExpectations(t)
+	require.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
-func utilsPtr[T any](v T) *T {
-	return &v
+func TestGetOperationByID_InvalidOpID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	req := httptest.NewRequest(http.MethodGet, "/operations/account/1/operation/invalid", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "invalid"})
+	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
+	rr := httptest.NewRecorder()
+
+	handler.GetOperationByID(rr, req)
+
+	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUpdateOperation_InvalidAccID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	req := httptest.NewRequest(http.MethodPut, "/operations/account/invalid/operation/1", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "invalid", "op_id": "1"})
+	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
+	rr := httptest.NewRecorder()
+
+	handler.UpdateOperation(rr, req)
+
+	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUpdateOperation_InvalidOpID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	req := httptest.NewRequest(http.MethodPut, "/operations/account/1/operation/invalid", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "invalid"})
+	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
+	rr := httptest.NewRecorder()
+
+	handler.UpdateOperation(rr, req)
+
+	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestDeleteOperation_InvalidAccID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	req := httptest.NewRequest(http.MethodDelete, "/operations/account/invalid/operation/1", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "invalid", "op_id": "1"})
+	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
+	rr := httptest.NewRecorder()
+
+	handler.DeleteOperation(rr, req)
+
+	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestDeleteOperation_InvalidOpID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockOperationUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	req := httptest.NewRequest(http.MethodDelete, "/operations/account/1/operation/invalid", nil)
+	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "invalid"})
+	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
+	rr := httptest.NewRecorder()
+
+	handler.DeleteOperation(rr, req)
+
+	require.Equal(t, http.StatusBadRequest, rr.Code)
 }

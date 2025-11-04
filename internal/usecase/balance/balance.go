@@ -8,9 +8,6 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/balance"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
@@ -19,13 +16,11 @@ type UseCase struct {
 	clock      clock.Clock
 }
 
-func NewUseCase(store *repository.Store, clck clock.Clock) *UseCase {
-	accountRepo := account.NewRepository(store.Accounts, store.UserAccounts, clck)
-	balanceService := balance.NewService(accountRepo, clck)
-
+func NewUseCase(balanceService BalanceService) *UseCase {
+	realClock := clock.RealClock{}
 	return &UseCase{
 		balanceSvc: balanceService,
-		clock:      clck,
+		clock:      realClock,
 	}
 }
 
@@ -33,10 +28,7 @@ func (uc *UseCase) GetBalanceForUser(ctx context.Context, userID int) ([]models.
 	log := logger.FromContext(ctx)
 	accounts, err := uc.balanceSvc.GetBalanceForUser(ctx, userID)
 	if err != nil {
-		if log != nil {
-			log.Error("Failed to get balance for user", "error", err, "user_id", userID)
-		}
-
+		log.Error("Failed to get balance for user", "error", err, "user_id", userID)
 		return nil, pkgerrors.Wrap(err, "balance.GetBalanceForUser")
 	}
 
@@ -47,10 +39,7 @@ func (uc *UseCase) GetAccountByID(ctx context.Context, userID, accountID int) (m
 	log := logger.FromContext(ctx)
 	accounts, err := uc.balanceSvc.GetBalanceForUser(ctx, userID)
 	if err != nil {
-		if log != nil {
-			log.Error("Failed to get balance for user", "error", err, "user_id", userID)
-		}
-
+		log.Error("Failed to get balance for user", "error", err, "user_id", userID)
 		return models.Account{}, pkgerrors.Wrap(err, "balance.GetAccountByID")
 	}
 
@@ -60,9 +49,6 @@ func (uc *UseCase) GetAccountByID(ctx context.Context, userID, accountID int) (m
 		}
 	}
 
-	if log != nil {
-		log.Warn("Account not found", "user_id", userID, "account_id", accountID)
-	}
-
+	log.Warn("Account not found", "user_id", userID, "account_id", accountID)
 	return models.Account{}, fmt.Errorf("balance.GetAccountByID: %s", models.ErrCodeAccountNotFound)
 }

@@ -3,14 +3,16 @@ package models
 import "time"
 
 type User struct {
-	ID        int
-	FirstName string
-	LastName  string
-	Email     string
-	Login     string
-	Password  string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID           int
+	FirstName    string
+	LastName     string
+	Email        string
+	Login        string
+	Password     string
+	Description  string
+	LogoHashedID string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type LoginRequest struct {
@@ -29,8 +31,19 @@ type AuthResponse struct {
 	User  User   `json:"user"`
 }
 
-type UpdateUserRequest struct {
-	FirstName string `json:"first_name" validate:"max=40"`
-	LastName  string `json:"last_name" validate:"max=40"`
-	Email     string `json:"email" validate:"required,email,max=40"`
+type ProfileResponse struct {
+	FirstName    string    `json:"first_name"`
+	LastName     string    `json:"last_name"`
+	Login        string    `json:"login"`
+	Email        string    `json:"email"`
+	LogoHashedID string    `json:"logo_hashed_id"`
+	LogoURL      string    `json:"logo_url,omitempty"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+type UpdateProfileRequest struct {
+	FirstName    string `json:"first_name" validate:"required,max=50"`
+	LastName     string `json:"last_name" validate:"required,max=50"`
+	Email        string `json:"email" validate:"required,email"`
+	LogoHashedID string `json:"logo_hashed_id,omitempty"`
 }

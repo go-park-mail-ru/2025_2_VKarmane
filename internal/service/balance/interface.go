@@ -8,6 +8,7 @@ import (
 
 type BalanceService interface {
 	GetBalanceForUser(ctx context.Context, userID int) ([]models.Account, error)
+	GetAccountByID(ctx context.Context, userID, accountID int) (models.Account, error)
 }
 
 type AccountRepository interface {

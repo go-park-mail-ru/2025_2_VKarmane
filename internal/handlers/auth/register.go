@@ -17,6 +17,4 @@ func Register(publicRouter *mux.Router, protectedRouter *mux.Router, uc AuthUseC
 	publicRouter.HandleFunc("/auth/login", h.Login).Methods(http.MethodPost)
 
 	protectedRouter.HandleFunc("/auth/logout", h.Logout).Methods(http.MethodPost)
-	protectedRouter.HandleFunc("/profile/edit", h.EditUser).Methods(http.MethodPut)
-	protectedRouter.HandleFunc("/profile", h.GetProfile).Methods(http.MethodGet)
 }

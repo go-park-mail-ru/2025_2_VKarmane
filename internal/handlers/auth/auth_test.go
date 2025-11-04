@@ -2,114 +2,158 @@ package auth
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
-func TestRegisterSuccess(t *testing.T) {
-	m := mocks.NewAuthUseCase(t)
-	realClock := clock.RealClock{}
-	h := NewHandler(m, realClock, logger.NewSlogLogger())
+func TestRegister_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	reqBody := models.RegisterRequest{Email: "u@e.co", Login: "user1", Password: "password"}
-	b, _ := json.Marshal(reqBody)
+	mockUC := mocks.NewMockAuthUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
 
-	m.On("Register", mock.Anything, reqBody).Return(models.AuthResponse{Token: "tok", User: models.User{ID: 1, Login: "user1"}}, nil)
+	registerReq := models.RegisterRequest{
+		Email:    "test@example.com",
+		Login:    "testuser",
+		Password: "password123",
+	}
 
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewReader(b))
+	authResponse := models.AuthResponse{
+		Token: "jwt-token",
+		User: models.User{
+			ID:    1,
+			Email: "test@example.com",
+			Login: "testuser",
+		},
+	}
+
+	mockUC.EXPECT().Register(gomock.Any(), gomock.Any()).Return(authResponse, nil)
+
+	body, _ := json.Marshal(registerReq)
+	req := httptest.NewRequest(http.MethodPost, "/auth/register", bytes.NewBuffer(body))
 	rr := httptest.NewRecorder()
-	h.Register(rr, req)
+
+	handler.Register(rr, req)
 
 	require.Equal(t, http.StatusCreated, rr.Code)
 }
 
-func TestRegisterValidationError(t *testing.T) {
-	realClock := clock.RealClock{}
-	m := mocks.NewAuthUseCase(t)
-	h := NewHandler(m, realClock, logger.NewSlogLogger())
+func TestLogin_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/register", bytes.NewBufferString("{"))
-	rr := httptest.NewRecorder()
-	h.Register(rr, req)
-	require.Equal(t, http.StatusBadRequest, rr.Code)
-}
+	mockUC := mocks.NewMockAuthUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
 
-func TestLoginUnauthorizedPaths(t *testing.T) {
-	realClock := clock.RealClock{}
-	m := mocks.NewAuthUseCase(t)
-	h := NewHandler(m, realClock, logger.NewSlogLogger())
-
-	body := models.LoginRequest{Login: "user", Password: "pass123"}
-	b, _ := json.Marshal(body)
-
-	m.On("Login", mock.Anything, body).Return(models.AuthResponse{}, errors.New("user not found"))
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", bytes.NewReader(b))
-	rr := httptest.NewRecorder()
-	h.Login(rr, req)
-	require.Equal(t, http.StatusUnauthorized, rr.Code)
-}
-
-func TestGetProfileUnauthorized(t *testing.T) {
-	realClock := clock.RealClock{}
-	m := mocks.NewAuthUseCase(t)
-	h := NewHandler(m, realClock, logger.NewSlogLogger())
-
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/profile", nil)
-	rr := httptest.NewRecorder()
-	h.GetProfile(rr, req)
-	require.Equal(t, http.StatusUnauthorized, rr.Code)
-}
-
-func TestEditUserSuccess(t *testing.T) {
-	realClock := clock.RealClock{}
-	m := mocks.NewAuthUseCase(t)
-	h := NewHandler(m, realClock, logger.NewSlogLogger())
-
-	reqBody := models.UpdateUserRequest{
-		FirstName: "John",
-		LastName:  "Doe",
-		Email:     "john@example.com",
+	loginReq := models.LoginRequest{
+		Login:    "testuser",
+		Password: "password123",
 	}
-	b, _ := json.Marshal(reqBody)
 
-	req := httptest.NewRequest(http.MethodPut, "/api/v1/profile/edit", bytes.NewReader(b))
-	req = req.WithContext(context.WithValue(context.Background(), middleware.UserIDKey, 1))
+	authResponse := models.AuthResponse{
+		Token: "jwt-token",
+		User: models.User{
+			ID:    1,
+			Login: "testuser",
+		},
+	}
+
+	mockUC.EXPECT().Login(gomock.Any(), gomock.Any()).Return(authResponse, nil)
+
+	body, _ := json.Marshal(loginReq)
+	req := httptest.NewRequest(http.MethodPost, "/auth/login", bytes.NewBuffer(body))
 	rr := httptest.NewRecorder()
 
-	expectedUser := models.User{ID: 1, FirstName: "John", LastName: "Doe", Email: "john@example.com"}
-	m.On("EditUserByID", mock.Anything, reqBody, 1).Return(expectedUser, nil)
+	handler.Login(rr, req)
 
-	h.EditUser(rr, req)
 	require.Equal(t, http.StatusOK, rr.Code)
 }
 
-func TestEditUserUnauthorized(t *testing.T) {
-	realClock := clock.RealClock{}
-	m := mocks.NewAuthUseCase(t)
-	h := NewHandler(m, realClock, logger.NewSlogLogger())
+func TestLogout_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	reqBody := models.UpdateUserRequest{
-		FirstName: "John",
-		LastName:  "Doe",
-		Email:     "john@example.com",
-	}
-	b, _ := json.Marshal(reqBody)
+	mockUC := mocks.NewMockAuthUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
 
-	req := httptest.NewRequest(http.MethodPut, "/api/v1/profile/edit", bytes.NewReader(b))
+	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
 	rr := httptest.NewRecorder()
 
-	h.EditUser(rr, req)
-	require.Equal(t, http.StatusUnauthorized, rr.Code)
+	handler.Logout(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestRegister_ValidationError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockAuthUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
+
+	invalidReq := map[string]string{"email": "invalid"}
+	body, _ := json.Marshal(invalidReq)
+	req := httptest.NewRequest(http.MethodPost, "/auth/register", bytes.NewBuffer(body))
+	rr := httptest.NewRecorder()
+
+	handler.Register(rr, req)
+
+	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestLogin_ValidationError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockAuthUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
+
+	invalidReq := map[string]string{"login": ""}
+	body, _ := json.Marshal(invalidReq)
+	req := httptest.NewRequest(http.MethodPost, "/auth/login", bytes.NewBuffer(body))
+	rr := httptest.NewRecorder()
+
+	handler.Login(rr, req)
+
+	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestRegister_InvalidJSON(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockAuthUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
+
+	req := httptest.NewRequest(http.MethodPost, "/auth/register", bytes.NewBufferString("invalid json"))
+	rr := httptest.NewRecorder()
+
+	handler.Register(rr, req)
+
+	require.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestLogin_InvalidJSON(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockAuthUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
+
+	req := httptest.NewRequest(http.MethodPost, "/auth/login", bytes.NewBufferString("invalid json"))
+	rr := httptest.NewRecorder()
+
+	handler.Login(rr, req)
+
+	require.Equal(t, http.StatusBadRequest, rr.Code)
 }

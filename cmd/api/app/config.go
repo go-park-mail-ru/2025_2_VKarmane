@@ -1,7 +1,9 @@
 package app
 
 import (
+	"fmt"
 	"os"
+	"strings"
 )
 
 type Config struct {
@@ -9,6 +11,33 @@ type Config struct {
 	Host      string
 	JWTSecret string
 	LogLevel  string
+	Database  DatabaseConfig
+	HTTPS     HTTPSConfig
+	MinIO     MinIOConfig
+}
+
+type DatabaseConfig struct {
+	Host     string
+	Port     string
+	User     string
+	Password string
+	DBName   string
+	SSLMode  string
+}
+
+type HTTPSConfig struct {
+	Enabled  bool
+	CertFile string
+	KeyFile  string
+}
+
+type MinIOConfig struct {
+	Endpoint   string
+	Port       string
+	AccessKey  string
+	SecretKey  string
+	UseSSL     bool
+	BucketName string
 }
 
 func LoadConfig() *Config {
@@ -17,6 +46,27 @@ func LoadConfig() *Config {
 		Host:      getEnv("HOST", "0.0.0.0"),
 		JWTSecret: getEnv("JWT_SECRET", "your-secret-key"),
 		LogLevel:  getEnv("LOG_LEVEL", "info"),
+		Database: DatabaseConfig{
+			Host:     getEnv("DB_HOST", "localhost"),
+			Port:     getEnv("DB_PORT", "5432"),
+			User:     getEnv("DB_USER", "vkarmane"),
+			Password: getEnv("DB_PASSWORD", "vkarmane_password"),
+			DBName:   getEnv("DB_NAME", "vkarmane"),
+			SSLMode:  getEnv("DB_SSLMODE", "disable"),
+		},
+		HTTPS: HTTPSConfig{
+			Enabled:  getEnv("HTTPS_ENABLED", "true") == "true",
+			CertFile: getEnv("HTTPS_CERT_FILE", "ssl/server.crt"),
+			KeyFile:  getEnv("HTTPS_KEY_FILE", "ssl/server.key"),
+		},
+		MinIO: MinIOConfig{
+			Endpoint:   getEnv("MINIO_ENDPOINT", "localhost"),
+			Port:       getEnv("MINIO_PORT", "9000"),
+			AccessKey:  getEnv("MINIO_ACCESS_KEY", "minioadmin"),
+			SecretKey:  getEnv("MINIO_SECRET_KEY", "minioadmin123"),
+			UseSSL:     getEnv("MINIO_USE_SSL", "false") == "true",
+			BucketName: getEnv("MINIO_BUCKET_NAME", "images"),
+		},
 	}
 
 	return config
@@ -29,24 +79,78 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-func (c *Config) IsProduction() bool {
-	return os.Getenv("ENV") == "production"
-}
-
-func (c *Config) GetServerAddress() string {
-	return c.Host + ":" + c.Port
+func (c *Config) GetDatabaseDSN() string {
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		c.Database.Host,
+		c.Database.Port,
+		c.Database.User,
+		c.Database.Password,
+		c.Database.DBName,
+		c.Database.SSLMode,
+	)
 }
 
 func (c *Config) GetCORSOrigins() []string {
-	if c.IsProduction() {
-		return []string{
-			"http://217.16.23.67:8000",
-			"https://217.16.23.67:8000",
+	var result []string
+
+	corsHost := getEnv("CORS_HOST", "localhost")
+	corsFrontendPort := getEnv("CORS_FRONTEND_PORT", "3000")
+
+	if corsHost != "" {
+		if corsFrontendPort != "" {
+			result = append(result, fmt.Sprintf("http://%s:%s", corsHost, corsFrontendPort))
+			result = append(result, fmt.Sprintf("https://%s:%s", corsHost, corsFrontendPort))
+		} else {
+			result = append(result, fmt.Sprintf("http://%s", corsHost))
+			result = append(result, fmt.Sprintf("https://%s", corsHost))
 		}
 	}
-	return []string{
-		"http://localhost:8000",
-		"http://127.0.0.1:8000",
-		"http://217.16.23.67:8000",
+
+	serverHost := c.Host
+	if serverHost == "0.0.0.0" {
+		serverHost = "localhost"
 	}
+	serverPort := c.Port
+
+	result = append(result, fmt.Sprintf("http://%s:%s", serverHost, serverPort))
+	if c.HTTPS.Enabled {
+		result = append(result, fmt.Sprintf("https://%s:%s", serverHost, serverPort))
+	}
+
+	corsOriginsEnv := getEnv("CORS_ORIGINS", "")
+	if corsOriginsEnv != "" {
+		origins := strings.Split(corsOriginsEnv, ",")
+		for _, origin := range origins {
+			origin = strings.TrimSpace(origin)
+			if origin != "" {
+				result = append(result, origin)
+			}
+		}
+	}
+
+	return result
+}
+
+func (c *Config) IsProduction() bool {
+	return getEnv("ENV", "development") == "production"
+}
+
+func (c *Config) GetServerAddress() string {
+	return fmt.Sprintf("%s:%s", c.Host, c.Port)
+}
+
+func (c *Config) GetMinIOEndpoint() string {
+	schema := "http"
+	if c.MinIO.UseSSL {
+		schema = "https"
+	}
+	return fmt.Sprintf("%s://%s:%s", schema, c.MinIO.Endpoint, c.MinIO.Port)
+}
+
+func (c *Config) GetCSRFAuthKey() []byte {
+	csrfKey := getEnv("CSRF_AUTH_KEY", c.JWTSecret)
+	if len(csrfKey) < 32 {
+		return []byte(c.JWTSecret + "csrf-key-padding-to-32-chars")
+	}
+	return []byte(csrfKey[:32])
 }

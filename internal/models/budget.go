@@ -5,6 +5,7 @@ import "time"
 type Budget struct {
 	ID          int
 	UserID      int
+	CategoryID  int
 	Amount      float64
 	Actual      float64 // Фактические расходы (вычисляемое поле)
 	CurrencyID  int

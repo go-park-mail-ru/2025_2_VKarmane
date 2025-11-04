@@ -31,6 +31,6 @@ func (uc *UseCase) GetUserByID(ctx context.Context, userID int) (models.User, er
 	return uc.authService.GetUserByID(ctx, userID)
 }
 
-func (uc *UseCase) EditUserByID(ctx context.Context, req models.UpdateUserRequest, userID int) (models.User, error) {
+func (uc *UseCase) EditUserByID(ctx context.Context, req models.UpdateProfileRequest, userID int) (models.User, error) {
 	return uc.authService.EditUserByID(ctx, req, userID)
 }

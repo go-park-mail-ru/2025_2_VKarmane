@@ -7,36 +7,64 @@ import (
 	"testing"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
-	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
-func TestGetListBalanceUnauthorized(t *testing.T) {
-	m := mocks.NewBalanceUseCase(t)
-	realClock := clock.RealClock{}
-	h := NewHandler(m, realClock)
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/balance", nil)
+func TestGetAccounts_Unauthorized(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockBalanceUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	req := httptest.NewRequest(http.MethodGet, "/accounts", nil)
 	rr := httptest.NewRecorder()
-	h.GetListBalance(rr, req)
+
+	handler.GetAccounts(rr, req)
+
 	require.Equal(t, http.StatusUnauthorized, rr.Code)
 }
 
-func TestGetBalanceByAccountIDSuccess(t *testing.T) {
-	m := mocks.NewBalanceUseCase(t)
-	realClock := clock.RealClock{}
-	h := NewHandler(m, realClock)
+func TestGetAccounts_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	m.On("GetAccountByID", mock.Anything, 1, 7).Return(models.Account{ID: 7}, nil)
+	mockUC := mocks.NewMockBalanceUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/balance/7", nil)
-	req = mux.SetURLVars(req, map[string]string{"id": "7"})
+	accounts := []models.Account{
+		{ID: 1, Balance: 1000.50, Type: "debit"},
+	}
+
+	mockUC.EXPECT().GetBalanceForUser(gomock.Any(), 1).Return(accounts, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/accounts", nil)
+	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
 	rr := httptest.NewRecorder()
 
+	handler.GetAccounts(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestGetAccounts_EmptyAccounts(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockBalanceUseCase(ctrl)
+	handler := NewHandler(mockUC, clock.RealClock{})
+
+	mockUC.EXPECT().GetBalanceForUser(gomock.Any(), 1).Return([]models.Account{}, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/accounts", nil)
 	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
-	h.GetBalanceByAccountID(rr, req)
+	rr := httptest.NewRecorder()
+
+	handler.GetAccounts(rr, req)
+
 	require.Equal(t, http.StatusOK, rr.Code)
 }

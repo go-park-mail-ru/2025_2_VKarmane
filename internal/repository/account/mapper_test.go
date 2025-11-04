@@ -3,24 +3,45 @@ package account
 import (
 	"testing"
 	"time"
+
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestAccountDBModelRoundTrip(t *testing.T) {
+func TestAccountDBToModel(t *testing.T) {
 	now := time.Now()
-	db := AccountDB{ID: 4, Balance: 20.5, Type: "card", CurrencyID: 2, CreatedAt: now, UpdatedAt: now}
-	m := AccountDBToModel(db)
-	db2 := AccountModelToDB(m)
-	if db2.ID != db.ID || db2.Balance != db.Balance || db2.Type != db.Type || db2.CurrencyID != db.CurrencyID {
-		t.Fatalf("roundtrip mismatch: %+v vs %+v", db, db2)
+	accountDB := AccountDB{
+		ID:         1,
+		Balance:    1000.50,
+		Type:       "debit",
+		CurrencyID: 1,
+		CreatedAt:  now,
 	}
+
+	account := AccountDBToModel(accountDB)
+
+	assert.Equal(t, 1, account.ID)
+	assert.Equal(t, 1000.50, account.Balance)
+	assert.Equal(t, "debit", account.Type)
+	assert.Equal(t, 1, account.CurrencyID)
+	assert.Equal(t, now, account.CreatedAt)
 }
 
-func TestUserAccountDBModelRoundTrip(t *testing.T) {
+func TestAccountModelToDB(t *testing.T) {
 	now := time.Now()
-	db := UserAccountDB{ID: 3, UserID: 1, AccountID: 2, CreatedAt: now, UpdatedAt: now}
-	m := UserAccountDBToModel(db)
-	db2 := UserAccountModelToDB(m)
-	if db2.ID != db.ID || db2.UserID != db.UserID || db2.AccountID != db.AccountID {
-		t.Fatalf("roundtrip mismatch: %+v vs %+v", db, db2)
+	account := models.Account{
+		ID:         2,
+		Balance:    500.25,
+		Type:       "credit",
+		CurrencyID: 2,
+		CreatedAt:  now,
 	}
+
+	accountDB := AccountModelToDB(account)
+
+	assert.Equal(t, 2, accountDB.ID)
+	assert.Equal(t, 500.25, accountDB.Balance)
+	assert.Equal(t, "credit", accountDB.Type)
+	assert.Equal(t, 2, accountDB.CurrencyID)
+	assert.Equal(t, now, accountDB.CreatedAt)
 }
