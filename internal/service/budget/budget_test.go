@@ -332,3 +332,61 @@ func TestService_GetBudgetsForUser_MultipleAccountsAggregation(t *testing.T) {
 	assert.Len(t, res, 1)
 	assert.Equal(t, 150.0, res[0].Actual)
 }
+
+func TestService_GetBudgetsForUser_EmptyBudgets(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	mockBudgetRepo := mocks.NewMockBudgetRepository(ctrl)
+	mockAccountRepo := mocks.NewMockAccountRepository(ctrl)
+	mockOperationRepo := mocks.NewMockOperationRepository(ctrl)
+
+	mockBudgetRepo.EXPECT().GetBudgetsByUser(gomock.Any(), 1).Return([]models.Budget{}, nil)
+	mockAccountRepo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return([]models.Account{}, nil)
+
+	combinedRepo := &combinedRepo{
+		budgetRepo:    mockBudgetRepo,
+		accountRepo:   mockAccountRepo,
+		operationRepo: mockOperationRepo,
+	}
+
+	svc := NewService(combinedRepo, fixedClock)
+	res, err := svc.GetBudgetsForUser(context.Background(), 1)
+	assert.NoError(t, err)
+	assert.Empty(t, res)
+}
+
+func TestService_GetBudgetsForUser_WithIncome(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	mockBudgetRepo := mocks.NewMockBudgetRepository(ctrl)
+	mockAccountRepo := mocks.NewMockAccountRepository(ctrl)
+	mockOperationRepo := mocks.NewMockOperationRepository(ctrl)
+
+	now := time.Now()
+	budgets := []models.Budget{{ID: 1, UserID: 1, Amount: 1000, CurrencyID: 1, PeriodStart: now.Add(-24 * time.Hour), PeriodEnd: now.Add(24 * time.Hour)}}
+	accounts := []models.Account{{ID: 1, CurrencyID: 1}}
+	ops := []models.Operation{
+		{ID: 1, AccountID: 1, Type: "expense", Sum: 100, CurrencyID: 1, CreatedAt: now},
+		{ID: 2, AccountID: 1, Type: "income", Sum: 200, CurrencyID: 1, CreatedAt: now},
+	}
+
+	mockBudgetRepo.EXPECT().GetBudgetsByUser(gomock.Any(), 1).Return(budgets, nil)
+	mockAccountRepo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(accounts, nil)
+	mockOperationRepo.EXPECT().GetOperationsByAccount(gomock.Any(), 1).Return(ops, nil)
+
+	combinedRepo := &combinedRepo{
+		budgetRepo:    mockBudgetRepo,
+		accountRepo:   mockAccountRepo,
+		operationRepo: mockOperationRepo,
+	}
+
+	svc := NewService(combinedRepo, fixedClock)
+	res, err := svc.GetBudgetsForUser(context.Background(), 1)
+	assert.NoError(t, err)
+	assert.Len(t, res, 1)
+	assert.Equal(t, 100.0, res[0].Actual) // Only expense counted
+}

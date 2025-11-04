@@ -2,150 +2,237 @@ package operation
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
-const testUserID = 42
-
-func contextWithUserID() context.Context {
-	return context.WithValue(context.Background(), middleware.UserIDKey, testUserID)
+type combinedRepo struct {
+	opRepo  *mocks.MockOperationRepository
+	accRepo *mocks.MockAccountRepository
 }
 
-func TestService_GetAccountOperations(t *testing.T) {
+func (c *combinedRepo) GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error) {
+	return c.accRepo.GetAccountsByUser(ctx, userID)
+}
+
+func (c *combinedRepo) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error) {
+	return c.opRepo.GetOperationsByAccount(ctx, accountID)
+}
+
+func (c *combinedRepo) GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error) {
+	return c.opRepo.GetOperationByID(ctx, accID, opID)
+}
+
+func (c *combinedRepo) CreateOperation(ctx context.Context, op models.Operation) (models.Operation, error) {
+	return c.opRepo.CreateOperation(ctx, op)
+}
+
+func (c *combinedRepo) UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error) {
+	return c.opRepo.UpdateOperation(ctx, req, accID, opID)
+}
+
+func (c *combinedRepo) DeleteOperation(ctx context.Context, accID int, opID int) (models.Operation, error) {
+	return c.opRepo.DeleteOperation(ctx, accID, opID)
+}
+
+func createContextWithUser(userID int) context.Context {
+	ctx := context.Background()
+	ctx = logger.WithLogger(ctx, logger.NewSlogLogger())
+	ctx = context.WithValue(ctx, middleware.UserIDKey, userID)
+	return ctx
+}
+
+func TestService_GetAccountOperations_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ctx := contextWithUserID()
-	accID := 10
-
-	mockSvc := mocks.NewMockOperationService(ctrl)
+	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
+	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
+	
+	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
+	svc := NewService(repo, clock.RealClock{})
 
 	expectedOps := []models.Operation{
-		{ID: 1, AccountID: accID, Name: "TestOp"},
+		{ID: 1, AccountID: 1, Name: "Test"},
 	}
 
-	mockSvc.EXPECT().GetAccountOperations(gomock.Any(), accID).Return(expectedOps, nil)
+	accounts := []models.Account{{ID: 1}}
+	mockAccRepo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(accounts, nil)
+	mockOpRepo.EXPECT().GetOperationsByAccount(gomock.Any(), 1).Return(expectedOps, nil)
 
-	service := mockSvc
-
-	result, err := service.GetAccountOperations(ctx, accID)
+	ctx := createContextWithUser(1)
+	result, err := svc.GetAccountOperations(ctx, 1)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedOps, result)
+}
 
-	mockSvc.EXPECT().GetAccountOperations(gomock.Any(), 999).Return([]models.Operation{}, assert.AnError)
+func TestService_GetAccountOperations_Error(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	result, err = service.GetAccountOperations(ctx, 999)
+	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
+	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
+	
+	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
+	svc := NewService(repo, clock.RealClock{})
+
+	accounts := []models.Account{{ID: 1}}
+	mockAccRepo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(accounts, nil)
+	mockOpRepo.EXPECT().GetOperationsByAccount(gomock.Any(), 1).Return(nil, errors.New("db error"))
+
+	ctx := createContextWithUser(1)
+	result, err := svc.GetAccountOperations(ctx, 1)
 	assert.Error(t, err)
 	assert.Empty(t, result)
 }
 
-func TestService_CreateOperation(t *testing.T) {
+func TestService_CreateOperation_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ctx := contextWithUserID()
-	accID := 1
+	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
+	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
+	
+	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
+	fixedClock := clock.FixedClock{FixedTime: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)}
+	svc := NewService(repo, fixedClock)
 
-	mockSvc := mocks.NewMockOperationService(ctrl)
-
-	categoryID := 2
 	req := models.CreateOperationRequest{
-		AccountID:   accID,
-		CategoryID:  &categoryID,
-		Type:        models.OperationExpense,
-		Name:        "Lunch",
-		Description: "Food",
-		Sum:         250,
+		AccountID: 1,
+		Name:      "Test",
+		Sum:       100,
+		Type:      models.OperationExpense,
 	}
 
 	expectedOp := models.Operation{
-		ID:        123,
-		AccountID: accID,
-		Name:      "Lunch",
+		ID:        1,
+		AccountID: 1,
+		Name:      "Test",
+		Sum:       100,
+		Type:      models.OperationExpense,
 		Status:    models.OperationFinished,
 	}
 
-	mockSvc.EXPECT().CreateOperation(gomock.Any(), req, accID).Return(expectedOp, nil)
+	accounts := []models.Account{{ID: 1}}
+	mockAccRepo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(accounts, nil)
+	mockOpRepo.EXPECT().CreateOperation(gomock.Any(), gomock.Any()).Return(expectedOp, nil)
 
-	service := mockSvc
-
-	result, err := service.CreateOperation(ctx, req, accID)
+	ctx := createContextWithUser(1)
+	result, err := svc.CreateOperation(ctx, req, 1)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedOp.ID, result.ID)
-	assert.Equal(t, "Lunch", result.Name)
-	assert.Equal(t, models.OperationFinished, result.Status)
-	assert.WithinDuration(t, expectedOp.CreatedAt, result.CreatedAt, time.Second)
+	assert.Equal(t, expectedOp.Name, result.Name)
 }
 
-func TestService_UpdateOperation(t *testing.T) {
+func TestService_GetOperationByID_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	ctx := contextWithUserID()
-	accID := 5
-	opID := 42
-	newName := "Updated"
-	newSum := float64(1000)
-
-	mockSvc := mocks.NewMockOperationService(ctrl)
-
-	req := models.UpdateOperationRequest{
-		Name: &newName,
-		Sum:  &newSum,
-	}
-
-	expectedOp := models.Operation{
-		ID:        opID,
-		AccountID: accID,
-		Name:      newName,
-		Sum:       newSum,
-	}
-
-	mockSvc.EXPECT().UpdateOperation(gomock.Any(), req, accID, opID).Return(expectedOp, nil)
-
-	result, err := mockSvc.UpdateOperation(ctx, req, accID, opID)
-	assert.NoError(t, err)
-	assert.Equal(t, "Updated", result.Name)
-	assert.Equal(t, newSum, result.Sum)
-
-	mockSvc.EXPECT().UpdateOperation(gomock.Any(), req, 999, opID).Return(models.Operation{}, assert.AnError)
-
-	result, err = mockSvc.UpdateOperation(ctx, req, 999, opID)
-	assert.Error(t, err)
-	assert.Empty(t, result)
-}
-
-func TestService_DeleteOperation(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	ctx := contextWithUserID()
-	accID := 3
-	opID := 99
-
-	mockSvc := mocks.NewMockOperationService(ctrl)
-
-	expectedOp := models.Operation{
-		ID:        opID,
-		AccountID: accID,
-	}
-
-	mockSvc.EXPECT().DeleteOperation(gomock.Any(), accID, opID).Return(expectedOp, nil)
-
-	result, err := mockSvc.DeleteOperation(ctx, accID, opID)
-	assert.NoError(t, err)
-	assert.Equal(t, opID, result.ID)
+	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
+	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
 	
-	mockSvc.EXPECT().DeleteOperation(gomock.Any(), 999, opID).Return(models.Operation{}, assert.AnError)
+	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
+	svc := NewService(repo, clock.RealClock{})
 
-	result, err = mockSvc.DeleteOperation(ctx, 999, opID)
-	assert.Error(t, err)
-	assert.Empty(t, result)
+	expectedOp := models.Operation{ID: 1, AccountID: 1, Name: "Test"}
+
+	accounts := []models.Account{{ID: 1}}
+	mockAccRepo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(accounts, nil)
+	mockOpRepo.EXPECT().GetOperationByID(gomock.Any(), 1, 1).Return(expectedOp, nil)
+
+	ctx := createContextWithUser(1)
+	result, err := svc.GetOperationByID(ctx, 1, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOp, result)
+}
+
+func TestService_UpdateOperation_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
+	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
+	
+	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
+	svc := NewService(repo, clock.RealClock{})
+
+	name := "Updated"
+	req := models.UpdateOperationRequest{Name: &name}
+	expectedOp := models.Operation{ID: 1, Name: "Updated"}
+
+	accounts := []models.Account{{ID: 1}}
+	mockAccRepo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(accounts, nil)
+	mockOpRepo.EXPECT().UpdateOperation(gomock.Any(), req, 1, 1).Return(expectedOp, nil)
+
+	ctx := createContextWithUser(1)
+	result, err := svc.UpdateOperation(ctx, req, 1, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOp, result)
+}
+
+func TestService_DeleteOperation_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
+	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
+	
+	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
+	svc := NewService(repo, clock.RealClock{})
+
+	expectedOp := models.Operation{ID: 1, Status: models.OperationReverted}
+
+	accounts := []models.Account{{ID: 1}}
+	mockAccRepo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(accounts, nil)
+	mockOpRepo.EXPECT().DeleteOperation(gomock.Any(), 1, 1).Return(expectedOp, nil)
+
+	ctx := createContextWithUser(1)
+	result, err := svc.DeleteOperation(ctx, 1, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedOp, result)
+}
+
+func TestService_CheckAccountOwnership_True(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
+	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
+	
+	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
+	svc := NewService(repo, clock.RealClock{})
+
+	accounts := []models.Account{{ID: 1}, {ID: 2}}
+	mockAccRepo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(accounts, nil)
+
+	ctx := createContextWithUser(1)
+	result := svc.CheckAccountOwnership(ctx, 1)
+	assert.True(t, result)
+}
+
+func TestService_CheckAccountOwnership_False(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
+	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
+	
+	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
+	svc := NewService(repo, clock.RealClock{})
+
+	accounts := []models.Account{{ID: 1}, {ID: 2}}
+	mockAccRepo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(accounts, nil)
+
+	ctx := createContextWithUser(1)
+	result := svc.CheckAccountOwnership(ctx, 999)
+	assert.False(t, result)
 }

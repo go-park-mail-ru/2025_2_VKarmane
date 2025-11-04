@@ -91,6 +91,7 @@ func (e ErrorCode) GetErrorMessage() string {
 		ErrCodeResourceConflict: "Конфликт ресурсов",
 		ErrCodeBudgetNotFound:   "Бюджет не найден",
 		ErrCodeAccountNotFound:  "Счет не найден",
+		ErrCodeTransactionNotFound: "Операция не найдена",
 
 		ErrCodeInvalidAmount:   "Некорректная сумма",
 		ErrCodeInvalidCurrency: "Некорректная валюта",

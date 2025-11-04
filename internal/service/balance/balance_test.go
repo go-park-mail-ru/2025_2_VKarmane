@@ -127,3 +127,66 @@ func TestService_GetBalanceForUser_Empty(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Empty(t, res)
 }
+
+func TestService_GetBalanceForUser_MultipleAccounts(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	repo := mocks.NewMockAccountRepository(ctrl)
+
+	accounts := []models.Account{
+		{ID: 1, Balance: 1000, CurrencyID: 1},
+		{ID: 2, Balance: 500, CurrencyID: 1},
+		{ID: 3, Balance: 250, CurrencyID: 2},
+	}
+
+	repo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(accounts, nil)
+	svc := NewService(repo, fixedClock)
+
+	result, err := svc.GetBalanceForUser(context.Background(), 1)
+	assert.NoError(t, err)
+	assert.Len(t, result, 3)
+	assert.Equal(t, 1000.0, result[0].Balance)
+	assert.Equal(t, 500.0, result[1].Balance)
+	assert.Equal(t, 250.0, result[2].Balance)
+}
+
+func TestService_GetAccountByID_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	repo := mocks.NewMockAccountRepository(ctrl)
+
+	accounts := []models.Account{
+		{ID: 1, Balance: 1000, CurrencyID: 1},
+		{ID: 2, Balance: 500, CurrencyID: 2},
+	}
+
+	repo.EXPECT().GetAccountsByUser(gomock.Any(), 10).Return(accounts, nil)
+	svc := NewService(repo, fixedClock)
+
+	result, err := svc.GetAccountByID(context.Background(), 10, 1)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, result.ID)
+	assert.Equal(t, 1000.0, result.Balance)
+}
+
+func TestService_GetAccountByID_NotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	repo := mocks.NewMockAccountRepository(ctrl)
+
+	accounts := []models.Account{
+		{ID: 1, Balance: 1000, CurrencyID: 1},
+	}
+
+	repo.EXPECT().GetAccountsByUser(gomock.Any(), 10).Return(accounts, nil)
+	svc := NewService(repo, fixedClock)
+
+	_, err := svc.GetAccountByID(context.Background(), 10, 999)
+	assert.Error(t, err)
+}

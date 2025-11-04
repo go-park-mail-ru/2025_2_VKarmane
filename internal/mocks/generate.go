@@ -18,7 +18,9 @@ package mocks
 //go:generate mockgen -destination=mock_auth_usecase.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/auth AuthUseCase
 //go:generate mockgen -destination=mock_balance_usecase.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/balance BalanceUseCase
 //go:generate mockgen -destination=mock_budget_usecase.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/budget BudgetUseCase
-//go:generate mockgen -destination=mock_operation_usecase.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/operation OperationUseCase
+//go:generate mockgen -destination=mock_category_usecase.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/category CategoryUseCase
+//go:generate mockgen -destination=mock_profile_usecase.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/profile ProfileUseCase
+//go:generate mockgen -destination=mock_image_usecase.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image ImageUseCase
 
 //go:generate mockgen -destination=mock_clock.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock Clock
 //go:generate mockgen -destination=mock_logger.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger Logger

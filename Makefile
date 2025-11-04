@@ -5,8 +5,8 @@ MODULE := github.com/go-park-mail-ru/2025_2_VKarmane
 # Все пакеты проекта
 ALL_PKGS := $(shell go list ./...)
 
-# Пакеты без моков
-PKGS := $(shell echo "$(ALL_PKGS)" | grep -vE '/mocks($|/)')
+# Пакеты без моков, cmd и docs
+PKGS := $(shell go list ./... | grep -vE '(^|/)(mocks|cmd|docs)(/|$$)')
 
 COVER_MODE := atomic
 COVER_RAW := coverage.raw.out
@@ -63,7 +63,7 @@ test:
 # Run tests with coverage
 cover:
 	@echo "Running tests with coverage..."
-	GOFLAGS= go test -covermode=$(COVER_MODE) -coverprofile=$(COVER_OUT) $(ALL_PKGS)
+	GOFLAGS= go test -covermode=$(COVER_MODE) -coverprofile=$(COVER_OUT) $(PKGS)
 	@go tool cover -func=$(COVER_OUT) | grep total:
 
 # Generate HTML coverage report
