@@ -1,10 +1,12 @@
 package profile
 
 import (
+	"context"
 	"net/http"
 	"path/filepath"
 	"strings"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
@@ -30,6 +32,21 @@ func (h *Handler) getUserID(r *http.Request) (int, bool) {
 	return userID, ok
 }
 
+func (h *Handler) enrichProfileWithLogoURL(ctx context.Context, profile *models.ProfileResponse) {
+	if profile.LogoHashedID == "" {
+		return
+	}
+	url, err := h.imageUC.GetImageURL(ctx, profile.LogoHashedID)
+	if err != nil {
+		log := logger.FromContext(ctx)
+		if log != nil {
+			log.Error("Failed to get image URL for profile", "image_id", profile.LogoHashedID, "error", err)
+		}
+		return
+	}
+	profile.LogoURL = url
+}
+
 // GetProfile godoc
 // @Summary Получение профиля пользователя
 // @Description Возвращает информацию о профиле текущего пользователя
@@ -52,6 +69,8 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		httputils.InternalError(w, r, "Failed to get profile")
 		return
 	}
+
+	h.enrichProfileWithLogoURL(r.Context(), &profile)
 
 	httputils.Success(w, r, profile)
 }
@@ -134,6 +153,8 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		httputils.InternalError(w, r, "Failed to update profile")
 		return
 	}
+
+	h.enrichProfileWithLogoURL(r.Context(), &profile)
 
 	httputils.Success(w, r, profile)
 }

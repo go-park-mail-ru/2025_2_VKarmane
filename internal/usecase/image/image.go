@@ -31,10 +31,11 @@ func (uc *UseCase) UploadImage(ctx context.Context, reader io.Reader, filename s
 }
 
 func (uc *UseCase) GetImageURL(ctx context.Context, imageID string) (string, error) {
-	log := logger.FromContext(ctx)
 	url, err := uc.imageSvc.GetImageURL(ctx, imageID)
 	if err != nil {
-		log.Error("Failed to get image URL", "error", err, "image_id", imageID)
+		if log := logger.FromContext(ctx); log != nil {
+			log.Error("Failed to get image URL", "error", err, "image_id", imageID)
+		}
 		return "", fmt.Errorf("image.GetImageURL: %w", err)
 	}
 

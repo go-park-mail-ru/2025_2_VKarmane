@@ -1,6 +1,7 @@
 package category
 
 import (
+	"context"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/category"
@@ -39,6 +41,35 @@ func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error)
 	return strconv.Atoi(idStr)
 }
 
+func (h *Handler) enrichCategoryWithLogoURL(ctx context.Context, category *models.Category) {
+	if category.LogoHashedID == "" {
+		return
+	}
+	url, err := h.imageUC.GetImageURL(ctx, category.LogoHashedID)
+	if err != nil {
+		log := logger.FromContext(ctx)
+		if log != nil {
+			log.Error("Failed to get image URL for category", "category_id", category.ID, "image_id", category.LogoHashedID, "error", err)
+		}
+		return
+	}
+	category.LogoURL = url
+}
+
+func (h *Handler) enrichCategoryWithStatsWithLogoURL(ctx context.Context, category *models.CategoryWithStats) {
+	h.enrichCategoryWithLogoURL(ctx, &category.Category)
+}
+
+func (h *Handler) enrichCategoriesWithLogoURL(ctx context.Context, categories []models.CategoryWithStats) {
+	log := logger.FromContext(ctx)
+	if log != nil {
+		log.Info("Enriching categories with logo URL", "count", len(categories))
+	}
+	for i := range categories {
+		h.enrichCategoryWithStatsWithLogoURL(ctx, &categories[i])
+	}
+}
+
 // GetCategories godoc
 // @Summary Получение списка категорий пользователя
 // @Description Возвращает список всех категорий пользователя с количеством операций
@@ -61,6 +92,8 @@ func (h *Handler) GetCategories(w http.ResponseWriter, r *http.Request) {
 		httputils.InternalError(w, r, "Failed to get categories")
 		return
 	}
+
+	h.enrichCategoriesWithLogoURL(r.Context(), categories)
 
 	response := map[string]interface{}{
 		"user_id":    userID,
@@ -147,6 +180,8 @@ func (h *Handler) CreateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.enrichCategoryWithLogoURL(r.Context(), &category)
+
 	httputils.Created(w, r, category)
 }
 
@@ -180,6 +215,8 @@ func (h *Handler) GetCategoryByID(w http.ResponseWriter, r *http.Request) {
 		httputils.NotFoundError(w, r, "Category not found")
 		return
 	}
+
+	h.enrichCategoryWithStatsWithLogoURL(r.Context(), &category)
 
 	httputils.Success(w, r, category)
 }
@@ -271,6 +308,8 @@ func (h *Handler) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 		httputils.NotFoundError(w, r, "Category not found")
 		return
 	}
+
+	h.enrichCategoryWithLogoURL(r.Context(), &category)
 
 	httputils.Success(w, r, category)
 }

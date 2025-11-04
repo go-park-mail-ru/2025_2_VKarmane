@@ -8,6 +8,7 @@ type Category struct {
 	Name         string
 	Description  string
 	LogoHashedID string
+	LogoURL      string `json:"logo_url,omitempty"`
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }

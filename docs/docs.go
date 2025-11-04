@@ -1285,6 +1285,9 @@ const docTemplate = `{
                 "logoHashedID": {
                     "type": "string"
                 },
+                "logo_url": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -1309,6 +1312,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "logoHashedID": {
+                    "type": "string"
+                },
+                "logo_url": {
                     "type": "string"
                 },
                 "name": {
@@ -1540,6 +1546,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "logo_hashed_id": {
+                    "type": "string"
+                },
+                "logo_url": {
                     "type": "string"
                 }
             }

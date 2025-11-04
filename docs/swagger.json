@@ -1279,6 +1279,9 @@
                 "logoHashedID": {
                     "type": "string"
                 },
+                "logo_url": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -1303,6 +1306,9 @@
                     "type": "integer"
                 },
                 "logoHashedID": {
+                    "type": "string"
+                },
+                "logo_url": {
                     "type": "string"
                 },
                 "name": {
@@ -1534,6 +1540,9 @@
                     "type": "string"
                 },
                 "logo_hashed_id": {
+                    "type": "string"
+                },
+                "logo_url": {
                     "type": "string"
                 }
             }

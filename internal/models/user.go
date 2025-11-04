@@ -37,6 +37,7 @@ type ProfileResponse struct {
 	Login        string    `json:"login"`
 	Email        string    `json:"email"`
 	LogoHashedID string    `json:"logo_hashed_id"`
+	LogoURL      string    `json:"logo_url,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`
 }
 

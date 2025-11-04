@@ -27,6 +27,8 @@ definitions:
         type: string
       id:
         type: integer
+      logo_url:
+        type: string
       logoHashedID:
         type: string
       name:
@@ -44,6 +46,8 @@ definitions:
         type: string
       id:
         type: integer
+      logo_url:
+        type: string
       logoHashedID:
         type: string
       name:
@@ -221,6 +225,8 @@ definitions:
       login:
         type: string
       logo_hashed_id:
+        type: string
+      logo_url:
         type: string
     type: object
   models.RegisterRequest:
