@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestUseCase_GetBudgetsForUser(t *testing.T) {
@@ -95,12 +96,16 @@ func TestUseCase_GetBudgetsForUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockBudgetService := &mocks.BudgetService{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockBudgetService := mocks.NewMockBudgetService(ctrl)
 			uc := &UseCase{budgetSvc: mockBudgetService}
 
-			mockBudgetService.On("GetBudgetsForUser", mock.Anything, tt.userID).Return(tt.mockBudgets, tt.mockError)
+			mockBudgetService.EXPECT().GetBudgetsForUser(gomock.Any(), tt.userID).Return(tt.mockBudgets, tt.mockError)
 
-			result, err := uc.GetBudgetsForUser(context.Background(), tt.userID)
+			ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+			result, err := uc.GetBudgetsForUser(ctx, tt.userID)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -117,8 +122,6 @@ func TestUseCase_GetBudgetsForUser(t *testing.T) {
 					assert.Equal(t, expectedBudget.Description, result[i].Description)
 				}
 			}
-
-			mockBudgetService.AssertExpectations(t)
 		})
 	}
 }
@@ -209,12 +212,16 @@ func TestUseCase_GetBudgetByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockBudgetService := &mocks.BudgetService{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockBudgetService := mocks.NewMockBudgetService(ctrl)
 			uc := &UseCase{budgetSvc: mockBudgetService}
 
-			mockBudgetService.On("GetBudgetsForUser", mock.Anything, tt.userID).Return(tt.mockBudgets, tt.mockError)
+			mockBudgetService.EXPECT().GetBudgetsForUser(gomock.Any(), tt.userID).Return(tt.mockBudgets, tt.mockError)
 
-			budget, err := uc.GetBudgetByID(context.Background(), tt.userID, tt.budgetID)
+			ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+			budget, err := uc.GetBudgetByID(ctx, tt.userID, tt.budgetID)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -228,8 +235,6 @@ func TestUseCase_GetBudgetByID(t *testing.T) {
 				assert.Equal(t, tt.expectedBudget.CurrencyID, budget.CurrencyID)
 				assert.Equal(t, tt.expectedBudget.Description, budget.Description)
 			}
-
-			mockBudgetService.AssertExpectations(t)
 		})
 	}
 }

@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestUseCase_Register(t *testing.T) {
@@ -70,10 +70,15 @@ func TestUseCase_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockAuthService := &mocks.AuthService{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockAuthService := mocks.NewMockAuthService(ctrl)
 			uc := NewUseCase(mockAuthService, clock.RealClock{})
 
-			mockAuthService.On("Register", mock.Anything, tt.request).Return(tt.mockResponse, tt.mockError)
+			mockAuthService.EXPECT().
+				Register(gomock.Any(), tt.request).
+				Return(tt.mockResponse, tt.mockError)
 
 			result, err := uc.Register(context.Background(), tt.request)
 
@@ -89,8 +94,6 @@ func TestUseCase_Register(t *testing.T) {
 				assert.Equal(t, tt.expectedResult.User.Email, result.User.Email)
 				assert.Equal(t, tt.expectedResult.User.Login, result.User.Login)
 			}
-
-			mockAuthService.AssertExpectations(t)
 		})
 	}
 }
@@ -150,10 +153,15 @@ func TestUseCase_Login(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockAuthService := &mocks.AuthService{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockAuthService := mocks.NewMockAuthService(ctrl)
 			uc := NewUseCase(mockAuthService, clock.RealClock{})
 
-			mockAuthService.On("Login", mock.Anything, tt.request).Return(tt.mockResponse, tt.mockError)
+			mockAuthService.EXPECT().
+				Login(gomock.Any(), tt.request).
+				Return(tt.mockResponse, tt.mockError)
 
 			result, err := uc.Login(context.Background(), tt.request)
 
@@ -169,8 +177,6 @@ func TestUseCase_Login(t *testing.T) {
 				assert.Equal(t, tt.expectedResult.User.Email, result.User.Email)
 				assert.Equal(t, tt.expectedResult.User.Login, result.User.Login)
 			}
-
-			mockAuthService.AssertExpectations(t)
 		})
 	}
 }
@@ -218,10 +224,15 @@ func TestUseCase_GetUserByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockAuthService := &mocks.AuthService{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockAuthService := mocks.NewMockAuthService(ctrl)
 			uc := NewUseCase(mockAuthService, clock.RealClock{})
 
-			mockAuthService.On("GetUserByID", mock.Anything, tt.userID).Return(tt.mockUser, tt.mockError)
+			mockAuthService.EXPECT().
+				GetUserByID(gomock.Any(), tt.userID).
+				Return(tt.mockUser, tt.mockError)
 
 			user, err := uc.GetUserByID(context.Background(), tt.userID)
 
@@ -236,8 +247,6 @@ func TestUseCase_GetUserByID(t *testing.T) {
 				assert.Equal(t, tt.expectedUser.Email, user.Email)
 				assert.Equal(t, tt.expectedUser.Login, user.Login)
 			}
-
-			mockAuthService.AssertExpectations(t)
 		})
 	}
 }
@@ -296,10 +305,14 @@ func TestUseCase_EditUserByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockAuthService := &mocks.AuthService{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockAuthService := mocks.NewMockAuthService(ctrl)
 			uc := NewUseCase(mockAuthService, clock.RealClock{})
 
-			mockAuthService.On("EditUserByID", mock.Anything, tt.req, tt.userID).
+			mockAuthService.EXPECT().
+				EditUserByID(gomock.Any(), tt.req, tt.userID).
 				Return(tt.mockUser, tt.mockError)
 
 			user, err := uc.EditUserByID(context.Background(), tt.req, tt.userID)
@@ -315,8 +328,6 @@ func TestUseCase_EditUserByID(t *testing.T) {
 				assert.Equal(t, tt.expectedUser.Email, user.Email)
 				assert.Equal(t, tt.expectedUser.Login, user.Login)
 			}
-
-			mockAuthService.AssertExpectations(t)
 		})
 	}
 }

@@ -7,16 +7,19 @@ import (
 	"testing"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestGetListBudgetsUnauthorized(t *testing.T) {
-	m := mocks.NewBudgetUseCase(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	m := mocks.NewMockBudgetUseCase(ctrl)
 	clock := clock.RealClock{}
 	h := NewHandler(m, clock)
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/budgets", nil)
@@ -26,11 +29,14 @@ func TestGetListBudgetsUnauthorized(t *testing.T) {
 }
 
 func TestGetBudgetByIDSuccess(t *testing.T) {
-	m := mocks.NewBudgetUseCase(t)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	m := mocks.NewMockBudgetUseCase(ctrl)
 	clock := clock.RealClock{}
 	h := NewHandler(m, clock)
 
-	m.On("GetBudgetByID", mock.Anything, 1, 5).Return(models.Budget{ID: 5}, nil)
+	m.EXPECT().GetBudgetByID(gomock.Any(), 1, 5).Return(models.Budget{ID: 5}, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/budget/5", nil)
 	req = mux.SetURLVars(req, map[string]string{"id": "5"})

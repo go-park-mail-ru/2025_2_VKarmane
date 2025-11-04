@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/dto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
@@ -32,7 +33,8 @@ func TestUserRepository_GetUserByID_NotFound(t *testing.T) {
 		{ID: 1, FirstName: "A", LastName: "B", Email: "a@b.c", Login: "ab", Password: "hash"},
 	}, fixedClock)
 
-	_, err := repo.GetUserByID(context.Background(), 99)
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	_, err := repo.GetUserByID(ctx, 99)
 	assert.Error(t, err)
 }
 
@@ -44,7 +46,8 @@ func TestUserRepository_CreateUser_DuplicateLogin(t *testing.T) {
 		{ID: 1, FirstName: "A", LastName: "B", Email: "a@b.c", Login: "ab", Password: "hash"},
 	}, fixedClock)
 
-	_, err := repo.CreateUser(context.Background(), models.User{Login: "ab", Email: "new@x.y"})
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	_, err := repo.CreateUser(ctx, models.User{Login: "ab", Email: "new@x.y"})
 	assert.Error(t, err)
 }
 
@@ -56,7 +59,8 @@ func TestUserRepository_CreateUser_DuplicateEmail(t *testing.T) {
 		{ID: 1, FirstName: "A", LastName: "B", Email: "a@b.c", Login: "ab", Password: "hash"},
 	}, fixedClock)
 
-	_, err := repo.CreateUser(context.Background(), models.User{Login: "newlogin", Email: "a@b.c"})
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	_, err := repo.CreateUser(ctx, models.User{Login: "newlogin", Email: "a@b.c"})
 	assert.Error(t, err)
 }
 
@@ -68,7 +72,8 @@ func TestUserRepository_CreateUser_Success(t *testing.T) {
 		{ID: 1, FirstName: "A", LastName: "B", Email: "a@b.c", Login: "ab", Password: "hash"},
 	}, fixedClock)
 
-	created, err := repo.CreateUser(context.Background(), models.User{FirstName: "N", LastName: "L", Email: "n@l.m", Login: "nl", Password: "p"})
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	created, err := repo.CreateUser(ctx, models.User{FirstName: "N", LastName: "L", Email: "n@l.m", Login: "nl", Password: "p"})
 	assert.NoError(t, err)
 	assert.NotZero(t, created.ID)
 	assert.Empty(t, created.Password)
@@ -88,7 +93,8 @@ func TestUserRepository_EditUserByID_Success(t *testing.T) {
 		Email:     "new@mail.com",
 	}
 
-	updated, err := repo.EditUserByID(context.Background(), req, 1)
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	updated, err := repo.EditUserByID(ctx, req, 1)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, updated.ID)
 	assert.Equal(t, "New", updated.FirstName)
@@ -112,7 +118,8 @@ func TestUserRepository_EditUserByID_EmailExists(t *testing.T) {
 		Email:     "a@b.c",
 	}
 
-	_, err := repo.EditUserByID(context.Background(), req, 2)
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	_, err := repo.EditUserByID(ctx, req, 2)
 	assert.Error(t, err)
 	assert.Equal(t, ErrEmailExists, err)
 }
@@ -131,7 +138,8 @@ func TestUserRepository_EditUserByID_NotFound(t *testing.T) {
 		Email:     "z@y.x",
 	}
 
-	_, err := repo.EditUserByID(context.Background(), req, 99)
+	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+	_, err := repo.EditUserByID(ctx, req, 99)
 	assert.Error(t, err)
 	assert.Equal(t, ErrUserNotFound, err)
 }

@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestUseCase_GetBalanceForUser(t *testing.T) {
@@ -79,12 +80,16 @@ func TestUseCase_GetBalanceForUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockBalanceService := &mocks.BalanceService{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockBalanceService := mocks.NewMockBalanceService(ctrl)
 			uc := &UseCase{balanceSvc: mockBalanceService}
 
-			mockBalanceService.On("GetBalanceForUser", mock.Anything, tt.userID).Return(tt.mockAccounts, tt.mockError)
+			mockBalanceService.EXPECT().GetBalanceForUser(gomock.Any(), tt.userID).Return(tt.mockAccounts, tt.mockError)
 
-			result, err := uc.GetBalanceForUser(context.Background(), tt.userID)
+			ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+			result, err := uc.GetBalanceForUser(ctx, tt.userID)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -99,8 +104,6 @@ func TestUseCase_GetBalanceForUser(t *testing.T) {
 					assert.Equal(t, expectedAccount.CurrencyID, result[i].CurrencyID)
 				}
 			}
-
-			mockBalanceService.AssertExpectations(t)
 		})
 	}
 }
@@ -175,12 +178,16 @@ func TestUseCase_GetAccountByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockBalanceService := &mocks.BalanceService{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockBalanceService := mocks.NewMockBalanceService(ctrl)
 			uc := &UseCase{balanceSvc: mockBalanceService}
 
-			mockBalanceService.On("GetBalanceForUser", mock.Anything, tt.userID).Return(tt.mockAccounts, tt.mockError)
+			mockBalanceService.EXPECT().GetBalanceForUser(gomock.Any(), tt.userID).Return(tt.mockAccounts, tt.mockError)
 
-			account, err := uc.GetAccountByID(context.Background(), tt.userID, tt.accountID)
+			ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+			account, err := uc.GetAccountByID(ctx, tt.userID, tt.accountID)
 
 			if tt.expectedError != nil {
 				assert.Error(t, err)
@@ -192,8 +199,6 @@ func TestUseCase_GetAccountByID(t *testing.T) {
 				assert.Equal(t, tt.expectedAccount.Type, account.Type)
 				assert.Equal(t, tt.expectedAccount.CurrencyID, account.CurrencyID)
 			}
-
-			mockBalanceService.AssertExpectations(t)
 		})
 	}
 }

@@ -5,11 +5,12 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestService_Register(t *testing.T) {
@@ -69,12 +70,18 @@ func TestService_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserRepo := &mocks.UserRepository{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUserRepo := mocks.NewMockUserRepository(ctrl)
 			service := NewService(mockUserRepo, "test-secret", realClock)
 
-			mockUserRepo.On("CreateUser", mock.Anything, mock.Anything).Return(tt.mockUser, tt.mockError)
+			mockUserRepo.EXPECT().
+				CreateUser(gomock.Any(), gomock.Any()).
+				Return(tt.mockUser, tt.mockError)
 
-			result, err := service.Register(context.Background(), tt.request)
+			ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+			result, err := service.Register(ctx, tt.request)
 
 			if tt.expectedError != "" {
 				assert.Error(t, err)
@@ -88,8 +95,6 @@ func TestService_Register(t *testing.T) {
 				assert.Equal(t, tt.expectedResult.User.Email, result.User.Email)
 				assert.Equal(t, tt.expectedResult.User.Login, result.User.Login)
 			}
-
-			mockUserRepo.AssertExpectations(t)
 		})
 	}
 }
@@ -117,12 +122,18 @@ func TestService_Login(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserRepo := &mocks.UserRepository{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUserRepo := mocks.NewMockUserRepository(ctrl)
 			service := NewService(mockUserRepo, "test-secret", realClock)
 
-			mockUserRepo.On("GetUserByLogin", mock.Anything, tt.request.Login).Return(tt.mockUser, tt.mockError)
+			mockUserRepo.EXPECT().
+				GetUserByLogin(gomock.Any(), tt.request.Login).
+				Return(tt.mockUser, tt.mockError)
 
-			result, err := service.Login(context.Background(), tt.request)
+			ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+			result, err := service.Login(ctx, tt.request)
 
 			if tt.expectedError != "" {
 				assert.Error(t, err)
@@ -137,8 +148,6 @@ func TestService_Login(t *testing.T) {
 				assert.Equal(t, tt.mockUser.Login, result.User.Login)
 				assert.Empty(t, result.User.Password)
 			}
-
-			mockUserRepo.AssertExpectations(t)
 		})
 	}
 }
@@ -187,12 +196,18 @@ func TestService_GetUserByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserRepo := &mocks.UserRepository{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUserRepo := mocks.NewMockUserRepository(ctrl)
 			service := NewService(mockUserRepo, "test-secret", realClock)
 
-			mockUserRepo.On("GetUserByID", mock.Anything, tt.userID).Return(tt.mockUser, tt.mockError)
+			mockUserRepo.EXPECT().
+				GetUserByID(gomock.Any(), tt.userID).
+				Return(tt.mockUser, tt.mockError)
 
-			user, err := service.GetUserByID(context.Background(), tt.userID)
+			ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+			user, err := service.GetUserByID(ctx, tt.userID)
 
 			if tt.expectedError != "" {
 				assert.Error(t, err)
@@ -205,8 +220,6 @@ func TestService_GetUserByID(t *testing.T) {
 				assert.Equal(t, tt.expectedUser.Email, user.Email)
 				assert.Equal(t, tt.expectedUser.Login, user.Login)
 			}
-
-			mockUserRepo.AssertExpectations(t)
 		})
 	}
 }
@@ -265,13 +278,18 @@ func TestService_EditUserByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserRepo := &mocks.UserRepository{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUserRepo := mocks.NewMockUserRepository(ctrl)
 			service := NewService(mockUserRepo, "test-secret", realClock)
 
-			mockUserRepo.On("EditUserByID", mock.Anything, tt.req, tt.userID).
+			mockUserRepo.EXPECT().
+				EditUserByID(gomock.Any(), tt.req, tt.userID).
 				Return(tt.mockUser, tt.mockError)
 
-			user, err := service.EditUserByID(context.Background(), tt.req, tt.userID)
+			ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+			user, err := service.EditUserByID(ctx, tt.req, tt.userID)
 
 			if tt.expectedError != "" {
 				assert.Error(t, err)
@@ -284,8 +302,6 @@ func TestService_EditUserByID(t *testing.T) {
 				assert.Equal(t, tt.expectedUser.Email, user.Email)
 				assert.Equal(t, tt.expectedUser.Login, user.Login)
 			}
-
-			mockUserRepo.AssertExpectations(t)
 		})
 	}
 }

@@ -15,7 +15,7 @@ COVER_HTML := coverage.html
 
 EXCLUDE_FILES_REGEX := \/mocks\/|\/mock_.*\.go
 
-.PHONY: help build up down logs clean test migrate swagger cover coverhtml dev deploy
+.PHONY: help build up down logs clean test migrate swagger cover coverhtml dev deploy mocks
 
 # Default target
 help:
@@ -31,6 +31,7 @@ help:
 	@echo "  migrate   - Apply database migrations"
 	@echo "  dev       - Start development environment"
 	@echo "  swagger   - Generate Swagger documentation"
+	@echo "  mocks     - Generate mocks using gomock"
 	@echo "  deploy    - Production deployment"
 
 # Build Docker images
@@ -94,6 +95,18 @@ swagger:
 	export PATH=$$PATH:$$(go env GOPATH)/bin && \
 	swag init -g cmd/api/main.go -o docs || \
 	(docker-compose exec api swag init -g cmd/api/main.go -o docs 2>/dev/null || echo "Please install swag: go install github.com/swaggo/swag/cmd/swag@latest")
+
+# Generate mocks using gomock
+mocks:
+	@echo "Generating mocks..."
+	@export PATH=$$PATH:$$(go env GOPATH)/bin && \
+	if ! command -v mockgen >/dev/null 2>&1; then \
+		echo "Installing mockgen..."; \
+		go install go.uber.org/mock/mockgen@latest; \
+	fi
+	@echo "Running go generate..."
+	@go generate ./internal/mocks/...
+	@echo "Mocks generated successfully!"
 
 # Production deployment
 deploy: build up

@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestService_GetBalanceForUser(t *testing.T) {
@@ -90,8 +90,11 @@ func TestService_GetBalanceForUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockAccountRepo := &mocks.AccountRepository{}
-			mockAccountRepo.On("GetAccountsByUser", mock.Anything, tt.userID).Return(tt.mockAccounts, nil)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockAccountRepo := mocks.NewMockAccountRepository(ctrl)
+			mockAccountRepo.EXPECT().GetAccountsByUser(gomock.Any(), tt.userID).Return(tt.mockAccounts, nil)
 
 			service := NewService(mockAccountRepo, fixedClock)
 
@@ -106,18 +109,19 @@ func TestService_GetBalanceForUser(t *testing.T) {
 				assert.Equal(t, expectedAccount.Type, result[i].Type)
 				assert.Equal(t, expectedAccount.CurrencyID, result[i].CurrencyID)
 			}
-
-			mockAccountRepo.AssertExpectations(t)
 		})
 	}
 }
 
 func TestService_GetBalanceForUser_Empty(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	fixedClock := clock.FixedClock{
 		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
 	}
-	repo := &mocks.AccountRepository{}
-	repo.On("GetAccountsByUser", mock.Anything, 99).Return([]models.Account{}, nil)
+	repo := mocks.NewMockAccountRepository(ctrl)
+	repo.EXPECT().GetAccountsByUser(gomock.Any(), 99).Return([]models.Account{}, nil)
 	svc := NewService(repo, fixedClock)
 	res, err := svc.GetBalanceForUser(context.Background(), 99)
 	assert.NoError(t, err)

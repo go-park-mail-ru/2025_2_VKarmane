@@ -5,12 +5,31 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"go.uber.org/mock/gomock"
 )
+
+// combinedRepo is a helper struct to combine three mocked repositories into one
+type combinedRepo struct {
+	budgetRepo    *mocks.MockBudgetRepository
+	accountRepo   *mocks.MockAccountRepository
+	operationRepo *mocks.MockOperationRepository
+}
+
+func (c *combinedRepo) GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error) {
+	return c.budgetRepo.GetBudgetsByUser(ctx, userID)
+}
+
+func (c *combinedRepo) GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error) {
+	return c.accountRepo.GetAccountsByUser(ctx, userID)
+}
+
+func (c *combinedRepo) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error) {
+	return c.operationRepo.GetOperationsByAccount(ctx, accountID)
+}
 
 func TestService_GetBudgetsForUser(t *testing.T) {
 	fixedClock := clock.FixedClock{
@@ -243,15 +262,24 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockBudgetRepo := &mocks.BudgetRepository{}
-			mockAccountRepo := &mocks.AccountRepository{}
-			mockOperationRepo := &mocks.OperationRepository{}
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-			mockBudgetRepo.On("GetBudgetsByUser", mock.Anything, tt.userID).Return(tt.mockBudgets, nil)
-			mockAccountRepo.On("GetAccountsByUser", mock.Anything, tt.userID).Return(tt.mockAccounts, nil)
-			mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 1).Return(tt.mockOperations, nil)
+			mockBudgetRepo := mocks.NewMockBudgetRepository(ctrl)
+			mockAccountRepo := mocks.NewMockAccountRepository(ctrl)
+			mockOperationRepo := mocks.NewMockOperationRepository(ctrl)
 
-			service := NewService(mockBudgetRepo, mockAccountRepo, mockOperationRepo, fixedClock)
+			mockBudgetRepo.EXPECT().GetBudgetsByUser(gomock.Any(), tt.userID).Return(tt.mockBudgets, nil)
+			mockAccountRepo.EXPECT().GetAccountsByUser(gomock.Any(), tt.userID).Return(tt.mockAccounts, nil)
+			mockOperationRepo.EXPECT().GetOperationsByAccount(gomock.Any(), 1).Return(tt.mockOperations, nil)
+
+			combinedRepo := &combinedRepo{
+				budgetRepo:    mockBudgetRepo,
+				accountRepo:   mockAccountRepo,
+				operationRepo: mockOperationRepo,
+			}
+
+			service := NewService(combinedRepo, fixedClock)
 
 			result, err := service.GetBudgetsForUser(context.Background(), tt.userID)
 
@@ -266,21 +294,20 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 				assert.Equal(t, expectedBudget.CurrencyID, result[i].CurrencyID)
 				assert.Equal(t, expectedBudget.Description, result[i].Description)
 			}
-
-			mockBudgetRepo.AssertExpectations(t)
-			mockAccountRepo.AssertExpectations(t)
-			mockOperationRepo.AssertExpectations(t)
 		})
 	}
 }
 
 func TestService_GetBudgetsForUser_MultipleAccountsAggregation(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	fixedClock := clock.FixedClock{
 		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
 	}
-	mockBudgetRepo := &mocks.BudgetRepository{}
-	mockAccountRepo := &mocks.AccountRepository{}
-	mockOperationRepo := &mocks.OperationRepository{}
+	mockBudgetRepo := mocks.NewMockBudgetRepository(ctrl)
+	mockAccountRepo := mocks.NewMockAccountRepository(ctrl)
+	mockOperationRepo := mocks.NewMockOperationRepository(ctrl)
 
 	now := time.Now()
 	budgets := []models.Budget{{ID: 1, UserID: 1, Amount: 1000, CurrencyID: 1, PeriodStart: now.Add(-24 * time.Hour), PeriodEnd: now.Add(24 * time.Hour)}}
@@ -288,12 +315,18 @@ func TestService_GetBudgetsForUser_MultipleAccountsAggregation(t *testing.T) {
 	ops1 := []models.Operation{{ID: 1, AccountID: 1, Type: "expense", Sum: 100, CurrencyID: 1, CreatedAt: now}}
 	ops2 := []models.Operation{{ID: 2, AccountID: 2, Type: "expense", Sum: 50, CurrencyID: 1, CreatedAt: now}}
 
-	mockBudgetRepo.On("GetBudgetsByUser", mock.Anything, 1).Return(budgets, nil)
-	mockAccountRepo.On("GetAccountsByUser", mock.Anything, 1).Return(accounts, nil)
-	mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 1).Return(ops1, nil)
-	mockOperationRepo.On("GetOperationsByAccount", mock.Anything, 2).Return(ops2, nil)
+	mockBudgetRepo.EXPECT().GetBudgetsByUser(gomock.Any(), 1).Return(budgets, nil)
+	mockAccountRepo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(accounts, nil)
+	mockOperationRepo.EXPECT().GetOperationsByAccount(gomock.Any(), 1).Return(ops1, nil)
+	mockOperationRepo.EXPECT().GetOperationsByAccount(gomock.Any(), 2).Return(ops2, nil)
 
-	svc := NewService(mockBudgetRepo, mockAccountRepo, mockOperationRepo, fixedClock)
+	combinedRepo := &combinedRepo{
+		budgetRepo:    mockBudgetRepo,
+		accountRepo:   mockAccountRepo,
+		operationRepo: mockOperationRepo,
+	}
+
+	svc := NewService(combinedRepo, fixedClock)
 	res, err := svc.GetBudgetsForUser(context.Background(), 1)
 	assert.NoError(t, err)
 	assert.Len(t, res, 1)
