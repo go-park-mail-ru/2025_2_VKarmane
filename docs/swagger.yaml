@@ -1,11 +1,59 @@
 basePath: /api/v1
 definitions:
+  image.ImageURLResponse:
+    properties:
+      url:
+        type: string
+    type: object
+  image.UploadImageResponse:
+    properties:
+      image_id:
+        type: string
+      url:
+        type: string
+    type: object
   models.AuthResponse:
     properties:
       token:
         type: string
       user:
         $ref: '#/definitions/models.User'
+    type: object
+  models.Category:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      logoHashedID:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+      userID:
+        type: integer
+    type: object
+  models.CategoryWithStats:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      logoHashedID:
+        type: string
+      name:
+        type: string
+      operations_count:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: integer
     type: object
   models.CreateOperationRequest:
     properties:
@@ -172,6 +220,8 @@ definitions:
         type: string
       login:
         type: string
+      logo_hashed_id:
+        type: string
     type: object
   models.RegisterRequest:
     properties:
@@ -206,21 +256,6 @@ definitions:
         minimum: 0
         type: number
     type: object
-  models.UpdateProfileRequest:
-    properties:
-      email:
-        type: string
-      first_name:
-        maxLength: 50
-        type: string
-      last_name:
-        maxLength: 50
-        type: string
-    required:
-    - email
-    - first_name
-    - last_name
-    type: object
   models.User:
     properties:
       createdAt:
@@ -236,6 +271,8 @@ definitions:
       lastName:
         type: string
       login:
+        type: string
+      logoHashedID:
         type: string
       password:
         type: string
@@ -459,15 +496,23 @@ paths:
       - categories
     post:
       consumes:
-      - application/json
-      description: Создает новую категорию для пользователя
+      - multipart/form-data
+      description: Создает новую категорию для пользователя. Поддерживает multipart/form-data
+        с опциональным полем image для загрузки картинки категории
       parameters:
-      - description: Данные категории
-        in: body
-        name: category
+      - description: Название категории
+        in: formData
+        name: name
         required: true
-        schema:
-          $ref: '#/definitions/models.CreateCategoryRequest'
+        type: string
+      - description: Описание категории
+        in: formData
+        name: description
+        type: string
+      - description: Картинка категории (опционально)
+        in: formData
+        name: image
+        type: file
       produces:
       - application/json
       responses:
@@ -494,6 +539,37 @@ paths:
       tags:
       - categories
   /categories/{id}:
+    delete:
+      description: Удаляет категорию пользователя
+      parameters:
+      - description: ID категории
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Категория успешно удалена
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Категория не найдена (RESOURCE_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удаление категории
+      tags:
+      - categories
     get:
       description: Возвращает информацию о категории по её ID с количеством операций
       parameters:
@@ -529,20 +605,27 @@ paths:
       - categories
     put:
       consumes:
-      - application/json
-      description: Обновляет информацию о категории
+      - multipart/form-data
+      description: Обновляет информацию о категории. Поддерживает multipart/form-data
+        с опциональным полем image для загрузки картинки категории
       parameters:
       - description: ID категории
         in: path
         name: id
         required: true
         type: integer
-      - description: Данные для обновления
-        in: body
-        name: category
-        required: true
-        schema:
-          $ref: '#/definitions/models.UpdateCategoryRequest'
+      - description: Название категории
+        in: formData
+        name: name
+        type: string
+      - description: Описание категории
+        in: formData
+        name: description
+        type: string
+      - description: Картинка категории (опционально)
+        in: formData
+        name: image
+        type: file
       produces:
       - application/json
       responses:
@@ -572,37 +655,142 @@ paths:
       summary: Обновление категории
       tags:
       - categories
+  /images:
     delete:
-      description: Удаляет категорию пользователя
+      description: Удаляет изображение из хранилища MinIO по image_id
       parameters:
-      - description: ID категории
-        in: path
-        name: id
+      - description: Идентификатор изображения (SHA256 hash)
+        in: query
+        name: image_id
         required: true
-        type: integer
-      produces:
-      - application/json
+        type: string
       responses:
         "204":
-          description: Категория успешно удалена
+          description: Изображение успешно удалено
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, MISSING_IMAGE_ID)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "401":
           description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
             TOKEN_EXPIRED)
           schema:
             $ref: '#/definitions/models.ErrorResponse'
         "404":
-          description: Категория не найдена (RESOURCE_NOT_FOUND)
+          description: Изображение не найдено (RESOURCE_NOT_FOUND)
           schema:
             $ref: '#/definitions/models.ErrorResponse'
         "500":
-          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR)
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       security:
       - ApiKeyAuth: []
-      summary: Удаление категории
+      summary: Удаление изображения
       tags:
-      - categories
+      - images
+    get:
+      description: Выполняет редирект на presigned URL изображения по image_id. Не
+        требует аутентификации
+      parameters:
+      - description: Идентификатор изображения (SHA256 hash)
+        in: query
+        name: image_id
+        required: true
+        type: string
+      responses:
+        "302":
+          description: Редирект на изображение
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, MISSING_IMAGE_ID)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Изображение не найдено (RESOURCE_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Получение изображения (редирект)
+      tags:
+      - images
+  /images/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Загружает изображение в хранилище MinIO и возвращает image_id и
+        URL
+      parameters:
+      - description: Изображение (jpg, jpeg, png, gif, webp)
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Изображение успешно загружено
+          schema:
+            $ref: '#/definitions/image.UploadImageResponse'
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, INVALID_IMAGE_FORMAT)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Загрузка изображения
+      tags:
+      - images
+  /images/url:
+    get:
+      description: Возвращает presigned URL для доступа к изображению по image_id
+      parameters:
+      - description: Идентификатор изображения (SHA256 hash)
+        in: query
+        name: image_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: URL изображения
+          schema:
+            $ref: '#/definitions/image.ImageURLResponse'
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, MISSING_IMAGE_ID)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Изображение не найдено (RESOURCE_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение URL изображения
+      tags:
+      - images
   /operations/account/{acc_id}:
     get:
       description: Возвращает список всех операций для указанного счета
@@ -862,15 +1050,29 @@ paths:
   /profile/edit:
     put:
       consumes:
-      - application/json
-      description: Обновляет информацию о профиле текущего пользователя
+      - multipart/form-data
+      description: Обновляет информацию о профиле текущего пользователя. Поддерживает
+        multipart/form-data с опциональным полем avatar для загрузки аватарки
       parameters:
-      - description: Данные для обновления профиля
-        in: body
-        name: request
+      - description: Имя
+        in: formData
+        name: first_name
         required: true
-        schema:
-          $ref: '#/definitions/models.UpdateProfileRequest'
+        type: string
+      - description: Фамилия
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Аватарка (опционально)
+        in: formData
+        name: avatar
+        type: file
       produces:
       - application/json
       responses:

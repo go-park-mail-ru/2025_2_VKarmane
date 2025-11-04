@@ -1,11 +1,13 @@
 package profile
 
 import (
-	"encoding/json"
 	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/profile"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
@@ -13,11 +15,13 @@ import (
 
 type Handler struct {
 	profileUC profile.ProfileUseCase
+	imageUC   image.ImageUseCase
 }
 
-func NewHandler(profileUC profile.ProfileUseCase) *Handler {
+func NewHandler(profileUC profile.ProfileUseCase, imageUC image.ImageUseCase) *Handler {
 	return &Handler{
 		profileUC: profileUC,
+		imageUC:   imageUC,
 	}
 }
 
@@ -54,12 +58,15 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 // UpdateProfile godoc
 // @Summary Обновление профиля пользователя
-// @Description Обновляет информацию о профиле текущего пользователя
+// @Description Обновляет информацию о профиле текущего пользователя. Поддерживает multipart/form-data с опциональным полем avatar для загрузки аватарки
 // @Tags profile
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
 // @Security ApiKeyAuth
-// @Param request body models.UpdateProfileRequest true "Данные для обновления профиля"
+// @Param first_name formData string true "Имя"
+// @Param last_name formData string true "Фамилия"
+// @Param email formData string true "Email"
+// @Param avatar formData file false "Аватарка (опционально)"
 // @Success 200 {object} models.ProfileResponse "Обновленный профиль пользователя"
 // @Failure 400 {object} models.ErrorResponse "Некорректные данные (INVALID_REQUEST, MISSING_FIELDS)"
 // @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
@@ -73,15 +80,53 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req models.UpdateProfileRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.Error(w, r, "Invalid JSON", http.StatusBadRequest)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		httputils.Error(w, r, "Failed to parse multipart form", http.StatusBadRequest)
 		return
+	}
+
+	req := models.UpdateProfileRequest{
+		FirstName: r.FormValue("first_name"),
+		LastName:  r.FormValue("last_name"),
+		Email:     r.FormValue("email"),
 	}
 
 	if err := utils.ValidateStruct(req); err != nil {
 		httputils.ValidationErrors(w, r, err)
 		return
+	}
+
+	file, header, err := r.FormFile("avatar")
+	if err == nil {
+		defer file.Close()
+
+		ext := strings.ToLower(filepath.Ext(header.Filename))
+		allowedExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}
+		allowed := false
+		for _, allowedExt := range allowedExts {
+			if ext == allowedExt {
+				allowed = true
+				break
+			}
+		}
+
+		if !allowed {
+			httputils.Error(w, r, "Invalid image format", http.StatusBadRequest)
+			return
+		}
+
+		contentType := header.Header.Get("Content-Type")
+		if contentType == "" {
+			contentType = "image/" + ext[1:]
+		}
+
+		imageID, err := h.imageUC.UploadImage(r.Context(), file, header.Filename, header.Size, contentType)
+		if err != nil {
+			httputils.InternalError(w, r, "Failed to upload avatar")
+			return
+		}
+
+		req.LogoHashedID = imageID
 	}
 
 	profile, err := h.profileUC.UpdateProfile(r.Context(), req, userID)

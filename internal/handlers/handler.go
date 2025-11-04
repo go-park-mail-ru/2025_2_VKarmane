@@ -32,8 +32,8 @@ func NewHandler(uc *usecase.UseCase, logger logger.Logger) *Handler {
 		budgetHandler:   budget.NewHandler(uc.BudgetUC, realClock),
 		authHandler:     auth.NewHandler(uc.AuthUC, realClock, logger),
 		opHandler:       operation.NewHandler(uc.OpUC, realClock),
-		categoryHandler: category.NewHandler(uc.CategoryUC),
-		profileHandler:  profile.NewHandler(uc.ProfileUC),
+		categoryHandler: category.NewHandler(uc.CategoryUC, uc.ImageUC),
+		profileHandler:  profile.NewHandler(uc.ProfileUC, uc.ImageUC),
 		logger:          logger,
 		registrator:     NewRegistrator(uc, logger),
 	}

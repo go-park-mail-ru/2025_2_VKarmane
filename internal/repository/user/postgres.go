@@ -22,8 +22,8 @@ func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 
 func (r *PostgresRepository) CreateUser(ctx context.Context, user dto.UserDB) (int, error) {
 	query := `
-		INSERT INTO "user" (user_name, surname, email, user_login, user_hashed_password, user_description, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO "user" (user_name, surname, email, user_login, user_hashed_password, user_description, logo_hashed_id, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING _id
 	`
 
@@ -35,6 +35,7 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user dto.UserDB) (i
 		user.Login,
 		user.Password,
 		user.Description,
+		user.LogoHashedID,
 		user.CreatedAt,
 		user.UpdatedAt,
 	).Scan(&id)
@@ -48,7 +49,7 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user dto.UserDB) (i
 
 func (r *PostgresRepository) GetUserByEmail(ctx context.Context, email string) (dto.UserDB, error) {
 	query := `
-		SELECT _id, user_name, surname, email, user_login, user_hashed_password, user_description, created_at, updated_at
+		SELECT _id, user_name, surname, email, user_login, user_hashed_password, user_description, logo_hashed_id, created_at, updated_at
 		FROM "user"
 		WHERE email = $1
 	`
@@ -62,6 +63,7 @@ func (r *PostgresRepository) GetUserByEmail(ctx context.Context, email string) (
 		&user.Login,
 		&user.Password,
 		&user.Description,
+		&user.LogoHashedID,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -75,7 +77,7 @@ func (r *PostgresRepository) GetUserByEmail(ctx context.Context, email string) (
 
 func (r *PostgresRepository) GetUserByLogin(ctx context.Context, login string) (dto.UserDB, error) {
 	query := `
-		SELECT _id, user_name, surname, email, user_login, user_hashed_password, user_description, created_at, updated_at
+		SELECT _id, user_name, surname, email, user_login, user_hashed_password, user_description, logo_hashed_id, created_at, updated_at
 		FROM "user"
 		WHERE user_login = $1
 	`
@@ -89,6 +91,7 @@ func (r *PostgresRepository) GetUserByLogin(ctx context.Context, login string) (
 		&user.Login,
 		&user.Password,
 		&user.Description,
+		&user.LogoHashedID,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -102,7 +105,7 @@ func (r *PostgresRepository) GetUserByLogin(ctx context.Context, login string) (
 
 func (r *PostgresRepository) GetUserByID(ctx context.Context, id int) (dto.UserDB, error) {
 	query := `
-		SELECT _id, user_name, surname, email, user_login, user_hashed_password, user_description, created_at, updated_at
+		SELECT _id, user_name, surname, email, user_login, user_hashed_password, user_description, logo_hashed_id, created_at, updated_at
 		FROM "user"
 		WHERE _id = $1
 	`
@@ -116,6 +119,7 @@ func (r *PostgresRepository) GetUserByID(ctx context.Context, id int) (dto.UserD
 		&user.Login,
 		&user.Password,
 		&user.Description,
+		&user.LogoHashedID,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -130,14 +134,15 @@ func (r *PostgresRepository) GetUserByID(ctx context.Context, id int) (dto.UserD
 func (r *PostgresRepository) UpdateUser(ctx context.Context, user dto.UserDB) error {
 	query := `
 		UPDATE "user" 
-		SET user_name = $1, surname = $2, email = $3, updated_at = $4
-		WHERE _id = $5
+		SET user_name = $1, surname = $2, email = $3, logo_hashed_id = $4, updated_at = $5
+		WHERE _id = $6
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
 		user.FirstName,
 		user.LastName,
 		user.Email,
+		user.LogoHashedID,
 		user.UpdatedAt,
 		user.ID,
 	)
@@ -151,14 +156,15 @@ func (r *PostgresRepository) UpdateUser(ctx context.Context, user dto.UserDB) er
 
 func (r *PostgresRepository) CreateUserModel(ctx context.Context, user models.User) (models.User, error) {
 	userDB := dto.UserDB{
-		FirstName:   user.FirstName,
-		LastName:    user.LastName,
-		Email:       user.Email,
-		Login:       user.Login,
-		Password:    user.Password,
-		Description: user.Description,
-		CreatedAt:   user.CreatedAt,
-		UpdatedAt:   user.UpdatedAt,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		Email:        user.Email,
+		Login:        user.Login,
+		Password:     user.Password,
+		Description:  user.Description,
+		LogoHashedID:  user.LogoHashedID,
+		CreatedAt:    user.CreatedAt,
+		UpdatedAt:    user.UpdatedAt,
 	}
 
 	id, err := r.CreateUser(ctx, userDB)
@@ -190,15 +196,16 @@ func (r *PostgresRepository) GetUserByIDModel(ctx context.Context, id int) (mode
 
 func (r *PostgresRepository) UpdateUserModel(ctx context.Context, user models.User) error {
 	userDB := dto.UserDB{
-		ID:          user.ID,
-		FirstName:   user.FirstName,
-		LastName:    user.LastName,
-		Email:       user.Email,
-		Login:       user.Login,
-		Password:    user.Password,
-		Description: user.Description,
-		CreatedAt:   user.CreatedAt,
-		UpdatedAt:   user.UpdatedAt,
+		ID:           user.ID,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		Email:        user.Email,
+		Login:        user.Login,
+		Password:     user.Password,
+		Description:  user.Description,
+		LogoHashedID: user.LogoHashedID,
+		CreatedAt:    user.CreatedAt,
+		UpdatedAt:    user.UpdatedAt,
 	}
 
 	err := r.UpdateUser(ctx, userDB)
@@ -218,6 +225,9 @@ func (r *PostgresRepository) EditUserByIDModel(ctx context.Context, req models.U
 	userDB.FirstName = req.FirstName
 	userDB.LastName = req.LastName
 	userDB.Email = req.Email
+	if req.LogoHashedID != "" {
+		userDB.LogoHashedID = req.LogoHashedID
+	}
 	userDB.UpdatedAt = time.Now()
 
 	err = r.UpdateUser(ctx, userDB)
@@ -230,14 +240,15 @@ func (r *PostgresRepository) EditUserByIDModel(ctx context.Context, req models.U
 
 func dtoToModel(userDB dto.UserDB) models.User {
 	return models.User{
-		ID:          userDB.ID,
-		FirstName:   userDB.FirstName,
-		LastName:    userDB.LastName,
-		Email:       userDB.Email,
-		Login:       userDB.Login,
-		Password:    userDB.Password,
-		Description: userDB.Description,
-		CreatedAt:   userDB.CreatedAt,
-		UpdatedAt:   userDB.UpdatedAt,
+		ID:           userDB.ID,
+		FirstName:    userDB.FirstName,
+		LastName:     userDB.LastName,
+		Email:        userDB.Email,
+		Login:        userDB.Login,
+		Password:     userDB.Password,
+		Description:  userDB.Description,
+		LogoHashedID: userDB.LogoHashedID,
+		CreatedAt:    userDB.CreatedAt,
+		UpdatedAt:    userDB.UpdatedAt,
 	}
 }

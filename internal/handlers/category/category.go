@@ -1,26 +1,30 @@
 package category
 
 import (
-	"encoding/json"
 	"net/http"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/category"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 )
 
 type Handler struct {
 	categoryUC category.CategoryUseCase
+	imageUC    image.ImageUseCase
 }
 
-func NewHandler(categoryUC category.CategoryUseCase) *Handler {
+func NewHandler(categoryUC category.CategoryUseCase, imageUC image.ImageUseCase) *Handler {
 	return &Handler{
 		categoryUC: categoryUC,
+		imageUC:    imageUC,
 	}
 }
 
@@ -68,12 +72,14 @@ func (h *Handler) GetCategories(w http.ResponseWriter, r *http.Request) {
 
 // CreateCategory godoc
 // @Summary Создание новой категории
-// @Description Создает новую категорию для пользователя
+// @Description Создает новую категорию для пользователя. Поддерживает multipart/form-data с опциональным полем image для загрузки картинки категории
 // @Tags categories
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
 // @Security ApiKeyAuth
-// @Param category body models.CreateCategoryRequest true "Данные категории"
+// @Param name formData string true "Название категории"
+// @Param description formData string false "Описание категории"
+// @Param image formData file false "Картинка категории (опционально)"
 // @Success 201 {object} models.Category "Созданная категория"
 // @Failure 400 {object} models.ErrorResponse "Некорректные данные (VALIDATION_ERROR, INVALID_INPUT)"
 // @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
@@ -86,16 +92,53 @@ func (h *Handler) CreateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req models.CreateCategoryRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ValidationError(w, r, "Invalid request body", "body")
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		httputils.Error(w, r, "Failed to parse multipart form", http.StatusBadRequest)
 		return
+	}
+
+	req := models.CreateCategoryRequest{
+		Name:        r.FormValue("name"),
+		Description: r.FormValue("description"),
 	}
 
 	validationErrors := utils.ValidateStruct(req)
 	if len(validationErrors) > 0 {
 		httputils.ValidationErrors(w, r, validationErrors)
 		return
+	}
+
+	file, header, err := r.FormFile("image")
+	if err == nil {
+		defer file.Close()
+
+		ext := strings.ToLower(filepath.Ext(header.Filename))
+		allowedExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}
+		allowed := false
+		for _, allowedExt := range allowedExts {
+			if ext == allowedExt {
+				allowed = true
+				break
+			}
+		}
+
+		if !allowed {
+			httputils.Error(w, r, "Invalid image format", http.StatusBadRequest)
+			return
+		}
+
+		contentType := header.Header.Get("Content-Type")
+		if contentType == "" {
+			contentType = "image/" + ext[1:]
+		}
+
+		imageID, err := h.imageUC.UploadImage(r.Context(), file, header.Filename, header.Size, contentType)
+		if err != nil {
+			httputils.InternalError(w, r, "Failed to upload image")
+			return
+		}
+
+		req.LogoHashedID = imageID
 	}
 
 	category, err := h.categoryUC.CreateCategory(r.Context(), req, userID)
@@ -143,13 +186,15 @@ func (h *Handler) GetCategoryByID(w http.ResponseWriter, r *http.Request) {
 
 // UpdateCategory godoc
 // @Summary Обновление категории
-// @Description Обновляет информацию о категории
+// @Description Обновляет информацию о категории. Поддерживает multipart/form-data с опциональным полем image для загрузки картинки категории
 // @Tags categories
-// @Accept json
+// @Accept multipart/form-data
 // @Produce json
 // @Security ApiKeyAuth
 // @Param id path int true "ID категории"
-// @Param category body models.UpdateCategoryRequest true "Данные для обновления"
+// @Param name formData string false "Название категории"
+// @Param description formData string false "Описание категории"
+// @Param image formData file false "Картинка категории (опционально)"
 // @Success 200 {object} models.Category "Обновленная категория"
 // @Failure 400 {object} models.ErrorResponse "Некорректные данные (VALIDATION_ERROR, INVALID_INPUT)"
 // @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
@@ -169,16 +214,56 @@ func (h *Handler) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req models.UpdateCategoryRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httputils.ValidationError(w, r, "Invalid request body", "body")
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		httputils.Error(w, r, "Failed to parse multipart form", http.StatusBadRequest)
 		return
+	}
+
+	req := models.UpdateCategoryRequest{}
+	if name := r.FormValue("name"); name != "" {
+		req.Name = &name
+	}
+	if description := r.FormValue("description"); description != "" {
+		req.Description = &description
 	}
 
 	validationErrors := utils.ValidateStruct(req)
 	if len(validationErrors) > 0 {
 		httputils.ValidationErrors(w, r, validationErrors)
 		return
+	}
+
+	file, header, err := r.FormFile("image")
+	if err == nil {
+		defer file.Close()
+
+		ext := strings.ToLower(filepath.Ext(header.Filename))
+		allowedExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}
+		allowed := false
+		for _, allowedExt := range allowedExts {
+			if ext == allowedExt {
+				allowed = true
+				break
+			}
+		}
+
+		if !allowed {
+			httputils.Error(w, r, "Invalid image format", http.StatusBadRequest)
+			return
+		}
+
+		contentType := header.Header.Get("Content-Type")
+		if contentType == "" {
+			contentType = "image/" + ext[1:]
+		}
+
+		imageID, err := h.imageUC.UploadImage(r.Context(), file, header.Filename, header.Size, contentType)
+		if err != nil {
+			httputils.InternalError(w, r, "Failed to upload image")
+			return
+		}
+
+		req.LogoHashedID = &imageID
 	}
 
 	category, err := h.categoryUC.UpdateCategory(r.Context(), req, userID, categoryID)

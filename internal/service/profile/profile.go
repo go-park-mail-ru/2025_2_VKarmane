@@ -31,11 +31,12 @@ func (s *Service) GetProfile(ctx context.Context, userID int) (models.ProfileRes
 	}
 
 	return models.ProfileResponse{
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Login:     user.Login,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		Login:        user.Login,
+		Email:        user.Email,
+		LogoHashedID: user.LogoHashedID,
+		CreatedAt:    user.CreatedAt,
 	}, nil
 }
 
@@ -48,6 +49,9 @@ func (s *Service) UpdateProfile(ctx context.Context, req models.UpdateProfileReq
 	user.FirstName = req.FirstName
 	user.LastName = req.LastName
 	user.Email = req.Email
+	if req.LogoHashedID != "" {
+		user.LogoHashedID = req.LogoHashedID
+	}
 	user.UpdatedAt = time.Now()
 
 	err = s.repo.UpdateUser(ctx, user)
@@ -56,10 +60,11 @@ func (s *Service) UpdateProfile(ctx context.Context, req models.UpdateProfileReq
 	}
 
 	return models.ProfileResponse{
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		Login:     user.Login,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		Login:        user.Login,
+		Email:        user.Email,
+		LogoHashedID: user.LogoHashedID,
+		CreatedAt:    user.CreatedAt,
 	}, nil
 }

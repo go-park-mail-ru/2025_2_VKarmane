@@ -32,7 +32,7 @@ func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux
 	balance.Register(protectedRouter, uc.BalanceUC)
 	budget.Register(protectedRouter, uc.BudgetUC)
 	operation.Register(protectedRouter, uc.OpUC)
-	category.Register(protectedRouter, uc.CategoryUC)
-	profile.Register(protectedRouter, uc.ProfileUC)
+	category.Register(protectedRouter, uc.CategoryUC, uc.ImageUC)
+	profile.Register(protectedRouter, uc.ProfileUC, uc.ImageUC)
 	image.Register(protectedRouter, uc.ImageUC)
 }

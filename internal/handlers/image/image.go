@@ -26,6 +26,19 @@ func (h *Handler) getUserID(r *http.Request) (int, bool) {
 	return userID, ok
 }
 
+// UploadImage godoc
+// @Summary Загрузка изображения
+// @Description Загружает изображение в хранилище MinIO и возвращает image_id и URL
+// @Tags images
+// @Accept multipart/form-data
+// @Produce json
+// @Security ApiKeyAuth
+// @Param image formData file true "Изображение (jpg, jpeg, png, gif, webp)"
+// @Success 201 {object} image.UploadImageResponse "Изображение успешно загружено"
+// @Failure 400 {object} models.ErrorResponse "Некорректные данные (INVALID_REQUEST, INVALID_IMAGE_FORMAT)"
+// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR)"
+// @Router /images/upload [post]
 func (h *Handler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	_, ok := h.getUserID(r)
 	if !ok {
@@ -85,6 +98,19 @@ func (h *Handler) UploadImage(w http.ResponseWriter, r *http.Request) {
 	httputils.Created(w, r, response)
 }
 
+// GetImageURL godoc
+// @Summary Получение URL изображения
+// @Description Возвращает presigned URL для доступа к изображению по image_id
+// @Tags images
+// @Produce json
+// @Security ApiKeyAuth
+// @Param image_id query string true "Идентификатор изображения (SHA256 hash)"
+// @Success 200 {object} image.ImageURLResponse "URL изображения"
+// @Failure 400 {object} models.ErrorResponse "Некорректные данные (INVALID_REQUEST, MISSING_IMAGE_ID)"
+// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
+// @Failure 404 {object} models.ErrorResponse "Изображение не найдено (RESOURCE_NOT_FOUND)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR)"
+// @Router /images/url [get]
 func (h *Handler) GetImageURL(w http.ResponseWriter, r *http.Request) {
 	_, ok := h.getUserID(r)
 	if !ok {
@@ -111,6 +137,16 @@ func (h *Handler) GetImageURL(w http.ResponseWriter, r *http.Request) {
 	httputils.Success(w, r, response)
 }
 
+// GetImage godoc
+// @Summary Получение изображения (редирект)
+// @Description Выполняет редирект на presigned URL изображения по image_id. Не требует аутентификации
+// @Tags images
+// @Param image_id query string true "Идентификатор изображения (SHA256 hash)"
+// @Success 302 "Редирект на изображение"
+// @Failure 400 {object} models.ErrorResponse "Некорректные данные (INVALID_REQUEST, MISSING_IMAGE_ID)"
+// @Failure 404 {object} models.ErrorResponse "Изображение не найдено (RESOURCE_NOT_FOUND)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR)"
+// @Router /images [get]
 func (h *Handler) GetImage(w http.ResponseWriter, r *http.Request) {
 	imageID := r.URL.Query().Get("image_id")
 	if imageID == "" {
@@ -127,6 +163,18 @@ func (h *Handler) GetImage(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusFound)
 }
 
+// DeleteImage godoc
+// @Summary Удаление изображения
+// @Description Удаляет изображение из хранилища MinIO по image_id
+// @Tags images
+// @Security ApiKeyAuth
+// @Param image_id query string true "Идентификатор изображения (SHA256 hash)"
+// @Success 204 "Изображение успешно удалено"
+// @Failure 400 {object} models.ErrorResponse "Некорректные данные (INVALID_REQUEST, MISSING_IMAGE_ID)"
+// @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
+// @Failure 404 {object} models.ErrorResponse "Изображение не найдено (RESOURCE_NOT_FOUND)"
+// @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR)"
+// @Router /images [delete]
 func (h *Handler) DeleteImage(w http.ResponseWriter, r *http.Request) {
 	_, ok := h.getUserID(r)
 	if !ok {
