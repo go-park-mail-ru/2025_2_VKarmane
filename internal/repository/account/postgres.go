@@ -112,4 +112,3 @@ func (r *PostgresRepository) UpdateAccountBalance(ctx context.Context, accountID
 
 	return nil
 }
-

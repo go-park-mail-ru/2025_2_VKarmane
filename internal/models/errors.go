@@ -86,11 +86,11 @@ func (e ErrorCode) GetErrorMessage() string {
 		ErrCodeForbidden:    "Доступ запрещен",
 		ErrCodeAccessDenied: "Доступ отклонен",
 
-		ErrCodeResourceNotFound: "Ресурс не найден",
-		ErrCodeResourceExists:   "Ресурс уже существует",
-		ErrCodeResourceConflict: "Конфликт ресурсов",
-		ErrCodeBudgetNotFound:   "Бюджет не найден",
-		ErrCodeAccountNotFound:  "Счет не найден",
+		ErrCodeResourceNotFound:    "Ресурс не найден",
+		ErrCodeResourceExists:      "Ресурс уже существует",
+		ErrCodeResourceConflict:    "Конфликт ресурсов",
+		ErrCodeBudgetNotFound:      "Бюджет не найден",
+		ErrCodeAccountNotFound:     "Счет не найден",
 		ErrCodeTransactionNotFound: "Операция не найдена",
 
 		ErrCodeInvalidAmount:   "Некорректная сумма",

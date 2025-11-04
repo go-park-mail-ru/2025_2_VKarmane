@@ -15,7 +15,7 @@ import (
 func TestPostgresRepository_CreateUser(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -43,7 +43,7 @@ func TestPostgresRepository_CreateUser(t *testing.T) {
 func TestPostgresRepository_CreateUser_Error(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -72,7 +72,7 @@ func TestPostgresRepository_CreateUser_Error(t *testing.T) {
 func TestPostgresRepository_GetUserByEmail(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -98,7 +98,7 @@ func TestPostgresRepository_GetUserByEmail(t *testing.T) {
 func TestPostgresRepository_GetUserByEmail_NotFound(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -117,7 +117,7 @@ func TestPostgresRepository_GetUserByEmail_NotFound(t *testing.T) {
 func TestPostgresRepository_GetUserByLogin(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -142,7 +142,7 @@ func TestPostgresRepository_GetUserByLogin(t *testing.T) {
 func TestPostgresRepository_GetUserByLogin_NotFound(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -161,7 +161,7 @@ func TestPostgresRepository_GetUserByLogin_NotFound(t *testing.T) {
 func TestPostgresRepository_GetUserByID(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -185,7 +185,7 @@ func TestPostgresRepository_GetUserByID(t *testing.T) {
 func TestPostgresRepository_GetUserByID_NotFound(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -204,7 +204,7 @@ func TestPostgresRepository_GetUserByID_NotFound(t *testing.T) {
 func TestPostgresRepository_UpdateUser(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -231,7 +231,7 @@ func TestPostgresRepository_UpdateUser(t *testing.T) {
 func TestPostgresRepository_UpdateUser_Error(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -255,4 +255,3 @@ func TestPostgresRepository_UpdateUser_Error(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to update user")
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
-

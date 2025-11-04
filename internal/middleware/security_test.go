@@ -27,4 +27,3 @@ func TestSecurityHeadersMiddleware(t *testing.T) {
 	require.NotEmpty(t, rr.Header().Get("X-Frame-Options"))
 	require.NotEmpty(t, rr.Header().Get("X-Content-Type-Options"))
 }
-

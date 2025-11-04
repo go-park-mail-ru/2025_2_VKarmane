@@ -14,7 +14,7 @@ import (
 func TestPostgresRepository_GetAccountsByUser(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -42,7 +42,7 @@ func TestPostgresRepository_GetAccountsByUser(t *testing.T) {
 func TestPostgresRepository_GetAccountsByUser_Empty(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -62,7 +62,7 @@ func TestPostgresRepository_GetAccountsByUser_Empty(t *testing.T) {
 func TestPostgresRepository_GetAccountsByUser_Error(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -81,7 +81,7 @@ func TestPostgresRepository_GetAccountsByUser_Error(t *testing.T) {
 func TestPostgresRepository_GetAccountsByUser_ScanError(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -99,4 +99,3 @@ func TestPostgresRepository_GetAccountsByUser_ScanError(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to scan account")
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
-

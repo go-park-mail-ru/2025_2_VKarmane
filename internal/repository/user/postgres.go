@@ -162,7 +162,7 @@ func (r *PostgresRepository) CreateUserModel(ctx context.Context, user models.Us
 		Login:        user.Login,
 		Password:     user.Password,
 		Description:  user.Description,
-		LogoHashedID:  user.LogoHashedID,
+		LogoHashedID: user.LogoHashedID,
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
 	}

@@ -9,7 +9,7 @@ import (
 
 func CSRFMiddleware(authKey []byte) func(http.Handler) http.Handler {
 	isProduction := os.Getenv("ENV") == "production"
-	
+
 	csrfProtect := csrf.Protect(
 		authKey,
 		csrf.Secure(isProduction),
@@ -19,7 +19,7 @@ func CSRFMiddleware(authKey []byte) func(http.Handler) http.Handler {
 		csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte(`{"error": "CSRF token validation failed", "code": "CSRF_TOKEN_INVALID"}`))
+			_, _ = w.Write([]byte(`{"error": "CSRF token validation failed", "code": "CSRF_TOKEN_INVALID"}`))
 		})),
 	)
 

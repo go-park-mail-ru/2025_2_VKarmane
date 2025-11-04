@@ -118,4 +118,3 @@ func TestUseCase_DeleteCategory_Success(t *testing.T) {
 	err := uc.DeleteCategory(ctx, 1, 1)
 	assert.NoError(t, err)
 }
-

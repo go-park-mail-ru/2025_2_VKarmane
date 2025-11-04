@@ -28,4 +28,3 @@ func TestUserToApi(t *testing.T) {
 	assert.Equal(t, "john@example.com", apiUser.Email)
 	assert.Equal(t, now, apiUser.CreatedAt)
 }
-

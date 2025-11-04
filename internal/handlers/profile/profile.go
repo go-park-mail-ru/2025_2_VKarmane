@@ -98,7 +98,7 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	file, header, err := r.FormFile("avatar")
 	if err == nil {
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 
 		ext := strings.ToLower(filepath.Ext(header.Filename))
 		allowedExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}

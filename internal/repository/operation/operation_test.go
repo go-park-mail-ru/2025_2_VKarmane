@@ -267,4 +267,3 @@ func TestRepository_CreateOperation_AllFields(t *testing.T) {
 	assert.Equal(t, models.OperationExpense, result.Type)
 	assert.Equal(t, models.OperationFinished, result.Status)
 }
-

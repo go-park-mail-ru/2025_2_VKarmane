@@ -57,7 +57,7 @@ func TestService_GetAccountOperations_Success(t *testing.T) {
 
 	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
 	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
-	
+
 	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
 	svc := NewService(repo, clock.RealClock{})
 
@@ -81,7 +81,7 @@ func TestService_GetAccountOperations_Error(t *testing.T) {
 
 	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
 	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
-	
+
 	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
 	svc := NewService(repo, clock.RealClock{})
 
@@ -101,7 +101,7 @@ func TestService_CreateOperation_Success(t *testing.T) {
 
 	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
 	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
-	
+
 	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
 	fixedClock := clock.FixedClock{FixedTime: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)}
 	svc := NewService(repo, fixedClock)
@@ -139,7 +139,7 @@ func TestService_GetOperationByID_Success(t *testing.T) {
 
 	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
 	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
-	
+
 	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
 	svc := NewService(repo, clock.RealClock{})
 
@@ -161,7 +161,7 @@ func TestService_UpdateOperation_Success(t *testing.T) {
 
 	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
 	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
-	
+
 	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
 	svc := NewService(repo, clock.RealClock{})
 
@@ -185,7 +185,7 @@ func TestService_DeleteOperation_Success(t *testing.T) {
 
 	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
 	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
-	
+
 	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
 	svc := NewService(repo, clock.RealClock{})
 
@@ -207,7 +207,7 @@ func TestService_CheckAccountOwnership_True(t *testing.T) {
 
 	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
 	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
-	
+
 	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
 	svc := NewService(repo, clock.RealClock{})
 
@@ -225,7 +225,7 @@ func TestService_CheckAccountOwnership_False(t *testing.T) {
 
 	mockOpRepo := mocks.NewMockOperationRepository(ctrl)
 	mockAccRepo := mocks.NewMockAccountRepository(ctrl)
-	
+
 	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
 	svc := NewService(repo, clock.RealClock{})
 

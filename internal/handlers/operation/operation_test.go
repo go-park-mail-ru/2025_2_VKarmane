@@ -376,4 +376,3 @@ func TestDeleteOperation_InvalidOpID(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, rr.Code)
 }
-

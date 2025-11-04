@@ -18,7 +18,7 @@ func TestService_UploadImage_Success(t *testing.T) {
 	svc := NewService(mockStorage)
 
 	file := bytes.NewReader([]byte("test image data"))
-	
+
 	mockStorage.EXPECT().UploadImage(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return("stored-hash", nil)
 
 	result, err := svc.UploadImage(context.Background(), file, "test.jpg", 15, "image/jpeg")
@@ -52,4 +52,3 @@ func TestService_DeleteImage_Success(t *testing.T) {
 	err := svc.DeleteImage(context.Background(), "image-id-123")
 	assert.NoError(t, err)
 }
-

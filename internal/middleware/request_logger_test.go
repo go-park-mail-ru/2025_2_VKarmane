@@ -46,4 +46,3 @@ func TestRequestLoggerMiddleware_POST(t *testing.T) {
 	require.True(t, called)
 	require.Equal(t, http.StatusCreated, rr.Code)
 }
-

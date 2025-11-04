@@ -150,4 +150,3 @@ func TestService_GetCategoriesByUser_Error(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, result)
 }
-

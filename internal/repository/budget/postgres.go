@@ -117,4 +117,3 @@ func (r *PostgresRepository) CloseBudget(ctx context.Context, budgetID int) erro
 
 	return nil
 }
-

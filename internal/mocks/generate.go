@@ -25,4 +25,3 @@ package mocks
 //go:generate mockgen -destination=mock_clock.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock Clock
 //go:generate mockgen -destination=mock_logger.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger Logger
 //go:generate mockgen -destination=mock_image_storage.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/storage/image ImageStorage
-

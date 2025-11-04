@@ -15,15 +15,15 @@ import (
 func TestPostgresRepository_CreateCategory(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
 	desc := "Food category"
 	category := dto.CategoryDB{
-		UserID:      1,
-		Name:        "Food",
-		Description: &desc,
+		UserID:       1,
+		Name:         "Food",
+		Description:  &desc,
 		LogoHashedID: "logo123",
 	}
 
@@ -40,14 +40,14 @@ func TestPostgresRepository_CreateCategory(t *testing.T) {
 func TestPostgresRepository_CreateCategory_NilDescription(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
 	category := dto.CategoryDB{
-		UserID:      1,
-		Name:        "Food",
-		Description: nil,
+		UserID:       1,
+		Name:         "Food",
+		Description:  nil,
 		LogoHashedID: "logo123",
 	}
 
@@ -64,7 +64,7 @@ func TestPostgresRepository_CreateCategory_NilDescription(t *testing.T) {
 func TestPostgresRepository_CreateCategory_Error(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -89,7 +89,7 @@ func TestPostgresRepository_CreateCategory_Error(t *testing.T) {
 func TestPostgresRepository_GetCategoriesByUser(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -122,7 +122,7 @@ func TestPostgresRepository_GetCategoriesByUser(t *testing.T) {
 func TestPostgresRepository_GetCategoriesByUser_Empty(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -142,7 +142,7 @@ func TestPostgresRepository_GetCategoriesByUser_Empty(t *testing.T) {
 func TestPostgresRepository_GetCategoriesByUser_Error(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -161,7 +161,7 @@ func TestPostgresRepository_GetCategoriesByUser_Error(t *testing.T) {
 func TestPostgresRepository_GetCategoryByID(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -187,7 +187,7 @@ func TestPostgresRepository_GetCategoryByID(t *testing.T) {
 func TestPostgresRepository_GetCategoryByID_NotFound(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -207,7 +207,7 @@ func TestPostgresRepository_GetCategoryByID_NotFound(t *testing.T) {
 func TestPostgresRepository_GetCategoryByID_Error(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -227,16 +227,16 @@ func TestPostgresRepository_GetCategoryByID_Error(t *testing.T) {
 func TestPostgresRepository_UpdateCategory(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
 	desc := "Updated description"
 	category := dto.CategoryDB{
-		ID:          5,
-		UserID:      1,
-		Name:        "Updated Food",
-		Description: &desc,
+		ID:           5,
+		UserID:       1,
+		Name:         "Updated Food",
+		Description:  &desc,
 		LogoHashedID: "newlogo",
 	}
 
@@ -252,7 +252,7 @@ func TestPostgresRepository_UpdateCategory(t *testing.T) {
 func TestPostgresRepository_UpdateCategory_Error(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -277,7 +277,7 @@ func TestPostgresRepository_UpdateCategory_Error(t *testing.T) {
 func TestPostgresRepository_DeleteCategory(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -296,7 +296,7 @@ func TestPostgresRepository_DeleteCategory(t *testing.T) {
 func TestPostgresRepository_DeleteCategory_Error(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -316,7 +316,7 @@ func TestPostgresRepository_DeleteCategory_Error(t *testing.T) {
 func TestPostgresRepository_GetCategoryStats(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -339,7 +339,7 @@ func TestPostgresRepository_GetCategoryStats(t *testing.T) {
 func TestPostgresRepository_GetCategoryStats_Zero(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -361,7 +361,7 @@ func TestPostgresRepository_GetCategoryStats_Zero(t *testing.T) {
 func TestPostgresRepository_GetCategoryStats_Error(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -378,4 +378,3 @@ func TestPostgresRepository_GetCategoryStats_Error(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to get category stats")
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
-

@@ -74,7 +74,7 @@ func TestCreateCategory_Success(t *testing.T) {
 	writer := multipart.NewWriter(body)
 	_ = writer.WriteField("name", "Food")
 	_ = writer.WriteField("description", "Food expenses")
-	writer.Close()
+	_ = writer.Close()
 
 	req := httptest.NewRequest(http.MethodPost, "/categories", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
@@ -233,7 +233,7 @@ func TestUpdateCategory_Success(t *testing.T) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	_ = writer.WriteField("name", "Updated")
-	writer.Close()
+	_ = writer.Close()
 
 	req := httptest.NewRequest(http.MethodPut, "/categories/1", body)
 	req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -283,8 +283,8 @@ func TestCreateCategory_WithImage(t *testing.T) {
 	_ = writer.WriteField("name", "Food")
 	_ = writer.WriteField("description", "Food expenses")
 	part, _ := writer.CreateFormFile("image", "category.jpg")
-	part.Write([]byte("fake image data"))
-	writer.Close()
+	_, _ = part.Write([]byte("fake image data"))
+	_ = writer.Close()
 
 	req := httptest.NewRequest(http.MethodPost, "/categories", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
@@ -316,8 +316,8 @@ func TestUpdateCategory_WithImage(t *testing.T) {
 	writer := multipart.NewWriter(body)
 	_ = writer.WriteField("name", "Updated")
 	part, _ := writer.CreateFormFile("image", "category.jpg")
-	part.Write([]byte("fake image data"))
-	writer.Close()
+	_, _ = part.Write([]byte("fake image data"))
+	_ = writer.Close()
 
 	req := httptest.NewRequest(http.MethodPut, "/categories/1", body)
 	req = mux.SetURLVars(req, map[string]string{"id": "1"})
@@ -329,4 +329,3 @@ func TestUpdateCategory_WithImage(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rr.Code)
 }
-

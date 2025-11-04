@@ -157,4 +157,3 @@ func TestLogin_InvalidJSON(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, rr.Code)
 }
-

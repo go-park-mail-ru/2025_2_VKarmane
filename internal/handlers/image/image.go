@@ -56,7 +56,7 @@ func (h *Handler) UploadImage(w http.ResponseWriter, r *http.Request) {
 		httputils.Error(w, r, "Failed to get image from form", http.StatusBadRequest)
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	ext := strings.ToLower(filepath.Ext(header.Filename))
 	allowedExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}

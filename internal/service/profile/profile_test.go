@@ -95,4 +95,3 @@ func TestService_UpdateProfile_Success(t *testing.T) {
 	assert.Equal(t, "Jane", result.FirstName)
 	assert.Equal(t, "Smith", result.LastName)
 }
-

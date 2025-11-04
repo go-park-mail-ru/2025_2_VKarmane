@@ -56,4 +56,3 @@ func TestCategoryModelToDB(t *testing.T) {
 	assert.Equal(t, now, categoryDB.CreatedAt)
 	assert.Equal(t, now, categoryDB.UpdatedAt)
 }
-

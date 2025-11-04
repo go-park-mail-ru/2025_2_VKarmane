@@ -20,7 +20,7 @@ func TestUseCase_UploadImage_Success(t *testing.T) {
 	uc := NewUseCase(mockSvc)
 
 	file := bytes.NewReader([]byte("test"))
-	
+
 	mockSvc.EXPECT().UploadImage(gomock.Any(), file, "test.jpg", int64(4), "image/jpeg").Return("img-123", nil)
 
 	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
@@ -37,7 +37,7 @@ func TestUseCase_UploadImage_Error(t *testing.T) {
 	uc := NewUseCase(mockSvc)
 
 	file := bytes.NewReader([]byte("test"))
-	
+
 	mockSvc.EXPECT().UploadImage(gomock.Any(), file, "test.jpg", int64(4), "image/jpeg").Return("", errors.New("upload failed"))
 
 	ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
@@ -74,4 +74,3 @@ func TestUseCase_DeleteImage_Success(t *testing.T) {
 	err := uc.DeleteImage(ctx, "img-123")
 	assert.NoError(t, err)
 }
-

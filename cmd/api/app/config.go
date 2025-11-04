@@ -92,10 +92,10 @@ func (c *Config) GetDatabaseDSN() string {
 
 func (c *Config) GetCORSOrigins() []string {
 	var result []string
-	
+
 	corsHost := getEnv("CORS_HOST", "localhost")
 	corsFrontendPort := getEnv("CORS_FRONTEND_PORT", "3000")
-	
+
 	if corsHost != "" {
 		if corsFrontendPort != "" {
 			result = append(result, fmt.Sprintf("http://%s:%s", corsHost, corsFrontendPort))
@@ -111,7 +111,7 @@ func (c *Config) GetCORSOrigins() []string {
 		serverHost = "localhost"
 	}
 	serverPort := c.Port
-	
+
 	result = append(result, fmt.Sprintf("http://%s:%s", serverHost, serverPort))
 	if c.HTTPS.Enabled {
 		result = append(result, fmt.Sprintf("https://%s:%s", serverHost, serverPort))

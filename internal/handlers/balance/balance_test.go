@@ -68,4 +68,3 @@ func TestGetAccounts_EmptyAccounts(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rr.Code)
 }
-

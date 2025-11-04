@@ -15,7 +15,7 @@ import (
 var ErrInvalidPassword = errors.New("invalid credentials")
 
 type Service struct {
-	repo      interface {
+	repo interface {
 		CreateUser(ctx context.Context, user models.User) (models.User, error)
 		GetUserByLogin(ctx context.Context, login string) (models.User, error)
 		GetUserByID(ctx context.Context, id int) (models.User, error)

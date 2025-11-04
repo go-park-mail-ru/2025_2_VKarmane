@@ -50,4 +50,3 @@ func TestOperationsToAPI(t *testing.T) {
 	assert.Equal(t, 100.0, apiOps.Operations[0].Sum)
 	assert.Equal(t, 200.0, apiOps.Operations[1].Sum)
 }
-

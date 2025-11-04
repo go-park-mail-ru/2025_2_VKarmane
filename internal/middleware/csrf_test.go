@@ -25,4 +25,3 @@ func TestCSRFMiddleware_GET(t *testing.T) {
 	require.True(t, called)
 	require.Equal(t, http.StatusOK, rr.Code)
 }
-

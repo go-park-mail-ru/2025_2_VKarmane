@@ -119,4 +119,3 @@ func TestUseCase_GetOperationByID_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedOp, result)
 }
-

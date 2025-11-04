@@ -36,4 +36,3 @@ func TestAccountsToBalanceAPI(t *testing.T) {
 	assert.Equal(t, 1, balanceAPI.Accounts[0].ID)
 	assert.Equal(t, 2, balanceAPI.Accounts[1].ID)
 }
-

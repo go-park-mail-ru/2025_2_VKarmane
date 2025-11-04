@@ -74,4 +74,3 @@ func TestUseCase_UpdateProfile_Success(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedProfile, result)
 }
-

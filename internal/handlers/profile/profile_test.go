@@ -77,7 +77,7 @@ func TestUpdateProfile_Success(t *testing.T) {
 	_ = writer.WriteField("first_name", "Jane")
 	_ = writer.WriteField("last_name", "Smith")
 	_ = writer.WriteField("email", "jane@example.com")
-	writer.Close()
+	_ = writer.Close()
 
 	req := httptest.NewRequest(http.MethodPut, "/profile/edit", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
@@ -128,8 +128,8 @@ func TestUpdateProfile_WithImage(t *testing.T) {
 	_ = writer.WriteField("last_name", "Smith")
 	_ = writer.WriteField("email", "jane@example.com")
 	part, _ := writer.CreateFormFile("avatar", "avatar.jpg")
-	part.Write([]byte("fake image data"))
-	writer.Close()
+	_, _ = part.Write([]byte("fake image data"))
+	_ = writer.Close()
 
 	req := httptest.NewRequest(http.MethodPut, "/profile/edit", body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
@@ -140,4 +140,3 @@ func TestUpdateProfile_WithImage(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rr.Code)
 }
-

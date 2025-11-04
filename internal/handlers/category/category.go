@@ -110,7 +110,7 @@ func (h *Handler) CreateCategory(w http.ResponseWriter, r *http.Request) {
 
 	file, header, err := r.FormFile("image")
 	if err == nil {
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 
 		ext := strings.ToLower(filepath.Ext(header.Filename))
 		allowedExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}
@@ -235,7 +235,7 @@ func (h *Handler) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 
 	file, header, err := r.FormFile("image")
 	if err == nil {
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 
 		ext := strings.ToLower(filepath.Ext(header.Filename))
 		allowedExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}

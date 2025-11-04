@@ -15,7 +15,7 @@ import (
 func TestPostgresRepository_GetOperationsByAccount(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -45,7 +45,7 @@ func TestPostgresRepository_GetOperationsByAccount(t *testing.T) {
 func TestPostgresRepository_GetOperationsByAccount_Empty(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -65,7 +65,7 @@ func TestPostgresRepository_GetOperationsByAccount_Empty(t *testing.T) {
 func TestPostgresRepository_GetOperationsByAccount_Error(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -84,7 +84,7 @@ func TestPostgresRepository_GetOperationsByAccount_Error(t *testing.T) {
 func TestPostgresRepository_GetOperationByID(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -113,7 +113,7 @@ func TestPostgresRepository_GetOperationByID(t *testing.T) {
 func TestPostgresRepository_GetOperationByID_NotFound(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -129,4 +129,3 @@ func TestPostgresRepository_GetOperationByID_NotFound(t *testing.T) {
 	assert.Equal(t, sql.ErrNoRows, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
-

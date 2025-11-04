@@ -14,7 +14,7 @@ import (
 func TestPostgresRepository_GetBudgetsByUser(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -43,7 +43,7 @@ func TestPostgresRepository_GetBudgetsByUser(t *testing.T) {
 func TestPostgresRepository_GetBudgetsByUser_Empty(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -63,7 +63,7 @@ func TestPostgresRepository_GetBudgetsByUser_Empty(t *testing.T) {
 func TestPostgresRepository_GetBudgetsByUser_Error(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -82,7 +82,7 @@ func TestPostgresRepository_GetBudgetsByUser_Error(t *testing.T) {
 func TestPostgresRepository_GetBudgetsByUser_ScanError(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewPostgresRepository(db)
 
@@ -100,4 +100,3 @@ func TestPostgresRepository_GetBudgetsByUser_ScanError(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to scan budget")
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
-

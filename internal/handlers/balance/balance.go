@@ -21,7 +21,6 @@ func (h *Handler) getUserID(r *http.Request) (int, bool) {
 	return middleware.GetUserIDFromContext(r.Context())
 }
 
-
 // GetAccounts godoc
 // @Summary Получение списка аккаунтов пользователя
 // @Description Возвращает список всех аккаунтов пользователя в формате для фронтенда

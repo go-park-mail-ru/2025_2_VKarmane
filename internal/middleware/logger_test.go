@@ -27,4 +27,3 @@ func TestLoggerMiddleware(t *testing.T) {
 	require.True(t, called)
 	require.Equal(t, http.StatusOK, rr.Code)
 }
-
