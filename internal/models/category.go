@@ -3,14 +3,14 @@ package models
 import "time"
 
 type Category struct {
-	ID           int
-	UserID       int
-	Name         string
-	Description  string
-	LogoHashedID string
-	LogoURL      string `json:"logo_url,omitempty"`
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           int       `json:"id"`
+	UserID       int       `json:"user_id"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description,omitempty"`
+	LogoHashedID string    `json:"logo_hashed_id,omitempty"`
+	LogoURL      string    `json:"logo_url,omitempty"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 type CreateCategoryRequest struct {

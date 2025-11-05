@@ -31,6 +31,7 @@ func (s *Service) GetProfile(ctx context.Context, userID int) (models.ProfileRes
 	}
 
 	return models.ProfileResponse{
+		ID:          user.ID,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
 		Login:        user.Login,
@@ -60,6 +61,7 @@ func (s *Service) UpdateProfile(ctx context.Context, req models.UpdateProfileReq
 	}
 
 	return models.ProfileResponse{
+		ID:          user.ID,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
 		Login:        user.Login,

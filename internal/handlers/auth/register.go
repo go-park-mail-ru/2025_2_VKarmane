@@ -13,6 +13,7 @@ func Register(publicRouter *mux.Router, protectedRouter *mux.Router, uc AuthUseC
 	realClock := clock.RealClock{}
 	h := NewHandler(uc, realClock, log)
 
+	publicRouter.HandleFunc("/auth/csrf", h.GetCSRFToken).Methods(http.MethodGet)
 	publicRouter.HandleFunc("/auth/register", h.Register).Methods(http.MethodPost)
 	publicRouter.HandleFunc("/auth/login", h.Login).Methods(http.MethodPost)
 

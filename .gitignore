@@ -3,8 +3,11 @@ logs/
 bin/
 cookies.txt
 coverage.out
-deploy.sh
 ssl/
 .DS_Store
 coverage.out
 coverage.html
+*.pem
+*.key
+.env
+deploy.sh

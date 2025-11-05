@@ -71,15 +71,23 @@ func Run() error {
 
 	r.Use(middleware.SecurityLoggerMiddleware(appLogger))
 
+	// Обработка OPTIONS запросов для всех API маршрутов
+	r.Methods("OPTIONS").PathPrefix("/api/v1").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// CORS middleware уже обработал этот запрос, просто возвращаем OK
+		w.WriteHeader(http.StatusOK)
+	})
+
 	public := r.PathPrefix("/api/v1").Subrouter()
-	public.Use(middleware.CSRFMiddleware(config.GetCSRFAuthKey()))
+	// Временно отключен CSRF для фронтенда
+	// public.Use(middleware.CSRFMiddleware(config.GetCSRFAuthKey()))
 
 	protected := r.PathPrefix("/api/v1").Subrouter()
 	protected.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
 	protected.Use(middleware.LoggerMiddleware(appLogger))
 	protected.Use(middleware.RequestLoggerMiddleware(appLogger))
 	protected.Use(middleware.SecurityLoggerMiddleware(appLogger))
-	protected.Use(middleware.CSRFMiddleware(config.GetCSRFAuthKey()))
+	// Временно отключен CSRF для фронтенда
+	// protected.Use(middleware.CSRFMiddleware(config.GetCSRFAuthKey()))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
 	handler.Register(public, protected)

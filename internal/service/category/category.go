@@ -55,7 +55,12 @@ func (s *Service) CreateCategory(ctx context.Context, req models.CreateCategoryR
 func (s *Service) GetCategoriesByUser(ctx context.Context, userID int) ([]models.CategoryWithStats, error) {
 	categories, err := s.repo.GetCategoriesByUser(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get categories: %w", err)
+		return []models.CategoryWithStats{}, fmt.Errorf("failed to get categories: %w", err)
+	}
+
+
+	if categories == nil {
+		categories = []models.Category{}
 	}
 
 	var categoriesWithStats []models.CategoryWithStats
@@ -69,6 +74,11 @@ func (s *Service) GetCategoriesByUser(ctx context.Context, userID int) ([]models
 			Category:        category,
 			OperationsCount: stats,
 		})
+	}
+
+	// Если categoriesWithStats nil, возвращаем пустой массив
+	if categoriesWithStats == nil {
+		categoriesWithStats = []models.CategoryWithStats{}
 	}
 
 	return categoriesWithStats, nil

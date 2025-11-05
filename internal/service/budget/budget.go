@@ -35,9 +35,17 @@ func (s *Service) GetBudgetsForUser(ctx context.Context, userID int) ([]models.B
 	if err != nil {
 		return []models.Budget{}, pkgerrors.Wrap(err, "Failed to get budgets for user")
 	}
+
+	if budgets == nil {
+		budgets = []models.Budget{}
+	}
 	accounts, err := s.repo.GetAccountsByUser(ctx, userID)
 	if err != nil {
 		return []models.Budget{}, pkgerrors.Wrap(err, "Failed to get accounts for user")
+	}
+
+	if accounts == nil {
+		accounts = []models.Account{}
 	}
 
 	for i := range budgets {

@@ -93,6 +93,10 @@ func (h *Handler) GetCategories(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if categories == nil {
+		categories = []models.CategoryWithStats{}
+	}
+
 	h.enrichCategoriesWithLogoURL(r.Context(), categories)
 
 	response := map[string]interface{}{

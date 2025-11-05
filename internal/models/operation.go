@@ -75,7 +75,7 @@ func (r *CreateOperationRequest) Validate() error {
 }
 
 type OperationResponse struct {
-	ID           int       `json:"_id"`
+	ID           int       `json:"id"`
 	AccountID    int       `json:"account_id"`
 	CategoryID   int       `json:"category_id"`
 	CategoryName string    `json:"category_name"`

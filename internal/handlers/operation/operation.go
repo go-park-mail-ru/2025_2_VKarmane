@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	opservice "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
@@ -80,18 +81,20 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 
 	ops, err := h.opUC.GetAccountOperations(r.Context(), accID)
 	if err != nil {
-		if errors.Is(err, errors.New("forbidden")) {
-			httputils.Error(w, r, "Доступ к счету запрещен", 403)
-			return
-		}
 		httputils.InternalError(w, r, "Ошибка получения операций")
 		return
 	}
 
 	// Преобразуем операции в OperationResponse
 	var operationsResponse []models.OperationResponse
-	for _, op := range ops {
-		operationsResponse = append(operationsResponse, OperationToResponse(op))
+	if ops != nil {
+		for _, op := range ops {
+			operationsResponse = append(operationsResponse, OperationToResponse(op))
+		}
+	}
+
+	if operationsResponse == nil {
+		operationsResponse = []models.OperationResponse{}
 	}
 
 	response := map[string]interface{}{
@@ -142,7 +145,7 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 
 	op, err := h.opUC.CreateOperation(r.Context(), req, accID)
 	if err != nil {
-		if errors.Is(err, errors.New("forbidden")) {
+		if errors.Is(err, opservice.ErrForbidden) {
 			httputils.Error(w, r, "Доступ к счету запрещен", 403)
 			return
 		}
@@ -190,7 +193,7 @@ func (h *Handler) GetOperationByID(w http.ResponseWriter, r *http.Request) {
 
 	op, err := h.opUC.GetOperationByID(r.Context(), accID, opID)
 	if err != nil {
-		if errors.Is(err, errors.New("forbidden")) {
+		if errors.Is(err, opservice.ErrForbidden) {
 			httputils.Error(w, r, "Доступ к операции запрещен", 403)
 			return
 		}
@@ -261,7 +264,7 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 
 	op, err := h.opUC.UpdateOperation(r.Context(), req, accID, opID)
 	if err != nil {
-		if errors.Is(err, errors.New("forbidden")) {
+		if errors.Is(err, opservice.ErrForbidden) {
 			httputils.Error(w, r, "Доступ к операции запрещен", 403)
 			return
 		}
@@ -313,7 +316,7 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 
 	op, err := h.opUC.DeleteOperation(r.Context(), accID, opID)
 	if err != nil {
-		if errors.Is(err, errors.New("forbidden")) {
+		if errors.Is(err, opservice.ErrForbidden) {
 			httputils.Error(w, r, "Доступ к операции запрещен", 403)
 			return
 		}

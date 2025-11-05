@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
@@ -115,6 +116,18 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	response.Token = ""
 	httputil.Success(w, r, response)
+}
+
+// GetCSRFToken godoc
+// @Summary Получение CSRF токена
+// @Description Возвращает CSRF токен для использования в последующих запросах
+// @Tags auth
+// @Produce json
+// @Success 200 {object} map[string]string "CSRF токен"
+// @Router /auth/csrf [get]
+func (h *Handler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
+	token := middleware.GetCSRFToken(r)
+	httputil.Success(w, r, map[string]string{"csrf_token": token})
 }
 
 // Logout godoc

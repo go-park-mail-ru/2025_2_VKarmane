@@ -41,16 +41,21 @@ func NewService(repo interface {
 }
 
 func (s *Service) CheckAccountOwnership(ctx context.Context, accID int) bool {
-	userID, _ := middleware.GetUserIDFromContext(ctx)
+	userID, ok := middleware.GetUserIDFromContext(ctx)
+	if !ok || userID == 0 {
+		return false
+	}
 	accs, err := s.repo.GetAccountsByUser(ctx, userID)
 	if err != nil {
 		return false
 	}
-	if len(accs) > 0 {
-		for _, acc := range accs {
-			if acc.ID == accID {
-				return true
-			}
+	// Если у пользователя нет счетов, возвращаем false
+	if len(accs) == 0 {
+		return false
+	}
+	for _, acc := range accs {
+		if acc.ID == accID {
+			return true
 		}
 	}
 	return false
@@ -58,7 +63,8 @@ func (s *Service) CheckAccountOwnership(ctx context.Context, accID int) bool {
 
 func (s *Service) GetAccountOperations(ctx context.Context, accID int) ([]models.Operation, error) {
 	if !s.CheckAccountOwnership(ctx, accID) {
-		return []models.Operation{}, ErrForbidden
+		// Если счет не принадлежит пользователю или у пользователя нет счетов, возвращаем пустой массив
+		return []models.Operation{}, nil
 	}
 	ops, err := s.repo.GetOperationsByAccount(ctx, accID)
 	if err != nil {

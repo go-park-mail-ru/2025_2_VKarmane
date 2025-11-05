@@ -13,4 +13,6 @@ func Register(r *mux.Router, uc BalanceUseCase) {
 	h := NewHandler(uc, realClock)
 
 	r.HandleFunc("/accounts", h.GetAccounts).Methods(http.MethodGet)
+	r.HandleFunc("/balance", h.GetAccounts).Methods(http.MethodGet)
+	r.HandleFunc("/balance/{id}", h.GetAccountByID).Methods(http.MethodGet)
 }
