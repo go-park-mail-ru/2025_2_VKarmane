@@ -1,0 +1,1117 @@
+basePath: /api/v1
+definitions:
+  image.ImageURLResponse:
+    properties:
+      url:
+        type: string
+    type: object
+  image.UploadImageResponse:
+    properties:
+      image_id:
+        type: string
+      url:
+        type: string
+    type: object
+  models.AuthResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  models.Category:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      logo_url:
+        type: string
+      logoHashedID:
+        type: string
+      name:
+        type: string
+      updatedAt:
+        type: string
+      userID:
+        type: integer
+    type: object
+  models.CategoryWithStats:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      logo_url:
+        type: string
+      logoHashedID:
+        type: string
+      name:
+        type: string
+      operations_count:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: integer
+    type: object
+  models.CreateOperationRequest:
+    properties:
+      account_id:
+        type: integer
+      category_id:
+        type: integer
+      date:
+        description: Дата операции
+        type: string
+      description:
+        maxLength: 60
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      sum:
+        minimum: 0
+        type: number
+      type:
+        $ref: '#/definitions/models.OperationType'
+    required:
+    - name
+    type: object
+  models.ErrorCode:
+    enum:
+    - INVALID_REQUEST
+    - MISSING_FIELDS
+    - INVALID_EMAIL
+    - INVALID_PASSWORD
+    - INVALID_LOGIN
+    - USER_EXISTS
+    - EMAIL_EXISTS
+    - LOGIN_EXISTS
+    - WEAK_PASSWORD
+    - USER_NOT_FOUND
+    - INVALID_CREDENTIALS
+    - ACCOUNT_LOCKED
+    - TOKEN_EXPIRED
+    - TOKEN_INVALID
+    - TOKEN_MISSING
+    - UNAUTHORIZED
+    - FORBIDDEN
+    - ACCESS_DENIED
+    - RESOURCE_NOT_FOUND
+    - RESOURCE_EXISTS
+    - RESOURCE_CONFLICT
+    - BUDGET_NOT_FOUND
+    - ACCOUNT_NOT_FOUND
+    - OPERATION_NOT_FOUND
+    - INVALID_AMOUNT
+    - INVALID_CURRENCY
+    - INVALID_DATE
+    - INVALID_PERIOD
+    - INTERNAL_ERROR
+    - SERVICE_UNAVAILABLE
+    - DATABASE_ERROR
+    type: string
+    x-enum-varnames:
+    - ErrCodeInvalidRequest
+    - ErrCodeMissingFields
+    - ErrCodeInvalidEmail
+    - ErrCodeInvalidPassword
+    - ErrCodeInvalidLogin
+    - ErrCodeUserExists
+    - ErrCodeEmailExists
+    - ErrCodeLoginExists
+    - ErrCodeWeakPassword
+    - ErrCodeUserNotFound
+    - ErrCodeInvalidCredentials
+    - ErrCodeAccountLocked
+    - ErrCodeTokenExpired
+    - ErrCodeTokenInvalid
+    - ErrCodeTokenMissing
+    - ErrCodeUnauthorized
+    - ErrCodeForbidden
+    - ErrCodeAccessDenied
+    - ErrCodeResourceNotFound
+    - ErrCodeResourceExists
+    - ErrCodeResourceConflict
+    - ErrCodeBudgetNotFound
+    - ErrCodeAccountNotFound
+    - ErrCodeTransactionNotFound
+    - ErrCodeInvalidAmount
+    - ErrCodeInvalidCurrency
+    - ErrCodeInvalidDate
+    - ErrCodeInvalidPeriod
+    - ErrCodeInternalError
+    - ErrCodeServiceUnavailable
+    - ErrCodeDatabaseError
+  models.ErrorResponse:
+    properties:
+      code:
+        $ref: '#/definitions/models.ErrorCode'
+      details:
+        type: string
+      error:
+        type: string
+      field:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  models.LoginRequest:
+    properties:
+      login:
+        maxLength: 30
+        minLength: 3
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  models.OperationResponse:
+    properties:
+      _id:
+        type: integer
+      account_id:
+        type: integer
+      category_id:
+        type: integer
+      category_name:
+        type: string
+      created_at:
+        type: string
+      currency_id:
+        type: integer
+      date:
+        description: Дата операции
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      receipt_url:
+        type: string
+      status:
+        type: string
+      sum:
+        type: number
+      type:
+        type: string
+    type: object
+  models.OperationType:
+    enum:
+    - income
+    - expense
+    type: string
+    x-enum-varnames:
+    - OperationIncome
+    - OperationExpense
+  models.ProfileResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      login:
+        type: string
+      logo_hashed_id:
+        type: string
+      logo_url:
+        type: string
+    type: object
+  models.RegisterRequest:
+    properties:
+      email:
+        type: string
+      login:
+        maxLength: 30
+        minLength: 3
+        type: string
+      password:
+        maxLength: 100
+        minLength: 6
+        type: string
+    required:
+    - email
+    - login
+    - password
+    type: object
+  models.UpdateOperationRequest:
+    properties:
+      category_id:
+        type: integer
+      created_at:
+        type: string
+      description:
+        maxLength: 60
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      sum:
+        minimum: 0
+        type: number
+    type: object
+  models.User:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: integer
+      lastName:
+        type: string
+      login:
+        type: string
+      logoHashedID:
+        type: string
+      password:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для управления личными финансами
+  title: VKarmane API
+  version: "1.0"
+paths:
+  /accounts:
+    get:
+      description: Возвращает список всех аккаунтов пользователя в формате для фронтенда
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список аккаунтов пользователя
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение списка аккаунтов пользователя
+      tags:
+      - accounts
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Аутентификация пользователя по логину и паролю
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный вход
+          schema:
+            $ref: '#/definitions/models.AuthResponse'
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, MISSING_FIELDS, INVALID_LOGIN,
+            INVALID_PASSWORD)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Неверные учетные данные (INVALID_CREDENTIALS, USER_NOT_FOUND,
+            ACCOUNT_LOCKED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Вход в систему
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      description: Завершает сессию пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный выход
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Выход из системы
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создает нового пользователя в системе
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Пользователь успешно создан
+          schema:
+            $ref: '#/definitions/models.AuthResponse'
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, MISSING_FIELDS, INVALID_EMAIL,
+            INVALID_PASSWORD, INVALID_LOGIN, WEAK_PASSWORD)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Конфликт (USER_EXISTS, EMAIL_EXISTS, LOGIN_EXISTS)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Регистрация нового пользователя
+      tags:
+      - auth
+  /budget/{id}:
+    get:
+      description: Возвращает информацию о конкретном бюджете пользователя
+      parameters:
+      - description: ID бюджета
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о бюджете
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Некорректный ID бюджета (INVALID_REQUEST)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Бюджет не найден (BUDGET_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение конкретного бюджета
+      tags:
+      - budget
+  /budgets:
+    get:
+      description: Возвращает список всех бюджетов пользователя с расчетом фактических
+        расходов
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список бюджетов пользователя
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение списка бюджетов пользователя
+      tags:
+      - budget
+  /categories:
+    get:
+      description: Возвращает список всех категорий пользователя с количеством операций
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список категорий пользователя
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение списка категорий пользователя
+      tags:
+      - categories
+    post:
+      consumes:
+      - multipart/form-data
+      description: Создает новую категорию для пользователя. Поддерживает multipart/form-data
+        с опциональным полем image для загрузки картинки категории
+      parameters:
+      - description: Название категории
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Описание категории
+        in: formData
+        name: description
+        type: string
+      - description: Картинка категории (опционально)
+        in: formData
+        name: image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Созданная категория
+          schema:
+            $ref: '#/definitions/models.Category'
+        "400":
+          description: Некорректные данные (VALIDATION_ERROR, INVALID_INPUT)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Создание новой категории
+      tags:
+      - categories
+  /categories/{id}:
+    delete:
+      description: Удаляет категорию пользователя
+      parameters:
+      - description: ID категории
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Категория успешно удалена
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Категория не найдена (RESOURCE_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удаление категории
+      tags:
+      - categories
+    get:
+      description: Возвращает информацию о категории по её ID с количеством операций
+      parameters:
+      - description: ID категории
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о категории
+          schema:
+            $ref: '#/definitions/models.CategoryWithStats'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Категория не найдена (RESOURCE_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение категории по ID
+      tags:
+      - categories
+    put:
+      consumes:
+      - multipart/form-data
+      description: Обновляет информацию о категории. Поддерживает multipart/form-data
+        с опциональным полем image для загрузки картинки категории
+      parameters:
+      - description: ID категории
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Название категории
+        in: formData
+        name: name
+        type: string
+      - description: Описание категории
+        in: formData
+        name: description
+        type: string
+      - description: Картинка категории (опционально)
+        in: formData
+        name: image
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновленная категория
+          schema:
+            $ref: '#/definitions/models.Category'
+        "400":
+          description: Некорректные данные (VALIDATION_ERROR, INVALID_INPUT)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Категория не найдена (RESOURCE_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Обновление категории
+      tags:
+      - categories
+  /images:
+    delete:
+      description: Удаляет изображение из хранилища MinIO по image_id
+      parameters:
+      - description: Идентификатор изображения (SHA256 hash)
+        in: query
+        name: image_id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Изображение успешно удалено
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, MISSING_IMAGE_ID)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Изображение не найдено (RESOURCE_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удаление изображения
+      tags:
+      - images
+    get:
+      description: Выполняет редирект на presigned URL изображения по image_id. Не
+        требует аутентификации
+      parameters:
+      - description: Идентификатор изображения (SHA256 hash)
+        in: query
+        name: image_id
+        required: true
+        type: string
+      responses:
+        "302":
+          description: Редирект на изображение
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, MISSING_IMAGE_ID)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Изображение не найдено (RESOURCE_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Получение изображения (редирект)
+      tags:
+      - images
+  /images/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Загружает изображение в хранилище MinIO и возвращает image_id и
+        URL
+      parameters:
+      - description: Изображение (jpg, jpeg, png, gif, webp)
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Изображение успешно загружено
+          schema:
+            $ref: '#/definitions/image.UploadImageResponse'
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, INVALID_IMAGE_FORMAT)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Загрузка изображения
+      tags:
+      - images
+  /images/url:
+    get:
+      description: Возвращает presigned URL для доступа к изображению по image_id
+      parameters:
+      - description: Идентификатор изображения (SHA256 hash)
+        in: query
+        name: image_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: URL изображения
+          schema:
+            $ref: '#/definitions/image.ImageURLResponse'
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, MISSING_IMAGE_ID)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Изображение не найдено (RESOURCE_NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение URL изображения
+      tags:
+      - images
+  /operations/account/{acc_id}:
+    get:
+      description: Возвращает список всех операций для указанного счета
+      parameters:
+      - description: ID счета
+        in: path
+        name: acc_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список операций
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Некорректный ID счета (INVALID_REQUEST)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Доступ запрещен (FORBIDDEN, ACCESS_DENIED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение операций по счету
+      tags:
+      - operations
+    post:
+      consumes:
+      - application/json
+      description: Создает новую операцию для указанного счета
+      parameters:
+      - description: ID счета
+        in: path
+        name: acc_id
+        required: true
+        type: integer
+      - description: Данные для создания операции
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateOperationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Операция успешно создана
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, MISSING_FIELDS, INVALID_AMOUNT)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Доступ запрещен (FORBIDDEN, ACCESS_DENIED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Создание новой операции
+      tags:
+      - operations
+  /operations/account/{acc_id}/operation/{op_id}:
+    delete:
+      description: Помечает операцию как удаленную (reverted)
+      parameters:
+      - description: ID счета
+        in: path
+        name: acc_id
+        required: true
+        type: integer
+      - description: ID операции
+        in: path
+        name: op_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Операция успешно удалена
+          schema:
+            $ref: '#/definitions/models.OperationResponse'
+        "400":
+          description: Некорректный ID (INVALID_REQUEST)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Доступ запрещен (FORBIDDEN, ACCESS_DENIED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Операция не найдена (NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удаление операции
+      tags:
+      - operations
+    get:
+      description: Возвращает информацию об операции по её ID
+      parameters:
+      - description: ID счета
+        in: path
+        name: acc_id
+        required: true
+        type: integer
+      - description: ID операции
+        in: path
+        name: op_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Операция
+          schema:
+            $ref: '#/definitions/models.OperationResponse'
+        "400":
+          description: Некорректный ID (INVALID_REQUEST)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Доступ запрещен (FORBIDDEN, ACCESS_DENIED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Операция не найдена (NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение операции по ID
+      tags:
+      - operations
+    put:
+      consumes:
+      - application/json
+      description: Обновляет информацию об операции
+      parameters:
+      - description: ID счета
+        in: path
+        name: acc_id
+        required: true
+        type: integer
+      - description: ID операции
+        in: path
+        name: op_id
+        required: true
+        type: integer
+      - description: Данные для обновления операции
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateOperationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Операция успешно обновлена
+          schema:
+            $ref: '#/definitions/models.OperationResponse'
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, INVALID_AMOUNT)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "403":
+          description: Доступ запрещен (FORBIDDEN, ACCESS_DENIED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "404":
+          description: Операция не найдена (NOT_FOUND)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Изменение операции
+      tags:
+      - operations
+  /profile:
+    get:
+      description: Возвращает информацию о профиле текущего пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Профиль пользователя
+          schema:
+            $ref: '#/definitions/models.ProfileResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение профиля пользователя
+      tags:
+      - profile
+  /profile/edit:
+    put:
+      consumes:
+      - multipart/form-data
+      description: Обновляет информацию о профиле текущего пользователя. Поддерживает
+        multipart/form-data с опциональным полем avatar для загрузки аватарки
+      parameters:
+      - description: Имя
+        in: formData
+        name: first_name
+        required: true
+        type: string
+      - description: Фамилия
+        in: formData
+        name: last_name
+        required: true
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Аватарка (опционально)
+        in: formData
+        name: avatar
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновленный профиль пользователя
+          schema:
+            $ref: '#/definitions/models.ProfileResponse'
+        "400":
+          description: Некорректные данные (INVALID_REQUEST, MISSING_FIELDS)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID,
+            TOKEN_EXPIRED)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "409":
+          description: Email уже используется (RESOURCE_EXISTS)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Обновление профиля пользователя
+      tags:
+      - profile
+securityDefinitions:
+  ApiKeyAuth:
+    description: JWT токен в HTTP-only cookie
+    in: cookie
+    name: auth_token
+    type: apiKey
+swagger: "2.0"

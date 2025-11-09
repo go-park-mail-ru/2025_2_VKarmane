@@ -1,0 +1,13 @@
+.*/
+logs/
+bin/
+cookies.txt
+coverage.out
+ssl/
+.DS_Store
+coverage.out
+coverage.html
+*.pem
+*.key
+.env
+deploy.sh
