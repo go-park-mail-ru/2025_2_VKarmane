@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
+	// "github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
@@ -126,7 +126,13 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} map[string]string "CSRF токен"
 // @Router /auth/csrf [get]
 func (h *Handler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
-	token := middleware.GetCSRFToken(r)
+	isProduction := os.Getenv("ENV") == "production"
+	
+	clock := clock.RealClock{}
+
+	secret := r.Context().Value("csrf_secret").(string)
+	token, _ := utils.GenerateCSRF(clock.Now(), secret)
+	utils.SetCSRFCookie(w, token, isProduction)
 	httputil.Success(w, r, map[string]string{"csrf_token": token})
 }
 
@@ -142,6 +148,7 @@ func (h *Handler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	isProduction := os.Getenv("ENV") == "production"
 	utils.ClearAuthCookie(w, isProduction)
+	utils.ClearCSRFCookie(w, isProduction)
 
 	httputil.Success(w, r, map[string]string{"message": "Logged out successfully"})
 }
