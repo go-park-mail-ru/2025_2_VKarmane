@@ -7,7 +7,7 @@ import (
 )
 
 type OperationService interface {
-	GetAccountOperations(ctx context.Context, accID int) ([]models.Operation, error)
+	GetAccountOperations(ctx context.Context, accID int) ([]models.OperationInList, error)
 	GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error)
 	CreateOperation(ctx context.Context, req models.CreateOperationRequest, accID int) (models.Operation, error)
 	UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID, opID int) (models.Operation, error)
@@ -15,7 +15,7 @@ type OperationService interface {
 }
 
 type OperationRepository interface {
-	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
 	GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error)
 	CreateOperation(ctx context.Context, op models.Operation) (models.Operation, error)
 	UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error)

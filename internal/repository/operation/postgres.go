@@ -19,12 +19,13 @@ func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 	}
 }
 
-func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error) {
+func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) {
 	query := `
 		SELECT o._id, o.account_from_id, o.account_to_id, o.category_id, o.currency_id, 
 		       o.operation_status, o.operation_type, o.operation_name, o.operation_description, 
 		       o.receipt_url, o.sum, o.created_at, o.operation_date,
-		       COALESCE(c.category_name, 'Без категории') as category_name
+		       COALESCE(c.category_name, 'Без категории') as category_name,
+			   COALESCE(c.logo_hashed_id, '') AS logo_hashed_idc
 		FROM operation o
 		LEFT JOIN category c ON o.category_id = c._id
 		WHERE (o.account_from_id = $1 OR o.account_to_id = $1) AND o.operation_status != 'reverted'
@@ -39,29 +40,35 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 		_ = rows.Close()
 	}()
 
-	var operations []models.Operation
+	var operations []models.OperationInList
 	for rows.Next() {
-		var operation OperationDB
+		var opDB OperationDB
+
+		var categoryLogoHashID string
 		err := rows.Scan(
-			&operation.ID,
-			&operation.AccountFromID,
-			&operation.AccountToID,
-			&operation.CategoryID,
-			&operation.CurrencyID,
-			&operation.Status,
-			&operation.Type,
-			&operation.Name,
-			&operation.Description,
-			&operation.ReceiptURL,
-			&operation.Sum,
-			&operation.CreatedAt,
-			&operation.Date,
-			&operation.CategoryName,
+			&opDB.ID,
+			&opDB.AccountFromID,
+			&opDB.AccountToID,
+			&opDB.CategoryID,
+			&opDB.CurrencyID,
+			&opDB.Status,
+			&opDB.Type,
+			&opDB.Name,
+			&opDB.Description,
+			&opDB.ReceiptURL,
+			&opDB.Sum,
+			&opDB.CreatedAt,
+			&opDB.Date,
+			&opDB.CategoryName,
+			&categoryLogoHashID,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan operation: %w", err)
 		}
-		operations = append(operations, OperationDBToModel(operation))
+		
+		opInList := OperationDBToModelInList(opDB, categoryLogoHashID)
+		opInList.CategoryLogoHashedID = categoryLogoHashID 
+		operations = append(operations, opInList)
 	}
 
 	return operations, nil

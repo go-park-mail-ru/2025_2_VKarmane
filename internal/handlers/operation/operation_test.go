@@ -22,7 +22,9 @@ func TestGetAccountOperations_Unauthorized(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
 
 	req := httptest.NewRequest(http.MethodGet, "/operations/account/1", nil)
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1"})
@@ -38,7 +40,9 @@ func TestGetAccountOperations_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
 
 	operations := []models.Operation{
 		{ID: 1, AccountID: 1, Name: "Test", Sum: 100},
@@ -61,7 +65,10 @@ func TestGetAccountOperations_InvalidID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	req := httptest.NewRequest(http.MethodGet, "/operations/account/invalid", nil)
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "invalid"})
@@ -78,7 +85,10 @@ func TestCreateOperation_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	createReq := models.CreateOperationRequest{
 		AccountID: 1,
@@ -114,7 +124,10 @@ func TestGetOperationByID_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	operation := models.Operation{
 		ID:        1,
@@ -140,7 +153,10 @@ func TestUpdateOperation_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	name := "Updated"
 	sum := 200.0
@@ -174,7 +190,10 @@ func TestDeleteOperation_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	operation := models.Operation{
 		ID:        1,
@@ -199,7 +218,10 @@ func TestCreateOperation_Unauthorized(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	req := httptest.NewRequest(http.MethodPost, "/operations/account/1", nil)
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1"})
@@ -215,7 +237,10 @@ func TestGetOperationByID_Unauthorized(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	req := httptest.NewRequest(http.MethodGet, "/operations/account/1/operation/1", nil)
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
@@ -231,7 +256,10 @@ func TestUpdateOperation_Unauthorized(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	req := httptest.NewRequest(http.MethodPut, "/operations/account/1/operation/1", nil)
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
@@ -247,7 +275,10 @@ func TestDeleteOperation_Unauthorized(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	req := httptest.NewRequest(http.MethodDelete, "/operations/account/1/operation/1", nil)
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
@@ -263,7 +294,10 @@ func TestCreateOperation_InvalidJSON(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	req := httptest.NewRequest(http.MethodPost, "/operations/account/1", bytes.NewBufferString("invalid"))
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1"})
@@ -280,7 +314,10 @@ func TestUpdateOperation_InvalidJSON(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	req := httptest.NewRequest(http.MethodPut, "/operations/account/1/operation/1", bytes.NewBufferString("invalid"))
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
@@ -297,7 +334,10 @@ func TestGetOperationByID_InvalidOpID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	req := httptest.NewRequest(http.MethodGet, "/operations/account/1/operation/invalid", nil)
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "invalid"})
@@ -314,7 +354,10 @@ func TestUpdateOperation_InvalidAccID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	req := httptest.NewRequest(http.MethodPut, "/operations/account/invalid/operation/1", nil)
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "invalid", "op_id": "1"})
@@ -331,7 +374,10 @@ func TestUpdateOperation_InvalidOpID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	req := httptest.NewRequest(http.MethodPut, "/operations/account/1/operation/invalid", nil)
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "invalid"})
@@ -348,7 +394,10 @@ func TestDeleteOperation_InvalidAccID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	req := httptest.NewRequest(http.MethodDelete, "/operations/account/invalid/operation/1", nil)
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "invalid", "op_id": "1"})
@@ -365,7 +414,10 @@ func TestDeleteOperation_InvalidOpID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockOperationUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{})
+	imageUC := mocks.NewMockImageUseCase(ctrl)
+
+	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
+
 
 	req := httptest.NewRequest(http.MethodDelete, "/operations/account/1/operation/invalid", nil)
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "invalid"})

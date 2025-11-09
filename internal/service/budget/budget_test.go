@@ -27,7 +27,7 @@ func (c *combinedRepo) GetAccountsByUser(ctx context.Context, userID int) ([]mod
 	return c.accountRepo.GetAccountsByUser(ctx, userID)
 }
 
-func (c *combinedRepo) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error) {
+func (c *combinedRepo) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) {
 	return c.operationRepo.GetOperationsByAccount(ctx, accountID)
 }
 
@@ -40,7 +40,7 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 		userID         int
 		mockBudgets    []models.Budget
 		mockAccounts   []models.Account
-		mockOperations []models.Operation
+		mockOperations []models.OperationInList
 		expectedResult []models.Budget
 	}{
 		{
@@ -67,7 +67,7 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 					CreatedAt:  time.Now(),
 				},
 			},
-			mockOperations: []models.Operation{
+			mockOperations: []models.OperationInList{
 				{
 					ID:         1,
 					AccountID:  1,
@@ -131,7 +131,7 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 					CreatedAt:  time.Now(),
 				},
 			},
-			mockOperations: []models.Operation{},
+			mockOperations: []models.OperationInList{},
 			expectedResult: []models.Budget{
 				{
 					ID:          1,
@@ -170,7 +170,7 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 					CreatedAt:  time.Now(),
 				},
 			},
-			mockOperations: []models.Operation{
+			mockOperations: []models.OperationInList{
 				{
 					ID:         1,
 					AccountID:  1,
@@ -226,7 +226,7 @@ func TestService_GetBudgetsForUser(t *testing.T) {
 					CreatedAt:  time.Now(),
 				},
 			},
-			mockOperations: []models.Operation{
+			mockOperations: []models.OperationInList{
 				{
 					ID:         1,
 					AccountID:  1,
@@ -312,8 +312,8 @@ func TestService_GetBudgetsForUser_MultipleAccountsAggregation(t *testing.T) {
 	now := time.Now()
 	budgets := []models.Budget{{ID: 1, UserID: 1, Amount: 1000, CurrencyID: 1, PeriodStart: now.Add(-24 * time.Hour), PeriodEnd: now.Add(24 * time.Hour)}}
 	accounts := []models.Account{{ID: 1, CurrencyID: 1}, {ID: 2, CurrencyID: 1}}
-	ops1 := []models.Operation{{ID: 1, AccountID: 1, Type: "expense", Sum: 100, CurrencyID: 1, CreatedAt: now}}
-	ops2 := []models.Operation{{ID: 2, AccountID: 2, Type: "expense", Sum: 50, CurrencyID: 1, CreatedAt: now}}
+	ops1 := []models.OperationInList{{ID: 1, AccountID: 1, Type: "expense", Sum: 100, CurrencyID: 1, CreatedAt: now}}
+	ops2 := []models.OperationInList{{ID: 2, AccountID: 2, Type: "expense", Sum: 50, CurrencyID: 1, CreatedAt: now}}
 
 	mockBudgetRepo.EXPECT().GetBudgetsByUser(gomock.Any(), 1).Return(budgets, nil)
 	mockAccountRepo.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(accounts, nil)
@@ -369,7 +369,7 @@ func TestService_GetBudgetsForUser_WithIncome(t *testing.T) {
 	now := time.Now()
 	budgets := []models.Budget{{ID: 1, UserID: 1, Amount: 1000, CurrencyID: 1, PeriodStart: now.Add(-24 * time.Hour), PeriodEnd: now.Add(24 * time.Hour)}}
 	accounts := []models.Account{{ID: 1, CurrencyID: 1}}
-	ops := []models.Operation{
+	ops := []models.OperationInList{
 		{ID: 1, AccountID: 1, Type: "expense", Sum: 100, CurrencyID: 1, CreatedAt: now},
 		{ID: 2, AccountID: 1, Type: "income", Sum: 200, CurrencyID: 1, CreatedAt: now},
 	}

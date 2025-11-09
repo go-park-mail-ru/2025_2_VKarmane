@@ -4,12 +4,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	opservice "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
@@ -18,11 +21,12 @@ import (
 
 type Handler struct {
 	opUC  OperationUseCase
+	imageUC image.ImageUseCase
 	clock clock.Clock
 }
 
-func NewHandler(opUC OperationUseCase, clck clock.Clock) *Handler {
-	return &Handler{opUC: opUC, clock: clck}
+func NewHandler(opUC OperationUseCase, imageUC image.ImageUseCase, clck clock.Clock) *Handler {
+	return &Handler{opUC: opUC, imageUC: imageUC, clock: clck}
 }
 
 func (h *Handler) getUserID(r *http.Request) (int, bool) {
@@ -46,6 +50,22 @@ func OperationToResponse(op models.Operation) models.OperationResponse {
 		Description:  op.Description,
 		ReceiptURL:   op.ReceiptURL,
 		Name:         op.Name,
+		Sum:          op.Sum,
+		CurrencyID:   op.CurrencyID,
+		CreatedAt:    op.CreatedAt,
+		Date:         op.Date,
+	}
+}
+
+func OperationInListToResponse(op models.OperationInList) models.OperationInListResponse {
+	return models.OperationInListResponse{
+		ID:           op.ID,
+		AccountID:    op.AccountID,
+		CategoryID:   op.CategoryID,
+		CategoryName: op.CategoryName,
+		Type:         string(op.Type),
+		CategoryHashedID: op.CategoryLogoHashedID,
+		Description:  op.Description,
 		Sum:          op.Sum,
 		CurrencyID:   op.CurrencyID,
 		CreatedAt:    op.CreatedAt,
@@ -86,15 +106,29 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Преобразуем операции в OperationResponse
-	var operationsResponse []models.OperationResponse
+	var operationsResponse []models.OperationInListResponse
 	if ops != nil {
 		for _, op := range ops {
-			operationsResponse = append(operationsResponse, OperationToResponse(op))
+			operationsResponse = append(operationsResponse, OperationInListToResponse(op))
 		}
 	}
 
 	if operationsResponse == nil {
-		operationsResponse = []models.OperationResponse{}
+		operationsResponse = []models.OperationInListResponse{}
+	}
+
+	for idx, op := range operationsResponse {
+		logger := logger.FromContext(r.Context())
+		logger.Info(fmt.Sprintf("idx: %d, id_c: %s", idx,  op.CategoryHashedID))
+		if op.CategoryHashedID != "" {
+			opCategoryLogo, err := h.imageUC.GetImageURL(r.Context(), operationsResponse[idx].CategoryHashedID)
+			logger.Info(fmt.Sprintf("opCategoryLogo: %s", opCategoryLogo))
+			if err != nil {
+				httputils.InternalError(w, r, "Ошибка получения операций")
+				return
+			}
+			operationsResponse[idx].CategoryLogo = opCategoryLogo
+		}
 	}
 
 	response := map[string]interface{}{

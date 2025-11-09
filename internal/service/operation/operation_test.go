@@ -24,7 +24,7 @@ func (c *combinedRepo) GetAccountsByUser(ctx context.Context, userID int) ([]mod
 	return c.accRepo.GetAccountsByUser(ctx, userID)
 }
 
-func (c *combinedRepo) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error) {
+func (c *combinedRepo) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) {
 	return c.opRepo.GetOperationsByAccount(ctx, accountID)
 }
 
@@ -61,7 +61,7 @@ func TestService_GetAccountOperations_Success(t *testing.T) {
 	repo := &combinedRepo{opRepo: mockOpRepo, accRepo: mockAccRepo}
 	svc := NewService(repo, clock.RealClock{})
 
-	expectedOps := []models.Operation{
+	expectedOps := []models.OperationInList{
 		{ID: 1, AccountID: 1, Name: "Test"},
 	}
 

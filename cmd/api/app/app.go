@@ -55,7 +55,7 @@ func Run() error {
 	var repo service.Repository = store
 	serviceInstance := service.NewService(repo, config.JWTSecret, imageStorage)
 	usecaseInstance := usecase.NewUseCase(serviceInstance, repo, config.JWTSecret)
-	handler := handlers.NewHandler(usecaseInstance, appLogger)
+	handler := handlers.NewHandler(usecaseInstance, appLogger, config.JWTSecret)
 
 	r := mux.NewRouter()
 
@@ -89,7 +89,7 @@ func Run() error {
 	protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
-	handler.Register(public, protected)
+	handler.Register(public, protected, config.JWTSecret)
 
 	// Swagger документация
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)

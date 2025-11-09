@@ -6,11 +6,12 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
 )
 
-func Register(r *mux.Router, uc OperationUseCase) {
+func Register(r *mux.Router, uc OperationUseCase, imageUC image.ImageUseCase) {
 	realClock := clock.RealClock{}
-	handler := NewHandler(uc, realClock)
+	handler := NewHandler(uc, imageUC, realClock)
 
 	// Старый формат
 	r.HandleFunc("/operations/account/{acc_id}", handler.GetAccountOperations).Methods(http.MethodGet)
