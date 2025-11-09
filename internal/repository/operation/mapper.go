@@ -39,41 +39,39 @@ func OperationDBToModel(operationDB OperationDB) models.Operation {
 	}
 }
 
-
 func OperationDBToModelInList(opDB OperationDB, categoryLogoHash string) models.OperationInList {
-    var accountID int
-    if opDB.AccountFromID != nil {
-        accountID = *opDB.AccountFromID
-    } else if opDB.AccountToID != nil {
-        accountID = *opDB.AccountToID
-    }
+	var accountID int
+	if opDB.AccountFromID != nil {
+		accountID = *opDB.AccountFromID
+	} else if opDB.AccountToID != nil {
+		accountID = *opDB.AccountToID
+	}
 
-    var categoryID int
-    if opDB.CategoryID != nil {
-        categoryID = *opDB.CategoryID
-    }
+	var categoryID int
+	if opDB.CategoryID != nil {
+		categoryID = *opDB.CategoryID
+	}
 
-    var currencyID int
-    if opDB.CurrencyID != nil {
-        currencyID = *opDB.CurrencyID
-    }
+	var currencyID int
+	if opDB.CurrencyID != nil {
+		currencyID = *opDB.CurrencyID
+	}
 
-    return models.OperationInList{
-        ID:           opDB.ID,
-        AccountID:    accountID,
-        CategoryID:   categoryID,
-        CategoryName: opDB.CategoryName,
-        Type:         opDB.Type,
-        Description:  opDB.Description,
-        Name:         opDB.Name,
-        CategoryLogoHashedID: categoryLogoHash,
-        Sum:          opDB.Sum,
-        CurrencyID:   currencyID,
-        CreatedAt:    opDB.CreatedAt,
-        Date:         opDB.Date,
-    }
+	return models.OperationInList{
+		ID:                   opDB.ID,
+		AccountID:            accountID,
+		CategoryID:           categoryID,
+		CategoryName:         opDB.CategoryName,
+		Type:                 opDB.Type,
+		Description:          opDB.Description,
+		Name:                 opDB.Name,
+		CategoryLogoHashedID: categoryLogoHash,
+		Sum:                  opDB.Sum,
+		CurrencyID:           currencyID,
+		CreatedAt:            opDB.CreatedAt,
+		Date:                 opDB.Date,
+	}
 }
-
 
 func OperationModelToDB(operation models.Operation) OperationDB {
 	return OperationDB{

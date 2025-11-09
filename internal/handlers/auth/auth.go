@@ -17,9 +17,9 @@ import (
 )
 
 type Handler struct {
-	authUC AuthUseCase
-	clock  clock.Clock
-	logger logger.Logger
+	authUC    AuthUseCase
+	clock     clock.Clock
+	logger    logger.Logger
 	jwtSecret string
 }
 
@@ -128,7 +128,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/csrf [get]
 func (h *Handler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
 	isProduction := os.Getenv("ENV") == "production"
-	
+
 	clock := clock.RealClock{}
 
 	token, _ := utils.GenerateCSRF(clock.Now(), h.jwtSecret)

@@ -5,8 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 func Register(r *mux.Router, uc OperationUseCase, imageUC image.ImageUseCase) {

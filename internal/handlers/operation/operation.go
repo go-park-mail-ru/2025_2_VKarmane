@@ -20,9 +20,9 @@ import (
 )
 
 type Handler struct {
-	opUC  OperationUseCase
+	opUC    OperationUseCase
 	imageUC image.ImageUseCase
-	clock clock.Clock
+	clock   clock.Clock
 }
 
 func NewHandler(opUC OperationUseCase, imageUC image.ImageUseCase, clck clock.Clock) *Handler {
@@ -59,17 +59,17 @@ func OperationToResponse(op models.Operation) models.OperationResponse {
 
 func OperationInListToResponse(op models.OperationInList) models.OperationInListResponse {
 	return models.OperationInListResponse{
-		ID:           op.ID,
-		AccountID:    op.AccountID,
-		CategoryID:   op.CategoryID,
-		CategoryName: op.CategoryName,
-		Type:         string(op.Type),
+		ID:               op.ID,
+		AccountID:        op.AccountID,
+		CategoryID:       op.CategoryID,
+		CategoryName:     op.CategoryName,
+		Type:             string(op.Type),
 		CategoryHashedID: op.CategoryLogoHashedID,
-		Description:  op.Description,
-		Sum:          op.Sum,
-		CurrencyID:   op.CurrencyID,
-		CreatedAt:    op.CreatedAt,
-		Date:         op.Date,
+		Description:      op.Description,
+		Sum:              op.Sum,
+		CurrencyID:       op.CurrencyID,
+		CreatedAt:        op.CreatedAt,
+		Date:             op.Date,
 	}
 }
 
@@ -119,7 +119,7 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 
 	for idx, op := range operationsResponse {
 		logger := logger.FromContext(r.Context())
-		logger.Info(fmt.Sprintf("idx: %d, id_c: %s", idx,  op.CategoryHashedID))
+		logger.Info(fmt.Sprintf("idx: %d, id_c: %s", idx, op.CategoryHashedID))
 		if op.CategoryHashedID != "" {
 			opCategoryLogo, err := h.imageUC.GetImageURL(r.Context(), operationsResponse[idx].CategoryHashedID)
 			logger.Info(fmt.Sprintf("opCategoryLogo: %s", opCategoryLogo))

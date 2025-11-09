@@ -65,9 +65,9 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan operation: %w", err)
 		}
-		
+
 		opInList := OperationDBToModelInList(opDB, categoryLogoHashID)
-		opInList.CategoryLogoHashedID = categoryLogoHashID 
+		opInList.CategoryLogoHashedID = categoryLogoHashID
 		operations = append(operations, opInList)
 	}
 
