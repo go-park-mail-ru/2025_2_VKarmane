@@ -30,8 +30,13 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 		WHERE (o.account_from_id = $1 OR o.account_to_id = $1) AND o.operation_status != 'reverted'
 		ORDER BY o.created_at DESC
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+	if err != nil {
+			return []models.Operation{}, fmt.Errorf("failed to prepare stmt: %w", err)
+	}
+	defer stmt.Close()
 
-	rows, err := r.db.QueryContext(ctx, query, accountID)
+	rows, err :=stmt.QueryContext(ctx, accountID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get operations by account: %w", err)
 	}
@@ -77,9 +82,11 @@ func (r *PostgresRepository) GetOperationByID(ctx context.Context, accID int, op
 		LEFT JOIN category c ON o.category_id = c._id
 		WHERE o._id = $1 AND (o.account_from_id = $2 OR o.account_to_id = $2) AND o.operation_status != 'reverted'
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+	defer stmt.Close()
 
 	var operation OperationDB
-	err := r.db.QueryRowContext(ctx, query, opID, accID).Scan(
+	err = stmt.QueryRowContext(ctx, opID, accID).Scan(
 		&operation.ID,
 		&operation.AccountFromID,
 		&operation.AccountToID,
@@ -114,6 +121,8 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op models.Oper
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		RETURNING _id
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+	defer stmt.Close()
 
 	var categoryID interface{}
 	if op.CategoryID > 0 {
@@ -130,7 +139,7 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op models.Oper
 	}
 
 	var id int
-	err := r.db.QueryRowContext(ctx, query,
+	err = stmt.QueryRowContext(ctx,
 		op.AccountID,
 		nil,
 		categoryID,
@@ -190,6 +199,8 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req models.Upd
 		FROM updated_operation o
 		LEFT JOIN category c ON o.category_id = c._id
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+	defer stmt.Close()
 
 	var categoryID sql.NullInt64
 	if req.CategoryID != nil {
@@ -216,7 +227,7 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req models.Upd
 	}
 
 	var operation OperationDB
-	err := r.db.QueryRowContext(ctx, query,
+	err = stmt.QueryRowContext(ctx,
 		categoryID,
 		name,
 		description,
@@ -264,9 +275,11 @@ func (r *PostgresRepository) DeleteOperation(ctx context.Context, accID int, opI
 		FROM updated_operation o
 		LEFT JOIN category c ON o.category_id = c._id
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+	defer stmt.Close()
 
 	var operation OperationDB
-	err := r.db.QueryRowContext(ctx, query, opID, accID).Scan(
+	err = stmt.QueryRowContext(ctx, opID, accID).Scan(
 		&operation.ID,
 		&operation.AccountFromID,
 		&operation.AccountToID,
@@ -302,8 +315,10 @@ func (r *PostgresRepository) GetOperationsByUser(ctx context.Context, userID int
 		WHERE a.user_id = $1 AND o.operation_status != 'reverted'
 		ORDER BY o.created_at DESC
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+	defer stmt.Close()
 
-	rows, err := r.db.QueryContext(ctx, query, userID)
+	rows, err := stmt.QueryContext(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get operations by user: %w", err)
 	}

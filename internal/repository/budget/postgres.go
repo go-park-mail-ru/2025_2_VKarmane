@@ -27,7 +27,13 @@ func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) (
 		ORDER BY created_at DESC
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, userID)
+	stmt, err := r.db.PrepareContext(ctx, query)
+		if err != nil {
+			return []models.Budget{}, fmt.Errorf("failed to prepare stmt: %w", err)
+		}
+	defer stmt.Close()
+
+	rows, err := stmt.QueryContext(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get budgets by user: %w", err)
 	}
@@ -67,9 +73,14 @@ func (r *PostgresRepository) CreateBudget(ctx context.Context, budget BudgetDB) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING _id
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+		if err != nil {
+			return 0, fmt.Errorf("failed to prepare stmt: %w", err)
+		}
+	defer stmt.Close()
 
 	var id int
-	err := r.db.QueryRowContext(ctx, query,
+	err = stmt.QueryRowContext(ctx,
 		budget.UserID,
 		budget.CategoryID,
 		budget.CurrencyID,
@@ -94,8 +105,13 @@ func (r *PostgresRepository) UpdateBudget(ctx context.Context, budget BudgetDB) 
 		SET amount = $1, budget_description = $2, updated_at = NOW()
 		WHERE _id = $3
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+		if err != nil {
+			return  fmt.Errorf("failed to prepare stmt: %w", err)
+		}
+	defer stmt.Close()
 
-	_, err := r.db.ExecContext(ctx, query, budget.Amount, budget.Description, budget.ID)
+	_, err = stmt.ExecContext(ctx, budget.Amount, budget.Description, budget.ID)
 	if err != nil {
 		return fmt.Errorf("failed to update budget: %w", err)
 	}
@@ -110,7 +126,13 @@ func (r *PostgresRepository) CloseBudget(ctx context.Context, budgetID int) erro
 		WHERE _id = $1
 	`
 
-	_, err := r.db.ExecContext(ctx, query, budgetID)
+	stmt, err := r.db.PrepareContext(ctx, query)
+		if err != nil {
+			return fmt.Errorf("failed to prepare stmt: %w", err)
+		}
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(ctx, budgetID)
 	if err != nil {
 		return fmt.Errorf("failed to close budget: %w", err)
 	}

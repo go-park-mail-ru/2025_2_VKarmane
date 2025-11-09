@@ -26,8 +26,13 @@ func (r *PostgresRepository) GetAccountsByUser(ctx context.Context, userID int) 
 		WHERE s.user_id = $1
 		ORDER BY a.created_at DESC
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+		if err != nil {
+			return []models.Account{}, fmt.Errorf("failed to prepare stmt: %w", err)
+		}
+	defer stmt.Close()
 
-	rows, err := r.db.QueryContext(ctx, query, userID)
+	rows, err := stmt.QueryContext(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get accounts by user: %w", err)
 	}
@@ -61,9 +66,14 @@ func (r *PostgresRepository) CreateAccount(ctx context.Context, account AccountD
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING _id
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+		if err != nil {
+			return 0, fmt.Errorf("failed to prepare stmt: %w", err)
+		}
+	defer stmt.Close()
 
 	var id int
-	err := r.db.QueryRowContext(ctx, query,
+	err = stmt.QueryRowContext(ctx,
 		account.Balance,
 		account.Type,
 		account.CurrencyID,
@@ -83,8 +93,13 @@ func (r *PostgresRepository) CreateUserAccount(ctx context.Context, userAccount 
 		INSERT INTO sharings (account_id, user_id, created_at, updated_at)
 		VALUES ($1, $2, $3, $4)
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+		if err != nil {
+			return  fmt.Errorf("failed to prepare stmt: %w", err)
+		}
+	defer stmt.Close()
 
-	_, err := r.db.ExecContext(ctx, query,
+	_, err = stmt.ExecContext(ctx,
 		userAccount.AccountID,
 		userAccount.UserID,
 		userAccount.CreatedAt,
@@ -104,8 +119,13 @@ func (r *PostgresRepository) UpdateAccountBalance(ctx context.Context, accountID
 		SET balance = $1, updated_at = NOW()
 		WHERE _id = $2
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+		if err != nil {
+			return fmt.Errorf("failed to prepare stmt: %w", err)
+		}
+	defer stmt.Close()
 
-	_, err := r.db.ExecContext(ctx, query, newBalance, accountID)
+	_, err = stmt.ExecContext(ctx, newBalance, accountID)
 	if err != nil {
 		return fmt.Errorf("failed to update account balance: %w", err)
 	}

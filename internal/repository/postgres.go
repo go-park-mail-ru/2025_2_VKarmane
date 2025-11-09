@@ -11,7 +11,7 @@ import (
 	categoryrepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/category"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type PostgresStore struct {
@@ -24,7 +24,7 @@ type PostgresStore struct {
 }
 
 func NewPostgresStore(dsn string) (*PostgresStore, error) {
-	db, err := sql.Open("postgres", dsn)
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}

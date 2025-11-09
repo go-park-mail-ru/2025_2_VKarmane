@@ -24,7 +24,8 @@ func TestPostgresRepository_GetAccountsByUser(t *testing.T) {
 		AddRow(1, 1000.50, "card", 1, now, now).
 		AddRow(2, 500.25, "cash", 1, now, now)
 
-	mock.ExpectQuery(`SELECT.*FROM account`).
+	mock.ExpectPrepare(`SELECT.*FROM account`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnRows(rows)
 
@@ -49,7 +50,8 @@ func TestPostgresRepository_GetAccountsByUser_Empty(t *testing.T) {
 	userID := 1
 	rows := sqlmock.NewRows([]string{"_id", "balance", "account_type", "currency_id", "created_at", "updated_at"})
 
-	mock.ExpectQuery(`SELECT.*FROM account`).
+	mock.ExpectPrepare(`SELECT.*FROM account`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnRows(rows)
 
@@ -67,7 +69,8 @@ func TestPostgresRepository_GetAccountsByUser_Error(t *testing.T) {
 	repo := NewPostgresRepository(db)
 
 	userID := 1
-	mock.ExpectQuery(`SELECT.*FROM account`).
+	mock.ExpectPrepare(`SELECT.*FROM account`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnError(sql.ErrConnDone)
 
@@ -89,7 +92,8 @@ func TestPostgresRepository_GetAccountsByUser_ScanError(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"_id", "balance", "account_type", "currency_id", "created_at", "updated_at"}).
 		AddRow("invalid", "invalid", "invalid", "invalid", "invalid", "invalid")
 
-	mock.ExpectQuery(`SELECT.*FROM account`).
+	mock.ExpectPrepare(`SELECT.*FROM account`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnRows(rows)
 

@@ -27,7 +27,8 @@ func TestPostgresRepository_CreateCategory(t *testing.T) {
 		LogoHashedID: "logo123",
 	}
 
-	mock.ExpectQuery(`INSERT INTO category`).
+	mock.ExpectPrepare(`INSERT INTO category`).
+		ExpectQuery().
 		WithArgs(category.UserID, category.Name, category.Description, category.LogoHashedID, sqlmock.AnyArg(), sqlmock.AnyArg()).
 		WillReturnRows(sqlmock.NewRows([]string{"_id"}).AddRow(5))
 
@@ -51,7 +52,8 @@ func TestPostgresRepository_CreateCategory_NilDescription(t *testing.T) {
 		LogoHashedID: "logo123",
 	}
 
-	mock.ExpectQuery(`INSERT INTO category`).
+	mock.ExpectPrepare(`INSERT INTO category`).
+		ExpectQuery().
 		WithArgs(category.UserID, category.Name, category.Description, category.LogoHashedID, sqlmock.AnyArg(), sqlmock.AnyArg()).
 		WillReturnRows(sqlmock.NewRows([]string{"_id"}).AddRow(5))
 
@@ -75,7 +77,8 @@ func TestPostgresRepository_CreateCategory_Error(t *testing.T) {
 		Description: &desc,
 	}
 
-	mock.ExpectQuery(`INSERT INTO category`).
+	mock.ExpectPrepare(`INSERT INTO category`).
+		ExpectQuery().
 		WithArgs(category.UserID, category.Name, category.Description, category.LogoHashedID, sqlmock.AnyArg(), sqlmock.AnyArg()).
 		WillReturnError(sql.ErrConnDone)
 
@@ -101,7 +104,8 @@ func TestPostgresRepository_GetCategoriesByUser(t *testing.T) {
 		AddRow(1, 1, "Food", &desc1, "logo1", now, now).
 		AddRow(2, 1, "Transport", &desc2, "", now, now)
 
-	mock.ExpectQuery(`SELECT.*FROM category`).
+	mock.ExpectPrepare(`SELECT.*FROM category`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnRows(rows)
 
@@ -129,7 +133,8 @@ func TestPostgresRepository_GetCategoriesByUser_Empty(t *testing.T) {
 	userID := 1
 	rows := sqlmock.NewRows([]string{"_id", "user_id", "category_name", "category_description", "logo_hashed_id", "created_at", "updated_at"})
 
-	mock.ExpectQuery(`SELECT.*FROM category`).
+	mock.ExpectPrepare(`SELECT.*FROM category`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnRows(rows)
 
@@ -147,7 +152,8 @@ func TestPostgresRepository_GetCategoriesByUser_Error(t *testing.T) {
 	repo := NewPostgresRepository(db)
 
 	userID := 1
-	mock.ExpectQuery(`SELECT.*FROM category`).
+	mock.ExpectPrepare(`SELECT.*FROM category`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnError(sql.ErrConnDone)
 
@@ -172,7 +178,8 @@ func TestPostgresRepository_GetCategoryByID(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"_id", "user_id", "category_name", "category_description", "logo_hashed_id", "created_at", "updated_at"}).
 		AddRow(categoryID, userID, "Food", &desc, "logo1", now, now)
 
-	mock.ExpectQuery(`SELECT.*FROM category`).
+	mock.ExpectPrepare(`SELECT.*FROM category`).
+		ExpectQuery().
 		WithArgs(categoryID, userID).
 		WillReturnRows(rows)
 
@@ -193,7 +200,8 @@ func TestPostgresRepository_GetCategoryByID_NotFound(t *testing.T) {
 
 	userID := 1
 	categoryID := 999
-	mock.ExpectQuery(`SELECT.*FROM category`).
+	mock.ExpectPrepare(`SELECT.*FROM category`).
+		ExpectQuery().
 		WithArgs(categoryID, userID).
 		WillReturnError(sql.ErrNoRows)
 
@@ -213,7 +221,8 @@ func TestPostgresRepository_GetCategoryByID_Error(t *testing.T) {
 
 	userID := 1
 	categoryID := 5
-	mock.ExpectQuery(`SELECT.*FROM category`).
+	mock.ExpectPrepare(`SELECT.*FROM category`).
+		ExpectQuery().
 		WithArgs(categoryID, userID).
 		WillReturnError(sql.ErrConnDone)
 
@@ -240,7 +249,8 @@ func TestPostgresRepository_UpdateCategory(t *testing.T) {
 		LogoHashedID: "newlogo",
 	}
 
-	mock.ExpectExec(`UPDATE category`).
+	mock.ExpectPrepare(`UPDATE category`).
+		ExpectExec().
 		WithArgs(category.Name, category.Description, category.LogoHashedID, sqlmock.AnyArg(), category.ID, category.UserID).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
@@ -264,7 +274,8 @@ func TestPostgresRepository_UpdateCategory_Error(t *testing.T) {
 		Description: &desc,
 	}
 
-	mock.ExpectExec(`UPDATE category`).
+	mock.ExpectPrepare(`UPDATE category`).
+		ExpectExec().
 		WithArgs(category.Name, category.Description, category.LogoHashedID, sqlmock.AnyArg(), category.ID, category.UserID).
 		WillReturnError(sql.ErrConnDone)
 
@@ -284,7 +295,8 @@ func TestPostgresRepository_DeleteCategory(t *testing.T) {
 	userID := 1
 	categoryID := 5
 
-	mock.ExpectExec(`DELETE FROM category`).
+	mock.ExpectPrepare(`DELETE FROM category`).
+		ExpectExec().
 		WithArgs(categoryID, userID).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
@@ -303,7 +315,8 @@ func TestPostgresRepository_DeleteCategory_Error(t *testing.T) {
 	userID := 1
 	categoryID := 5
 
-	mock.ExpectExec(`DELETE FROM category`).
+	mock.ExpectPrepare(`DELETE FROM category`).
+		ExpectExec().
 		WithArgs(categoryID, userID).
 		WillReturnError(sql.ErrConnDone)
 
@@ -326,7 +339,8 @@ func TestPostgresRepository_GetCategoryStats(t *testing.T) {
 
 	rows := sqlmock.NewRows([]string{"count"}).AddRow(expectedCount)
 
-	mock.ExpectQuery(`SELECT COUNT`).
+	mock.ExpectPrepare(`SELECT COUNT`).
+		ExpectQuery().
 		WithArgs(categoryID, userID).
 		WillReturnRows(rows)
 
@@ -348,7 +362,8 @@ func TestPostgresRepository_GetCategoryStats_Zero(t *testing.T) {
 
 	rows := sqlmock.NewRows([]string{"count"}).AddRow(0)
 
-	mock.ExpectQuery(`SELECT COUNT`).
+	mock.ExpectPrepare(`SELECT COUNT`).
+		ExpectQuery().
 		WithArgs(categoryID, userID).
 		WillReturnRows(rows)
 
@@ -368,7 +383,8 @@ func TestPostgresRepository_GetCategoryStats_Error(t *testing.T) {
 	userID := 1
 	categoryID := 5
 
-	mock.ExpectQuery(`SELECT COUNT`).
+	mock.ExpectPrepare(`SELECT COUNT`).
+		ExpectQuery().
 		WithArgs(categoryID, userID).
 		WillReturnError(sql.ErrConnDone)
 

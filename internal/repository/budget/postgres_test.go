@@ -25,7 +25,8 @@ func TestPostgresRepository_GetBudgetsByUser(t *testing.T) {
 		AddRow(1, userID, 0, 1, 5000.0, "Monthly budget", now, now, closedAt, now.AddDate(0, 0, -15), now.AddDate(0, 0, 15)).
 		AddRow(2, userID, 0, 1, 2000.0, "Food budget", now, now, closedAt, now.AddDate(0, 0, -10), now.AddDate(0, 0, 20))
 
-	mock.ExpectQuery(`SELECT.*FROM budget`).
+	mock.ExpectPrepare(`SELECT.*FROM budget`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnRows(rows)
 
@@ -50,7 +51,8 @@ func TestPostgresRepository_GetBudgetsByUser_Empty(t *testing.T) {
 	userID := 1
 	rows := sqlmock.NewRows([]string{"_id", "user_id", "category_id", "currency_id", "amount", "budget_description", "created_at", "updated_at", "closed_at", "period_start", "period_end"})
 
-	mock.ExpectQuery(`SELECT.*FROM budget`).
+	mock.ExpectPrepare(`SELECT.*FROM budget`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnRows(rows)
 
@@ -68,7 +70,8 @@ func TestPostgresRepository_GetBudgetsByUser_Error(t *testing.T) {
 	repo := NewPostgresRepository(db)
 
 	userID := 1
-	mock.ExpectQuery(`SELECT.*FROM budget`).
+	mock.ExpectPrepare(`SELECT.*FROM budget`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnError(sql.ErrConnDone)
 
@@ -90,7 +93,8 @@ func TestPostgresRepository_GetBudgetsByUser_ScanError(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"_id", "user_id", "category_id", "currency_id", "amount", "budget_description", "created_at", "updated_at", "closed_at", "period_start", "period_end"}).
 		AddRow("invalid", "invalid", "invalid", "invalid", "invalid", "invalid", "invalid", "invalid", "invalid", "invalid", "invalid")
 
-	mock.ExpectQuery(`SELECT.*FROM budget`).
+	mock.ExpectPrepare(`SELECT.*FROM budget`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnRows(rows)
 

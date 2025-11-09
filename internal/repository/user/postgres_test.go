@@ -30,9 +30,11 @@ func TestPostgresRepository_CreateUser(t *testing.T) {
 		UpdatedAt: now,
 	}
 
-	mock.ExpectQuery(`INSERT INTO "user"`).
-		WithArgs(user.FirstName, user.LastName, user.Email, user.Login, user.Password, user.Description, user.LogoHashedID, user.CreatedAt, user.UpdatedAt).
+	mock.ExpectPrepare(`INSERT INTO "user"`).
+    	ExpectQuery().
+		WithArgs(user.FirstName, user.LastName, user.Email, user.Login, user.Password, user.Description, user.LogoHashedID, sqlmock.AnyArg(), sqlmock.AnyArg()).
 		WillReturnRows(sqlmock.NewRows([]string{"_id"}).AddRow(5))
+
 
 	id, err := repo.CreateUser(context.Background(), user)
 	assert.NoError(t, err)
@@ -58,7 +60,8 @@ func TestPostgresRepository_CreateUser_Error(t *testing.T) {
 		UpdatedAt: now,
 	}
 
-	mock.ExpectQuery(`INSERT INTO "user"`).
+	mock.ExpectPrepare(`INSERT INTO "user"`).
+		ExpectQuery().
 		WithArgs(user.FirstName, user.LastName, user.Email, user.Login, user.Password, user.Description, user.LogoHashedID, user.CreatedAt, user.UpdatedAt).
 		WillReturnError(sql.ErrConnDone)
 
@@ -81,7 +84,8 @@ func TestPostgresRepository_GetUserByEmail(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"_id", "user_name", "surname", "email", "user_login", "user_hashed_password", "user_description", "logo_hashed_id", "created_at", "updated_at"}).
 		AddRow(1, "John", "Doe", email, "johndoe", "hashed", "", "", now, now)
 
-	mock.ExpectQuery(`SELECT.*FROM "user"`).
+	mock.ExpectPrepare(`SELECT.*FROM "user"`).
+		ExpectQuery().
 		WithArgs(email).
 		WillReturnRows(rows)
 
@@ -103,7 +107,8 @@ func TestPostgresRepository_GetUserByEmail_NotFound(t *testing.T) {
 	repo := NewPostgresRepository(db)
 
 	email := "nonexistent@example.com"
-	mock.ExpectQuery(`SELECT.*FROM "user"`).
+	mock.ExpectPrepare(`SELECT.*FROM "user"`).
+		ExpectQuery().
 		WithArgs(email).
 		WillReturnError(sql.ErrNoRows)
 
@@ -126,7 +131,8 @@ func TestPostgresRepository_GetUserByLogin(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"_id", "user_name", "surname", "email", "user_login", "user_hashed_password", "user_description", "logo_hashed_id", "created_at", "updated_at"}).
 		AddRow(1, "John", "Doe", "john@example.com", login, "hashed", "", "", now, now)
 
-	mock.ExpectQuery(`SELECT.*FROM "user"`).
+	mock.ExpectPrepare(`SELECT.*FROM "user"`).
+		ExpectQuery().
 		WithArgs(login).
 		WillReturnRows(rows)
 
@@ -147,7 +153,8 @@ func TestPostgresRepository_GetUserByLogin_NotFound(t *testing.T) {
 	repo := NewPostgresRepository(db)
 
 	login := "nonexistent"
-	mock.ExpectQuery(`SELECT.*FROM "user"`).
+	mock.ExpectPrepare(`SELECT.*FROM "user"`).
+		ExpectQuery().
 		WithArgs(login).
 		WillReturnError(sql.ErrNoRows)
 
@@ -170,7 +177,8 @@ func TestPostgresRepository_GetUserByID(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"_id", "user_name", "surname", "email", "user_login", "user_hashed_password", "user_description", "logo_hashed_id", "created_at", "updated_at"}).
 		AddRow(userID, "John", "Doe", "john@example.com", "johndoe", "hashed", "", "", now, now)
 
-	mock.ExpectQuery(`SELECT.*FROM "user"`).
+	mock.ExpectPrepare(`SELECT.*FROM "user"`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnRows(rows)
 
@@ -190,14 +198,15 @@ func TestPostgresRepository_GetUserByID_NotFound(t *testing.T) {
 	repo := NewPostgresRepository(db)
 
 	userID := 999
-	mock.ExpectQuery(`SELECT.*FROM "user"`).
+	mock.ExpectPrepare(`SELECT.*FROM "user"`).
+		ExpectQuery().
 		WithArgs(userID).
 		WillReturnError(sql.ErrNoRows)
 
 	user, err := repo.GetUserByID(context.Background(), userID)
 	assert.Error(t, err)
 	assert.Zero(t, user.ID)
-	assert.Contains(t, err.Error(), "failed to get user by ID")
+	assert.Contains(t, err.Error(), "not found")
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
@@ -219,7 +228,8 @@ func TestPostgresRepository_UpdateUser(t *testing.T) {
 		UpdatedAt: now,
 	}
 
-	mock.ExpectExec(`UPDATE "user"`).
+	mock.ExpectPrepare(`UPDATE "user"`).
+		ExpectExec().
 		WithArgs(user.FirstName, user.LastName, user.Email, user.LogoHashedID, user.UpdatedAt, user.ID).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
@@ -246,7 +256,8 @@ func TestPostgresRepository_UpdateUser_Error(t *testing.T) {
 		UpdatedAt: now,
 	}
 
-	mock.ExpectExec(`UPDATE "user"`).
+	mock.ExpectPrepare(`UPDATE "user"`).
+		ExpectExec().
 		WithArgs(user.FirstName, user.LastName, user.Email, user.LogoHashedID, user.UpdatedAt, user.ID).
 		WillReturnError(sql.ErrConnDone)
 

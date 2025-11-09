@@ -28,9 +28,14 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user dto.UserDB) (i
 			VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
 			RETURNING _id
 		`
+		stmt, err := r.db.PrepareContext(ctx, query)
+		if err != nil {
+			return 0, fmt.Errorf("failed to prepare stmt: %w", err)
+		}
+		defer stmt.Close()
 
 		var id int
-		err := r.db.QueryRowContext(ctx, query,
+		err = stmt.QueryRowContext(ctx,
 			user.FirstName,
 			user.LastName,
 			user.Email,
@@ -52,9 +57,14 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user dto.UserDB) (i
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING _id
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+	if err != nil {
+			return 0, fmt.Errorf("failed to prepare stmt: %w", err)
+	}
+	defer stmt.Close()
 
 	var id int
-	err := r.db.QueryRowContext(ctx, query,
+	err = stmt.QueryRowContext(ctx,
 		user.FirstName,
 		user.LastName,
 		user.Email,
@@ -79,9 +89,14 @@ func (r *PostgresRepository) GetUserByEmail(ctx context.Context, email string) (
 		FROM "user"
 		WHERE email = $1
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+	if err != nil {
+			return dto.UserDB{}, fmt.Errorf("failed to prepare stmt: %w", err)
+	}
+	defer stmt.Close()
 
 	var user dto.UserDB
-	err := r.db.QueryRowContext(ctx, query, email).Scan(
+	err = stmt.QueryRowContext(ctx, email).Scan(
 		&user.ID,
 		&user.FirstName,
 		&user.LastName,
@@ -107,9 +122,14 @@ func (r *PostgresRepository) GetUserByLogin(ctx context.Context, login string) (
 		FROM "user"
 		WHERE user_login = $1
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+	if err != nil {
+			return dto.UserDB{}, fmt.Errorf("failed to prepare stmt: %w", err)
+	}
+	defer stmt.Close()
 
 	var user dto.UserDB
-	err := r.db.QueryRowContext(ctx, query, login).Scan(
+	err = stmt.QueryRowContext(ctx, login).Scan(
 		&user.ID,
 		&user.FirstName,
 		&user.LastName,
@@ -135,9 +155,14 @@ func (r *PostgresRepository) GetUserByID(ctx context.Context, id int) (dto.UserD
 		FROM "user"
 		WHERE _id = $1
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+	if err != nil {
+			return dto.UserDB{}, fmt.Errorf("failed to prepare stmt: %w", err)
+	}
+	defer stmt.Close()
 
 	var user dto.UserDB
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
+	err = stmt.QueryRowContext(ctx, id).Scan(
 		&user.ID,
 		&user.FirstName,
 		&user.LastName,
@@ -166,8 +191,13 @@ func (r *PostgresRepository) UpdateUser(ctx context.Context, user dto.UserDB) er
 		SET user_name = $1, surname = $2, email = $3, logo_hashed_id = $4, updated_at = $5
 		WHERE _id = $6
 	`
+	stmt, err := r.db.PrepareContext(ctx, query)
+	if err != nil {
+		return fmt.Errorf("failed to prepare stmt: %w", err)
+	}
+	defer stmt.Close()
 
-	_, err := r.db.ExecContext(ctx, query,
+	_, err = stmt.ExecContext(ctx,
 		user.FirstName,
 		user.LastName,
 		user.Email,
