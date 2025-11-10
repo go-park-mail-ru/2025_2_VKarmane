@@ -15,7 +15,11 @@ COVER_HTML := coverage.html
 
 EXCLUDE_FILES_REGEX := \/mocks\/|\/mock_.*\.go
 
+<<<<<<< HEAD
 .PHONY: help build up down logs clean test migrate swagger cover coverhtml dev deploy mocks seed-users
+=======
+.PHONY: help build up down logs clean test migrate swagger cover coverhtml dev deploy mocks
+>>>>>>> main
 
 # Default target
 help:
@@ -33,7 +37,10 @@ help:
 	@echo "  swagger   - Generate Swagger documentation"
 	@echo "  mocks     - Generate mocks using gomock"
 	@echo "  deploy    - Production deployment"
+<<<<<<< HEAD
 	@echo "  seed-users - Seed test users with accounts"
+=======
+>>>>>>> main
 
 # Build Docker images
 build:
@@ -64,12 +71,17 @@ test:
 # Run tests with coverage
 cover:
 	@echo "Running tests with coverage..."
+<<<<<<< HEAD
 	@GOFLAGS= go test -covermode=$(COVER_MODE) -coverprofile=$(COVER_OUT) $(PKGS) || true
 	@if [ -f $(COVER_OUT) ]; then \
 		go tool cover -func=$(COVER_OUT) | grep total:; \
 	else \
 		echo "coverage.out not found"; \
 	fi
+=======
+	GOFLAGS= go test -covermode=$(COVER_MODE) -coverprofile=$(COVER_OUT) $(PKGS)
+	@go tool cover -func=$(COVER_OUT) | grep total:
+>>>>>>> main
 
 # Generate HTML coverage report
 coverhtml: cover
@@ -115,6 +127,7 @@ mocks:
 
 # Production deployment
 deploy: build up
+<<<<<<< HEAD
 	@echo "Production deployment completed!"
 
 # Seed test users with accounts (local)
@@ -123,3 +136,6 @@ seed-users:
 	@go run scripts/seed_test_users.go
 	@echo "Seed completed!"
 	
+=======
+	@echo "Production deployment completed!"
+>>>>>>> main

@@ -3,13 +3,11 @@ package balance
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
-	"github.com/gorilla/mux"
 )
 
 type Handler struct {
@@ -47,7 +45,6 @@ func (h *Handler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 		httputils.InternalError(w, r, "Failed to get accounts for user")
 		return
 	}
-
 
 	if accounts == nil {
 		accounts = []models.Account{}
