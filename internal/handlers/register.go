@@ -27,8 +27,8 @@ func NewRegistrator(uc *usecase.UseCase, log logger.Logger) *Registrator {
 
 }
 
-func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux.Router, uc *usecase.UseCase, log logger.Logger, secret string) {
-	auth.Register(publicRouter, protectedRouter, uc.AuthUC, log, secret)
+func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux.Router, uc *usecase.UseCase, log logger.Logger) {
+	auth.Register(publicRouter, protectedRouter, uc.AuthUC, log)
 	balance.Register(protectedRouter, uc.BalanceUC)
 	budget.Register(protectedRouter, uc.BudgetUC)
 	operation.Register(protectedRouter, uc.OpUC, uc.ImageUC)

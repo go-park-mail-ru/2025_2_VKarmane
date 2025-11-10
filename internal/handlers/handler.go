@@ -25,12 +25,12 @@ type Handler struct {
 	registrator     *Registrator
 }
 
-func NewHandler(uc *usecase.UseCase, logger logger.Logger, secret string) *Handler {
+func NewHandler(uc *usecase.UseCase, logger logger.Logger) *Handler {
 	realClock := clock.RealClock{}
 	return &Handler{
 		balanceHandler:  balance.NewHandler(uc.BalanceUC, realClock),
 		budgetHandler:   budget.NewHandler(uc.BudgetUC, realClock),
-		authHandler:     auth.NewHandler(uc.AuthUC, realClock, logger, secret),
+		authHandler:     auth.NewHandler(uc.AuthUC, realClock, logger),
 		opHandler:       operation.NewHandler(uc.OpUC, uc.ImageUC, realClock),
 		categoryHandler: category.NewHandler(uc.CategoryUC, uc.ImageUC),
 		profileHandler:  profile.NewHandler(uc.ProfileUC, uc.ImageUC),
@@ -39,6 +39,6 @@ func NewHandler(uc *usecase.UseCase, logger logger.Logger, secret string) *Handl
 	}
 }
 
-func (h *Handler) Register(publicRouter *mux.Router, protectedRouter *mux.Router, secret string) {
-	h.registrator.RegisterAll(publicRouter, protectedRouter, h.registrator.uc, h.logger, secret)
+func (h *Handler) Register(publicRouter *mux.Router, protectedRouter *mux.Router) {
+	h.registrator.RegisterAll(publicRouter, protectedRouter, h.registrator.uc, h.logger)
 }

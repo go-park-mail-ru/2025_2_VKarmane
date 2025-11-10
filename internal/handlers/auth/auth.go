@@ -20,11 +20,10 @@ type Handler struct {
 	authUC    AuthUseCase
 	clock     clock.Clock
 	logger    logger.Logger
-	jwtSecret string
 }
 
-func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger, jwtSecret string) *Handler {
-	return &Handler{authUC: authUC, clock: clck, logger: logger, jwtSecret: jwtSecret}
+func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger) *Handler {
+	return &Handler{authUC: authUC, clock: clck, logger: logger}
 }
 
 // Register godoc
@@ -129,9 +128,11 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
 	isProduction := os.Getenv("ENV") == "production"
 
-	clock := clock.RealClock{}
+	token, err := h.authUC.GetCSRFToken(r.Context())
+	if err != nil {
+		httputil.InternalError(w, r, "Failed to get CSRF-Token")
+	}
 
-	token, _ := utils.GenerateCSRF(clock.Now(), h.jwtSecret)
 	utils.SetCSRFCookie(w, token, isProduction)
 	httputil.Success(w, r, map[string]string{"csrf_token": token})
 }
@@ -146,9 +147,6 @@ func (h *Handler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
 // @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
 // @Router /auth/logout [post]
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
-	isProduction := os.Getenv("ENV") == "production"
-	utils.ClearAuthCookie(w, isProduction)
-	utils.ClearCSRFCookie(w, isProduction)
-
+	h.authUC.Logout(r.Context(), w)
 	httputil.Success(w, r, map[string]string{"message": "Logged out successfully"})
 }

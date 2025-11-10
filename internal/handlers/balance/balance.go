@@ -1,7 +1,6 @@
 package balance
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -91,10 +90,6 @@ func (h *Handler) GetAccountByID(w http.ResponseWriter, r *http.Request) {
 
 	account, err := h.balanceUC.GetAccountByID(r.Context(), userID, accountID)
 	if err != nil {
-		if err.Error() == fmt.Sprintf("balance.GetAccountByID: %s", models.ErrCodeAccountNotFound) {
-			httputils.NotFoundError(w, r, "Аккаунт не найден")
-			return
-		}
 		httputils.InternalError(w, r, "Failed to get account")
 		return
 	}

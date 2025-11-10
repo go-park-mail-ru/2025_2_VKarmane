@@ -74,7 +74,7 @@ func TestUseCase_Register(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockAuthService := mocks.NewMockAuthService(ctrl)
-			uc := NewUseCase(mockAuthService, clock.RealClock{})
+			uc := NewUseCase(mockAuthService, clock.RealClock{}, "jwt-secret")
 
 			mockAuthService.EXPECT().
 				Register(gomock.Any(), tt.request).
@@ -157,7 +157,7 @@ func TestUseCase_Login(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockAuthService := mocks.NewMockAuthService(ctrl)
-			uc := NewUseCase(mockAuthService, clock.RealClock{})
+			uc := NewUseCase(mockAuthService, clock.RealClock{}, "jwt-secret")
 
 			mockAuthService.EXPECT().
 				Login(gomock.Any(), tt.request).
@@ -228,7 +228,7 @@ func TestUseCase_GetUserByID(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockAuthService := mocks.NewMockAuthService(ctrl)
-			uc := NewUseCase(mockAuthService, clock.RealClock{})
+			uc := NewUseCase(mockAuthService, clock.RealClock{}, "jwt-secret")
 
 			mockAuthService.EXPECT().
 				GetUserByID(gomock.Any(), tt.userID).
@@ -309,7 +309,7 @@ func TestUseCase_EditUserByID(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockAuthService := mocks.NewMockAuthService(ctrl)
-			uc := NewUseCase(mockAuthService, clock.RealClock{})
+			uc := NewUseCase(mockAuthService, clock.RealClock{}, "jwt-secret")
 
 			mockAuthService.EXPECT().
 				EditUserByID(gomock.Any(), tt.req, tt.userID).

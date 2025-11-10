@@ -20,7 +20,7 @@ func TestRegister_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockAuthUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger(), "jwt-secret")
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
 
 	registerReq := models.RegisterRequest{
 		Email:    "test@example.com",
@@ -53,7 +53,7 @@ func TestLogin_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockAuthUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger(), "jwt-secret")
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
 
 	loginReq := models.LoginRequest{
 		Login:    "testuser",
@@ -84,7 +84,10 @@ func TestLogout_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockAuthUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger(), "jwt-secret")
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
+
+	mockUC.EXPECT().
+		Logout(gomock.Any(), gomock.Any())
 
 	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
 	rr := httptest.NewRecorder()
@@ -99,7 +102,7 @@ func TestRegister_ValidationError(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockAuthUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger(), "jwt-secret")
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
 
 	invalidReq := map[string]string{"email": "invalid"}
 	body, _ := json.Marshal(invalidReq)
@@ -116,7 +119,7 @@ func TestLogin_ValidationError(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockAuthUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger(), "jwt-secret")
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
 
 	invalidReq := map[string]string{"login": ""}
 	body, _ := json.Marshal(invalidReq)
@@ -133,7 +136,7 @@ func TestRegister_InvalidJSON(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockAuthUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger(), "jwt-secret")
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
 
 	req := httptest.NewRequest(http.MethodPost, "/auth/register", bytes.NewBufferString("invalid json"))
 	rr := httptest.NewRecorder()
@@ -148,7 +151,7 @@ func TestLogin_InvalidJSON(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockUC := mocks.NewMockAuthUseCase(ctrl)
-	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger(), "jwt-secret")
+	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
 
 	req := httptest.NewRequest(http.MethodPost, "/auth/login", bytes.NewBufferString("invalid json"))
 	rr := httptest.NewRecorder()

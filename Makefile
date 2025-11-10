@@ -15,11 +15,7 @@ COVER_HTML := coverage.html
 
 EXCLUDE_FILES_REGEX := \/mocks\/|\/mock_.*\.go
 
-<<<<<<< HEAD
 .PHONY: help build up down logs clean test migrate swagger cover coverhtml dev deploy mocks seed-users
-=======
-.PHONY: help build up down logs clean test migrate swagger cover coverhtml dev deploy mocks
->>>>>>> main
 
 # Default target
 help:
