@@ -14,7 +14,7 @@ type Service struct {
 	repo interface {
 		GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error)
 		GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
-		GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+		GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
 	}
 	clock clock.Clock
 }
@@ -22,7 +22,7 @@ type Service struct {
 func NewService(repo interface {
 	GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error)
 	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
-	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
 }, clck clock.Clock) *Service {
 	return &Service{
 		repo:  repo,

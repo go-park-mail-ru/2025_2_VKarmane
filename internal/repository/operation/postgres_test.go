@@ -25,9 +25,9 @@ func TestPostgresRepository_GetOperationsByAccount(t *testing.T) {
 	var accToID *int = nil
 	categoryID := 5
 	currencyID := 1
-	rows := sqlmock.NewRows([]string{"o._id", "o.account_from_id", "o.account_to_id", "o.category_id", "o.currency_id", "o.operation_status", "o.operation_type", "o.operation_name", "o.operation_description", "o.receipt_url", "o.sum", "o.created_at", "o.operation_date", "category_name"}).
-		AddRow(1, accFromID, accToID, categoryID, currencyID, models.OperationFinished, models.OperationExpense, "Test Op", "Test Desc", "", 100.50, now, now, "Food").
-		AddRow(2, accFromID, accToID, categoryID, currencyID, models.OperationFinished, models.OperationIncome, "Test Op 2", "", "", 200.75, now, now, "Food")
+	rows := sqlmock.NewRows([]string{"o._id", "o.account_from_id", "o.account_to_id", "o.category_id", "o.currency_id", "o.operation_status", "o.operation_type", "o.operation_name", "o.operation_description", "o.receipt_url", "o.sum", "o.created_at", "o.operation_date", "category_name", "logo_hashed_idc"}).
+		AddRow(1, accFromID, accToID, categoryID, currencyID, models.OperationFinished, models.OperationExpense, "Test Op", "Test Desc", "", 100.50, now, now, "Food", "").
+		AddRow(2, accFromID, accToID, categoryID, currencyID, models.OperationFinished, models.OperationIncome, "Test Op 2", "", "", 200.75, now, now, "Food", "")
 
 	mock.ExpectQuery(`SELECT.*FROM operation`).
 		WithArgs(accountID).

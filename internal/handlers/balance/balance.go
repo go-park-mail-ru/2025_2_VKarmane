@@ -50,7 +50,6 @@ func (h *Handler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 		accounts = []models.Account{}
 	}
 
-
 	accountsDTO := AccountsToBalanceAPI(userID, accounts)
 	httputils.Success(w, r, accountsDTO)
 }

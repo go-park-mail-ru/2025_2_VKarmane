@@ -20,7 +20,7 @@ func NewUseCase(opService operation.OperationService) *UseCase {
 	}
 }
 
-func (uc *UseCase) GetAccountOperations(ctx context.Context, accID int) ([]models.Operation, error) {
+func (uc *UseCase) GetAccountOperations(ctx context.Context, accID int) ([]models.OperationInList, error) {
 	log := logger.FromContext(ctx)
 
 	opsData, err := uc.opSvc.GetAccountOperations(ctx, accID)

@@ -72,10 +72,10 @@ func (mr *MockOperationServiceMockRecorder) DeleteOperation(ctx, accID, opID any
 }
 
 // GetAccountOperations mocks base method.
-func (m *MockOperationService) GetAccountOperations(ctx context.Context, accID int) ([]models.Operation, error) {
+func (m *MockOperationService) GetAccountOperations(ctx context.Context, accID int) ([]models.OperationInList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccountOperations", ctx, accID)
-	ret0, _ := ret[0].([]models.Operation)
+	ret0, _ := ret[0].([]models.OperationInList)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -87,10 +87,10 @@ func (mr *MockOperationRepositoryMockRecorder) GetOperationByID(ctx, accID, opID
 }
 
 // GetOperationsByAccount mocks base method.
-func (m *MockOperationRepository) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error) {
+func (m *MockOperationRepository) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOperationsByAccount", ctx, accountID)
-	ret0, _ := ret[0].([]models.Operation)
+	ret0, _ := ret[0].([]models.OperationInList)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

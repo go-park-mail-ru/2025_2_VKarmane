@@ -35,6 +35,22 @@ type Operation struct {
 	Date         time.Time // Дата операции (может отличаться от created_at)
 }
 
+type OperationInList struct {
+	ID                   int
+	AccountID            int
+	CategoryID           int
+	CategoryName         string
+	Type                 OperationType
+	Description          string
+	Name                 string
+	CategoryLogoHashedID string
+	CategoryLogo         string
+	Sum                  float64
+	CurrencyID           int
+	CreatedAt            time.Time
+	Date                 time.Time // Дата операции (может отличаться от created_at)
+}
+
 type UpdateOperationRequest struct {
 	CategoryID  *int       `json:"category_id,omitempty"`
 	Name        *string    `json:"name,omitempty" validate:"omitempty,max=50"`
@@ -88,4 +104,20 @@ type OperationResponse struct {
 	CurrencyID   int       `json:"currency_id"`
 	CreatedAt    time.Time `json:"created_at"`
 	Date         time.Time `json:"date"` // Дата операции
+}
+
+type OperationInListResponse struct {
+	ID               int       `json:"id"`
+	AccountID        int       `json:"account_id"`
+	CategoryID       int       `json:"category_id"`
+	CategoryName     string    `json:"category_name"`
+	Name             string    `json:"name"`
+	Type             string    `json:"type"`
+	Description      string    `json:"description"`
+	CategoryLogo     string    `json:"category_logo"`
+	CategoryHashedID string    `json:"-"`
+	Sum              float64   `json:"sum"`
+	CurrencyID       int       `json:"currency_id"`
+	CreatedAt        time.Time `json:"created_at"`
+	Date             time.Time `json:"date"` // Дата операции
 }

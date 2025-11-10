@@ -87,7 +87,7 @@ func (s *PostgresStore) GetBudgetsByUser(ctx context.Context, userID int) ([]mod
 }
 
 // OperationRepository
-func (s *PostgresStore) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error) {
+func (s *PostgresStore) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) {
 	return s.OperationRepo.GetOperationsByAccount(ctx, accountID)
 }
 

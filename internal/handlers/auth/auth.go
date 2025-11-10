@@ -17,13 +17,14 @@ import (
 )
 
 type Handler struct {
-	authUC AuthUseCase
-	clock  clock.Clock
-	logger logger.Logger
+	authUC    AuthUseCase
+	clock     clock.Clock
+	logger    logger.Logger
+	jwtSecret string
 }
 
-func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger) *Handler {
-	return &Handler{authUC: authUC, clock: clck, logger: logger}
+func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger, jwtSecret string) *Handler {
+	return &Handler{authUC: authUC, clock: clck, logger: logger, jwtSecret: jwtSecret}
 }
 
 // Register godoc
@@ -127,11 +128,10 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/csrf [get]
 func (h *Handler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
 	isProduction := os.Getenv("ENV") == "production"
-	
+
 	clock := clock.RealClock{}
 
-	secret := r.Context().Value("csrf_secret").(string)
-	token, _ := utils.GenerateCSRF(clock.Now(), secret)
+	token, _ := utils.GenerateCSRF(clock.Now(), h.jwtSecret)
 	utils.SetCSRFCookie(w, token, isProduction)
 	httputil.Success(w, r, map[string]string{"csrf_token": token})
 }
