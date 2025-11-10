@@ -111,6 +111,7 @@ type OperationInListResponse struct {
 	AccountID        int       `json:"account_id"`
 	CategoryID       int       `json:"category_id"`
 	CategoryName     string    `json:"category_name"`
+	Name             string    `json:"name"`
 	Type             string    `json:"type"`
 	Description      string    `json:"description"`
 	CategoryLogo     string    `json:"category_logo"`

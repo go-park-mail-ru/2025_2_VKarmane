@@ -63,6 +63,7 @@ func OperationInListToResponse(op models.OperationInList) models.OperationInList
 		AccountID:        op.AccountID,
 		CategoryID:       op.CategoryID,
 		CategoryName:     op.CategoryName,
+		Name:             op.Name,
 		Type:             string(op.Type),
 		CategoryHashedID: op.CategoryLogoHashedID,
 		Description:      op.Description,
@@ -122,7 +123,6 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 		logger.Info(fmt.Sprintf("idx: %d, id_c: %s", idx, op.CategoryHashedID))
 		if op.CategoryHashedID != "" {
 			opCategoryLogo, err := h.imageUC.GetImageURL(r.Context(), operationsResponse[idx].CategoryHashedID)
-			logger.Info(fmt.Sprintf("opCategoryLogo: %s", opCategoryLogo))
 			if err != nil {
 				httputils.InternalError(w, r, "Ошибка получения операций")
 				return
