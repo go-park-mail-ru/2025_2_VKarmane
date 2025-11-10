@@ -15,7 +15,6 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
-// Repository интерфейс для работы с репозиториями (используется в service и usecase)
 type Repository interface {
 	Close() error
 	UserRepository
@@ -42,7 +41,7 @@ type BudgetRepository interface {
 }
 
 type OperationRepository interface {
-	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
 	GetOperationsByUser(ctx context.Context, userID int) ([]models.Operation, error)
 	GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error)
 	CreateOperation(ctx context.Context, op models.Operation) (models.Operation, error)

@@ -32,11 +32,11 @@ type AuthResponse struct {
 }
 
 type ProfileResponse struct {
-	ID          int       `json:"id"`
-	FirstName   string    `json:"first_name"`
-	LastName    string    `json:"last_name"`
-	Login       string    `json:"login"`
-	Email       string    `json:"email"`
+	ID           int       `json:"id"`
+	FirstName    string    `json:"first_name"`
+	LastName     string    `json:"last_name"`
+	Login        string    `json:"login"`
+	Email        string    `json:"email"`
 	LogoHashedID string    `json:"logo_hashed_id"`
 	LogoURL      string    `json:"logo_url,omitempty"`
 	CreatedAt    time.Time `json:"created_at"`

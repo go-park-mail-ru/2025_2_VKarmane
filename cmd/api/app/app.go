@@ -55,7 +55,7 @@ func Run() error {
 	var repo service.Repository = store
 	serviceInstance := service.NewService(repo, config.JWTSecret, imageStorage)
 	usecaseInstance := usecase.NewUseCase(serviceInstance, repo, config.JWTSecret)
-	handler := handlers.NewHandler(usecaseInstance, appLogger)
+	handler := handlers.NewHandler(usecaseInstance, appLogger, config.JWTSecret)
 
 	r := mux.NewRouter()
 
@@ -79,18 +79,17 @@ func Run() error {
 
 	public := r.PathPrefix("/api/v1").Subrouter()
 	// Временно отключен CSRF для фронтенда
-	// public.Use(middleware.CSRFMiddleware(config.GetCSRFAuthKey()))
+	public.Use(middleware.CSRFMiddleware(config.JWTSecret))
 
 	protected := r.PathPrefix("/api/v1").Subrouter()
 	protected.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
 	protected.Use(middleware.LoggerMiddleware(appLogger))
 	protected.Use(middleware.RequestLoggerMiddleware(appLogger))
 	protected.Use(middleware.SecurityLoggerMiddleware(appLogger))
-	// Временно отключен CSRF для фронтенда
-	// protected.Use(middleware.CSRFMiddleware(config.GetCSRFAuthKey()))
+	protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
-	handler.Register(public, protected)
+	handler.Register(public, protected, config.JWTSecret)
 
 	// Swagger документация
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)

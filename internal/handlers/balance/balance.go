@@ -48,11 +48,9 @@ func (h *Handler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	if accounts == nil {
 		accounts = []models.Account{}
 	}
-
 
 	accountsDTO := AccountsToBalanceAPI(userID, accounts)
 	httputils.Success(w, r, accountsDTO)

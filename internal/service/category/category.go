@@ -58,7 +58,6 @@ func (s *Service) GetCategoriesByUser(ctx context.Context, userID int) ([]models
 		return []models.CategoryWithStats{}, fmt.Errorf("failed to get categories: %w", err)
 	}
 
-
 	if categories == nil {
 		categories = []models.Category{}
 	}

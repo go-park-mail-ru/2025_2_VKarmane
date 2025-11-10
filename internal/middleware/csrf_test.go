@@ -9,7 +9,7 @@ import (
 )
 
 func TestCSRFMiddleware_GET(t *testing.T) {
-	mw := CSRFMiddleware([]byte("test-secret"))
+	mw := CSRFMiddleware("test-secret")
 
 	called := false
 	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
