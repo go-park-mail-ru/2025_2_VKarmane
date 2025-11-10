@@ -44,7 +44,7 @@ func TestGetAccountOperations_Success(t *testing.T) {
 
 	handler := NewHandler(mockUC, imageUC, clock.RealClock{})
 
-	operations := []models.Operation{
+	operations := []models.OperationInList{
 		{ID: 1, AccountID: 1, Name: "Test", Sum: 100},
 	}
 

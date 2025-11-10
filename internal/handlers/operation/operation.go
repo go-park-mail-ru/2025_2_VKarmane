@@ -4,11 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	opservice "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
@@ -119,8 +117,6 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for idx, op := range operationsResponse {
-		logger := logger.FromContext(r.Context())
-		logger.Info(fmt.Sprintf("idx: %d, id_c: %s", idx, op.CategoryHashedID))
 		if op.CategoryHashedID != "" {
 			opCategoryLogo, err := h.imageUC.GetImageURL(r.Context(), operationsResponse[idx].CategoryHashedID)
 			if err != nil {

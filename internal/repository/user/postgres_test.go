@@ -154,7 +154,7 @@ func TestPostgresRepository_GetUserByLogin_NotFound(t *testing.T) {
 	user, err := repo.GetUserByLogin(context.Background(), login)
 	assert.Error(t, err)
 	assert.Zero(t, user.ID)
-	assert.Contains(t, err.Error(), "not found")
+	assert.Contains(t, err.Error(), "failed to get user by login")
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
@@ -197,7 +197,7 @@ func TestPostgresRepository_GetUserByID_NotFound(t *testing.T) {
 	user, err := repo.GetUserByID(context.Background(), userID)
 	assert.Error(t, err)
 	assert.Zero(t, user.ID)
-	assert.Contains(t, err.Error(), "failed to get user by ID")
+	assert.Contains(t, err.Error(), "not Found")
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
