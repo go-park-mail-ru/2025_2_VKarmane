@@ -83,6 +83,17 @@ func (s *PostgresStore) GetAccountsByUser(ctx context.Context, userID int) ([]mo
 	return s.AccountRepo.GetAccountsByUser(ctx, userID)
 }
 
+func (s *PostgresStore) CreateAccount(ctx context.Context, account models.Account, userID int) (models.Account, error) {
+	return s.AccountRepo.CreateAccount(ctx, account, userID)
+}
+
+func (s *PostgresStore)	UpdateAccount(ctx context.Context, req models.UpdateAccountRequest, userID, accID int) (models.Account, error) {
+	return s.AccountRepo.UpdateAccount(ctx, req, userID, accID)
+}
+func (s *PostgresStore)	DeleteAccount(ctx context.Context, userID, accID int) (models.Account, error) {
+	return s.AccountRepo.DeleteAccount(ctx, userID, accID)
+}
+
 // BudgetRepository
 func (s *PostgresStore) GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error) {
 	return s.BudgetRepo.GetBudgetsByUser(ctx, userID)

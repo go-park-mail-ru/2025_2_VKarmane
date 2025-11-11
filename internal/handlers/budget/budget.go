@@ -107,7 +107,7 @@ func (h *Handler) GetBudgetByID(w http.ResponseWriter, r *http.Request) {
 	httputils.Success(w, r, budgetDTO)
 }
 
-func (h *Handler) CreateBudget (w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateBudget(w http.ResponseWriter, r *http.Request) {
 	userID, ok := h.getUserID(r)
 	if !ok {
 		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
@@ -139,7 +139,7 @@ func (h *Handler) CreateBudget (w http.ResponseWriter, r *http.Request) {
 	httputils.Success(w, r, budgetDTO)
 }
 
-func (h *Handler) UpdateBudget (w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdateBudget(w http.ResponseWriter, r *http.Request) {
 	userID, ok := h.getUserID(r)
 	if !ok {
 		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)

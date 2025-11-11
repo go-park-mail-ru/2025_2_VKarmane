@@ -34,6 +34,9 @@ type UserRepository interface {
 
 type AccountRepository interface {
 	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
+	CreateAccount(ctx context.Context, account models.Account, userID int) (models.Account, error)
+	UpdateAccount(ctx context.Context, req models.UpdateAccountRequest, userID, accID int) (models.Account, error)
+	DeleteAccount(ctx context.Context, userID, accID int) (models.Account, error)
 }
 
 type BudgetRepository interface {
