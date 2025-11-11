@@ -2,7 +2,6 @@ package operation
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	pkgerrors "github.com/pkg/errors"
@@ -10,9 +9,8 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
+	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/errors"
 )
-
-var ErrForbidden = errors.New("forbidden")
 
 type Service struct {
 	repo interface {
@@ -75,7 +73,7 @@ func (s *Service) GetAccountOperations(ctx context.Context, accID int) ([]models
 
 func (s *Service) GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error) {
 	if !s.CheckAccountOwnership(ctx, accID) {
-		return models.Operation{}, ErrForbidden
+		return models.Operation{}, serviceerrors.ErrForbidden
 	}
 	op, err := s.repo.GetOperationByID(ctx, accID, opID)
 
@@ -87,7 +85,7 @@ func (s *Service) GetOperationByID(ctx context.Context, accID int, opID int) (mo
 
 func (s *Service) CreateOperation(ctx context.Context, req models.CreateOperationRequest, accID int) (models.Operation, error) {
 	if !s.CheckAccountOwnership(ctx, accID) {
-		return models.Operation{}, ErrForbidden
+		return models.Operation{}, serviceerrors.ErrForbidden
 	}
 
 	var categoryID int
@@ -124,7 +122,7 @@ func (s *Service) CreateOperation(ctx context.Context, req models.CreateOperatio
 
 func (s *Service) UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error) {
 	if !s.CheckAccountOwnership(ctx, accID) {
-		return models.Operation{}, ErrForbidden
+		return models.Operation{}, serviceerrors.ErrForbidden
 	}
 
 	updatedOp, err := s.repo.UpdateOperation(ctx, req, accID, opID)
@@ -137,7 +135,7 @@ func (s *Service) UpdateOperation(ctx context.Context, req models.UpdateOperatio
 
 func (s *Service) DeleteOperation(ctx context.Context, accID int, opID int) (models.Operation, error) {
 	if !s.CheckAccountOwnership(ctx, accID) {
-		return models.Operation{}, ErrForbidden
+		return models.Operation{}, serviceerrors.ErrForbidden
 	}
 
 	deletedOp, err := s.repo.DeleteOperation(ctx, accID, opID)

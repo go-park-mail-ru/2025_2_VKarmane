@@ -9,4 +9,7 @@ import (
 type BudgetService interface {
 	GetBudgetsForUser(ctx context.Context, userID int) ([]models.Budget, error)
 	GetBudgetByID(ctx context.Context, userID, budgetID int) (models.Budget, error)
+	CreateBudget(ctx context.Context, req models.CreateBudgetRequest, userID int) (models.Budget, error)
+	UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest,  userID, budgetID int) (models.Budget, error)
+	DeleteBudget(ctx context.Context, userID, budgetID int) (models.Budget, error)
 }

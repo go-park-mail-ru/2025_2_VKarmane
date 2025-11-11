@@ -52,3 +52,34 @@ func (uc *UseCase) GetBudgetByID(ctx context.Context, userID, budgetID int) (mod
 	log.Warn("Budget not found", "user_id", userID, "budget_id", budgetID)
 	return models.Budget{}, fmt.Errorf("budget.GetBudgetByID: %s", models.ErrCodeBudgetNotFound)
 }
+
+func (uc *UseCase) CreateBudget(ctx context.Context, req models.CreateBudgetRequest, userID int) (models.Budget, error) {
+	log := logger.FromContext(ctx)
+	budgetData, err := uc.budgetSvc.CreateBudget(ctx, req, userID)
+	if err != nil {
+		log.Error("Failed to create budget for user", "error", err, "user_id", userID)
+		return models.Budget{}, pkgerrors.Wrap(err, "budget.CreateBudget")
+	}
+	return budgetData, nil
+}
+
+func (uc *UseCase) UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error) {
+	log := logger.FromContext(ctx)
+	budgetData, err := uc.budgetSvc.UpdateBudget(ctx, req, userID, budgetID)
+	if err != nil {
+		log.Error("Failed to update budget for user", "error", err, "user_id", userID)
+		return models.Budget{}, pkgerrors.Wrap(err, "budget.UpdateBudget")
+	}
+	return budgetData, nil
+}
+
+func (uc *UseCase) DeleteBudget(ctx context.Context, userID, budgetID int) (models.Budget, error) {
+	log := logger.FromContext(ctx)
+	budgetData, err := uc.budgetSvc.DeleteBudget(ctx, userID, budgetID)
+	if err != nil {
+		log.Error("Failed to delete budget for user", "error", err, "user_id", userID)
+		return models.Budget{}, pkgerrors.Wrap(err, "budget.DeleteBudget")
+	}
+	return budgetData, nil
+}
+

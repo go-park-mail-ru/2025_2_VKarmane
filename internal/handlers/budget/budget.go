@@ -1,13 +1,20 @@
 package budget
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
+
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	budgeterrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
+	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/errors"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
-	"github.com/gorilla/mux"
 )
 
 type Handler struct {
@@ -84,10 +91,111 @@ func (h *Handler) GetBudgetByID(w http.ResponseWriter, r *http.Request) {
 
 	budget, err := h.budgetUC.GetBudgetByID(r.Context(), userID, id)
 	if err != nil {
-		httputils.NotFoundError(w, r, "Budget not found")
+		if errors.Is(err, serviceerrors.ErrForbidden) {
+			httputils.Error(w, r, "Доступ к бюджету запрещен", http.StatusForbidden)
+			return
+		}
+		if errors.Is(err, budgeterrors.ErrBudgetNotFound) {
+			httputils.NotFoundError(w, r, "Бюджет не найден")
+			return
+		}
+		httputils.InternalError(w, r, "failed to get budget")
 		return
 	}
 
+	budgetDTO := BudgetToAPI(budget)
+	httputils.Success(w, r, budgetDTO)
+}
+
+func (h *Handler) CreateBudget (w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.getUserID(r)
+	if !ok {
+		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
+	var req models.CreateBudgetRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ValidationError(w, r, "Некорректный формат данных", "body")
+		return
+	}
+
+	validationErrors := utils.ValidateStruct(req)
+	if len(validationErrors) > 0 {
+		httputils.ValidationErrors(w, r, validationErrors)
+		return
+	}
+	
+	budget, err := h.budgetUC.CreateBudget(r.Context(), req, userID)
+	if err != nil {
+		if errors.Is(err, budgeterrors.ErrActiveBudgetExists) {
+			httputils.ConflictError(w, r, "Незакрытый бюджет с такой категорией уже существует", models.ErrCodeBudgetExists)
+			return
+		}
+		httputils.InternalError(w, r, "failed to creat budget")
+		return
+	}
+
+	budgetDTO := BudgetToAPI(budget)
+	httputils.Success(w, r, budgetDTO)
+}
+
+func (h *Handler) UpdateBudget (w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.getUserID(r)
+	if !ok {
+		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	budgetID, err := h.parseIDFromURL(r, "id")
+	if err != nil {
+		httputils.ValidationError(w, r, "Некорректный ID бюджета", "budgetID")
+		return
+	}
+	var req models.UpdatedBudgetRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ValidationError(w, r, "Некорректный формат данных", "body")
+		return
+	}
+
+	budget, err := h.budgetUC.UpdateBudget(r.Context(), req, userID, budgetID)
+	if err != nil {
+		if errors.Is(err, serviceerrors.ErrForbidden) {
+			httputils.Error(w, r, "Доступ к бюджету запрещен", http.StatusForbidden)
+			return
+		}
+		httputils.InternalError(w, r, "failed to update budget")
+		return
+	}
+	budgetDTO := BudgetToAPI(budget)
+	httputils.Success(w, r, budgetDTO)
+}
+
+func (h *Handler) DeleteBudget(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.getUserID(r)
+	if !ok {
+		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	budgetID, err := h.parseIDFromURL(r, "id")
+	if err != nil {
+		httputils.ValidationError(w, r, "Некорректный ID бюджета", "budgetID")
+		return
+	}
+
+	budget, err := h.budgetUC.DeleteBudget(r.Context(), userID, budgetID)
+	if err != nil {
+		if errors.Is(err, serviceerrors.ErrForbidden) {
+			httputils.Error(w, r, "Доступ к бюджету запрещен", 403)
+			return
+		}
+		if errors.Is(err, budgeterrors.ErrBudgetNotFound) {
+			httputils.NotFoundError(w, r, "Бюджет не найден")
+			return
+		}
+		httputils.InternalError(w, r, "failed to delete budget")
+		return
+	}
 	budgetDTO := BudgetToAPI(budget)
 	httputils.Success(w, r, budgetDTO)
 }

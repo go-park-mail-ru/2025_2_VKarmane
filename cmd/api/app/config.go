@@ -48,14 +48,14 @@ func LoadConfig() *Config {
 		LogLevel:  getEnv("LOG_LEVEL", "info"),
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
-			Port:     getEnv("DB_PORT", "5432"),
+			Port:     getEnv("DB_PORT", "5433"),
 			User:     getEnv("DB_USER", "vkarmane"),
 			Password: getEnv("DB_PASSWORD", "vkarmane_password"),
 			DBName:   getEnv("DB_NAME", "vkarmane"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
 		HTTPS: HTTPSConfig{
-			Enabled:  getEnv("HTTPS_ENABLED", "true") == "true",
+			Enabled:  getEnv("HTTPS_ENABLED", "false") == "true",
 			CertFile: getEnv("HTTPS_CERT_FILE", "ssl/server.crt"),
 			KeyFile:  getEnv("HTTPS_KEY_FILE", "ssl/server.key"),
 		},

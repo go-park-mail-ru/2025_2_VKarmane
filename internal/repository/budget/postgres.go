@@ -3,9 +3,14 @@ package budget
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
+	"github.com/lib/pq"
+
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	postgreserrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/errors"
+	
 )
 
 type PostgresRepository struct {
@@ -13,9 +18,7 @@ type PostgresRepository struct {
 }
 
 func NewPostgresRepository(db *sql.DB) *PostgresRepository {
-	return &PostgresRepository{
-		db: db,
-	}
+	return &PostgresRepository{db: db}
 }
 
 func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error) {
@@ -23,7 +26,7 @@ func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) (
 		SELECT _id, user_id, category_id, currency_id, amount, budget_description, 
 		       created_at, updated_at, closed_at, period_start, period_end
 		FROM budget
-		WHERE user_id = $1
+		WHERE user_id = $1 AND closed_at IS NULL
 		ORDER BY created_at DESC
 	`
 
@@ -31,14 +34,12 @@ func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) (
 	if err != nil {
 		return nil, fmt.Errorf("failed to get budgets by user: %w", err)
 	}
-	defer func() {
-		_ = rows.Close()
-	}()
+	defer rows.Close()
 
 	var budgets []models.Budget
 	for rows.Next() {
 		var budget BudgetDB
-		err := rows.Scan(
+		if err := rows.Scan(
 			&budget.ID,
 			&budget.UserID,
 			&budget.CategoryID,
@@ -50,8 +51,7 @@ func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) (
 			&budget.ClosedAt,
 			&budget.PeriodStart,
 			&budget.PeriodEnd,
-		)
-		if err != nil {
+		); err != nil {
 			return nil, fmt.Errorf("failed to scan budget: %w", err)
 		}
 		budgets = append(budgets, BudgetDBToModel(budget))
@@ -60,60 +60,120 @@ func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) (
 	return budgets, nil
 }
 
-func (r *PostgresRepository) CreateBudget(ctx context.Context, budget BudgetDB) (int, error) {
+func (r *PostgresRepository) CreateBudget(ctx context.Context, budget models.Budget) (models.Budget, error) {
 	query := `
-		INSERT INTO budget (user_id, category_id, currency_id, amount, budget_description, 
-		                   created_at, updated_at, period_start, period_end)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-		RETURNING _id
+		INSERT INTO budget (
+			user_id, category_id, currency_id, amount, budget_description, 
+			created_at, updated_at, period_start, period_end
+		)
+		VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), $6, $7)
+		RETURNING _id, created_at, updated_at
 	`
 
-	var id int
 	err := r.db.QueryRowContext(ctx, query,
 		budget.UserID,
 		budget.CategoryID,
 		budget.CurrencyID,
 		budget.Amount,
 		budget.Description,
-		budget.CreatedAt,
-		budget.UpdatedAt,
 		budget.PeriodStart,
 		budget.PeriodEnd,
-	).Scan(&id)
+	).Scan(&budget.ID, &budget.CreatedAt, &budget.UpdatedAt)
 
 	if err != nil {
-		return 0, fmt.Errorf("failed to create budget: %w", err)
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			switch pqErr.Code {
+			case postgreserrors.UniqueViolation:
+				return models.Budget{}, ErrUniqueViolation
+			case postgreserrors.ForeignKeyViolation:
+				return models.Budget{}, ErrForeignKeyViolation
+			case postgreserrors.NotNullViolation:
+				return models.Budget{}, ErrNotNullViolation
+			case postgreserrors.CheckViolation:
+				return models.Budget{}, ErrCheckViolation
+			}
+		}
+		return models.Budget{}, fmt.Errorf("failed to create budget: %w", err)
 	}
 
-	return id, nil
+	return budget, nil
 }
 
-func (r *PostgresRepository) UpdateBudget(ctx context.Context, budget BudgetDB) error {
+func (r *PostgresRepository) UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error) {
 	query := `
-		UPDATE budget 
-		SET amount = $1, budget_description = $2, updated_at = NOW()
-		WHERE _id = $3
+		UPDATE budget
+		SET
+			amount = COALESCE($1, amount),
+			budget_description = COALESCE($2, budget_description),
+			period_start = COALESCE($3, period_start),
+			period_end = COALESCE($4, period_end),
+			updated_at = NOW()
+		WHERE _id = $5 AND user_id = $6 AND closed_at IS NULL
+		RETURNING _id, user_id, category_id, currency_id, amount, budget_description,
+				  created_at, updated_at, period_start, period_end
 	`
 
-	_, err := r.db.ExecContext(ctx, query, budget.Amount, budget.Description, budget.ID)
+	var b models.Budget
+	err := r.db.QueryRowContext(ctx, query,
+		req.Amount,
+		req.Description,
+		req.PeriodStart,
+		req.PeriodEnd,
+		budgetID,
+		userID,
+	).Scan(
+		&b.ID,
+		&b.UserID,
+		&b.CategoryID,
+		&b.CurrencyID,
+		&b.Amount,
+		&b.Description,
+		&b.CreatedAt,
+		&b.UpdatedAt,
+		&b.PeriodStart,
+		&b.PeriodEnd,
+	)
+
 	if err != nil {
-		return fmt.Errorf("failed to update budget: %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.Budget{}, ErrBudgetNotFound
+		}
+		return models.Budget{}, fmt.Errorf("failed to update budget: %w", err)
 	}
 
-	return nil
+	return b, nil
 }
 
-func (r *PostgresRepository) CloseBudget(ctx context.Context, budgetID int) error {
+func (r *PostgresRepository) DeleteBudget(ctx context.Context, budgetID int) (models.Budget, error) {
 	query := `
 		UPDATE budget 
 		SET closed_at = NOW(), updated_at = NOW()
 		WHERE _id = $1
+		RETURNING _id, user_id, category_id, currency_id, amount, budget_description,
+				  created_at, updated_at, period_start, period_end
 	`
 
-	_, err := r.db.ExecContext(ctx, query, budgetID)
+	var b models.Budget
+	err := r.db.QueryRowContext(ctx, query, budgetID).Scan(
+		&b.ID,
+		&b.UserID,
+		&b.CategoryID,
+		&b.CurrencyID,
+		&b.Amount,
+		&b.Description,
+		&b.CreatedAt,
+		&b.UpdatedAt,
+		&b.PeriodStart,
+		&b.PeriodEnd,
+	)
+
 	if err != nil {
-		return fmt.Errorf("failed to close budget: %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.Budget{}, ErrBudgetNotFound
+		}
+		return models.Budget{}, fmt.Errorf("failed to delete budget: %w", err)
 	}
 
-	return nil
+	return b, nil
 }

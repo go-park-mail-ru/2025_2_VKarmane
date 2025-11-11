@@ -76,6 +76,8 @@ func (s *PostgresStore) EditUserByID(ctx context.Context, req models.UpdateProfi
 	return s.UserRepo.EditUserByIDModel(ctx, req, userID)
 }
 
+
+
 // AccountRepository
 func (s *PostgresStore) GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error) {
 	return s.AccountRepo.GetAccountsByUser(ctx, userID)
@@ -84,6 +86,16 @@ func (s *PostgresStore) GetAccountsByUser(ctx context.Context, userID int) ([]mo
 // BudgetRepository
 func (s *PostgresStore) GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error) {
 	return s.BudgetRepo.GetBudgetsByUser(ctx, userID)
+}
+
+func (s *PostgresStore) CreateBudget(ctx context.Context, budget models.Budget) (models.Budget ,error) {
+	return s.BudgetRepo.CreateBudget(ctx, budget)
+}
+func (s *PostgresStore) UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget ,error) {
+	return s.BudgetRepo.UpdateBudget(ctx, req, userID, budgetID)
+}
+func (s *PostgresStore) DeleteBudget(ctx context.Context, budgetID int) (models.Budget ,error) {
+	return s.BudgetRepo.DeleteBudget(ctx, budgetID)
 }
 
 // OperationRepository

@@ -38,6 +38,11 @@ type AccountRepository interface {
 
 type BudgetRepository interface {
 	GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error)
+	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
+	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
+	CreateBudget(ctx context.Context, budget models.Budget) (models.Budget, error)
+	UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest,  userID, budgetID int) (models.Budget, error)
+	DeleteBudget(ctx context.Context, budgetID int) (models.Budget, error)
 }
 
 type OperationRepository interface {

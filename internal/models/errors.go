@@ -14,6 +14,8 @@ const (
 	ErrCodeLoginExists  ErrorCode = "LOGIN_EXISTS"
 	ErrCodeWeakPassword ErrorCode = "WEAK_PASSWORD"
 
+	ErrCodeBudgetExists ErrorCode = "BUDGET_EXISTS"
+
 	ErrCodeUserNotFound       ErrorCode = "USER_NOT_FOUND"
 	ErrCodeInvalidCredentials ErrorCode = "INVALID_CREDENTIALS"
 	ErrCodeAccountLocked      ErrorCode = "ACCOUNT_LOCKED"
