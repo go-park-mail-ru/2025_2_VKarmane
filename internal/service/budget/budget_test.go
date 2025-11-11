@@ -2,11 +2,13 @@ package budget
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	// serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/errors"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -30,6 +32,20 @@ func (c *combinedRepo) GetAccountsByUser(ctx context.Context, userID int) ([]mod
 func (c *combinedRepo) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) {
 	return c.operationRepo.GetOperationsByAccount(ctx, accountID)
 }
+
+
+func (c *combinedRepo) CreateBudget(ctx context.Context, budget models.Budget) (models.Budget, error) {
+    return c.budgetRepo.CreateBudget(ctx, budget)
+}
+
+func (c *combinedRepo) UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error) {
+    return c.budgetRepo.UpdateBudget(ctx, req, userID, budgetID)
+}
+
+func (c *combinedRepo) DeleteBudget(ctx context.Context, budgetID int) (models.Budget, error) {
+    return c.budgetRepo.DeleteBudget(ctx, budgetID)
+}
+
 
 func TestService_GetBudgetsForUser(t *testing.T) {
 	fixedClock := clock.FixedClock{
@@ -389,4 +405,81 @@ func TestService_GetBudgetsForUser_WithIncome(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, res, 1)
 	assert.Equal(t, 100.0, res[0].Actual) // Only expense counted
+}
+
+func TestService_CreateBudget(t *testing.T) {
+	fixedClock := clock.FixedClock{FixedTime: time.Date(2025, 11, 11, 10, 0, 0, 0, time.UTC)}
+
+	tests := []struct {
+		name          string
+		userID        int
+		req           models.CreateBudgetRequest
+		mockReturn    models.Budget
+		mockError     error
+		expectedError error
+	}{
+		{
+			name:   "successful create budget",
+			userID: 1,
+			req: models.CreateBudgetRequest{
+				CategoryID:  1,
+				Amount:      500.0,
+				Description: "Test budget",
+				PeriodStart: fixedClock.Now(),
+				PeriodEnd:   fixedClock.Now().AddDate(0, 1, 0),
+			},
+			mockReturn: models.Budget{
+				ID:          1,
+				UserID:      1,
+				CategoryID:  1,
+				Amount:      500.0,
+				Actual:      0,
+				CurrencyID:  1,
+				Description: "Test budget",
+				CreatedAt:   fixedClock.Now(),
+				PeriodStart: fixedClock.Now(),
+				PeriodEnd:   fixedClock.Now().AddDate(0, 1, 0),
+			},
+			mockError:     nil,
+			expectedError: nil,
+		},
+		{
+			name:   "repository error on create",
+			userID: 1,
+			req: models.CreateBudgetRequest{
+				CategoryID:  2,
+				Amount:      200.0,
+				Description: "Fail budget",
+				PeriodStart: fixedClock.Now(),
+				PeriodEnd:   fixedClock.Now().AddDate(0, 0, 7),
+			},
+			mockReturn:    models.Budget{},
+			mockError:     errors.New("db fail"),
+			expectedError: errors.New("Failed to create budget"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockBudgetRepository(ctrl)
+			svc := NewService(mockRepo, fixedClock)
+
+			mockRepo.EXPECT().
+				CreateBudget(gomock.Any(), gomock.Any()).
+				Return(tt.mockReturn, tt.mockError)
+
+			result, err := svc.CreateBudget(context.Background(), tt.req, tt.userID)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.mockReturn, result)
+			}
+		})
+	}
 }

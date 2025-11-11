@@ -41,6 +41,51 @@ func (m *MockBudgetRepository) EXPECT() *MockBudgetRepositoryMockRecorder {
 	return m.recorder
 }
 
+// CreateBudget mocks base method.
+func (m *MockBudgetRepository) CreateBudget(ctx context.Context, budget models.Budget) (models.Budget, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBudget", ctx, budget)
+	ret0, _ := ret[0].(models.Budget)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBudget indicates an expected call of CreateBudget.
+func (mr *MockBudgetRepositoryMockRecorder) CreateBudget(ctx, budget any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBudget", reflect.TypeOf((*MockBudgetRepository)(nil).CreateBudget), ctx, budget)
+}
+
+// DeleteBudget mocks base method.
+func (m *MockBudgetRepository) DeleteBudget(ctx context.Context, budgetID int) (models.Budget, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteBudget", ctx, budgetID)
+	ret0, _ := ret[0].(models.Budget)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteBudget indicates an expected call of DeleteBudget.
+func (mr *MockBudgetRepositoryMockRecorder) DeleteBudget(ctx, budgetID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBudget", reflect.TypeOf((*MockBudgetRepository)(nil).DeleteBudget), ctx, budgetID)
+}
+
+// GetAccountsByUser mocks base method.
+func (m *MockBudgetRepository) GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccountsByUser", ctx, userID)
+	ret0, _ := ret[0].([]models.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAccountsByUser indicates an expected call of GetAccountsByUser.
+func (mr *MockBudgetRepositoryMockRecorder) GetAccountsByUser(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccountsByUser", reflect.TypeOf((*MockBudgetRepository)(nil).GetAccountsByUser), ctx, userID)
+}
+
 // GetBudgetsByUser mocks base method.
 func (m *MockBudgetRepository) GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error) {
 	m.ctrl.T.Helper()
@@ -54,4 +99,34 @@ func (m *MockBudgetRepository) GetBudgetsByUser(ctx context.Context, userID int)
 func (mr *MockBudgetRepositoryMockRecorder) GetBudgetsByUser(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBudgetsByUser", reflect.TypeOf((*MockBudgetRepository)(nil).GetBudgetsByUser), ctx, userID)
+}
+
+// GetOperationsByAccount mocks base method.
+func (m *MockBudgetRepository) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOperationsByAccount", ctx, accountID)
+	ret0, _ := ret[0].([]models.OperationInList)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOperationsByAccount indicates an expected call of GetOperationsByAccount.
+func (mr *MockBudgetRepositoryMockRecorder) GetOperationsByAccount(ctx, accountID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOperationsByAccount", reflect.TypeOf((*MockBudgetRepository)(nil).GetOperationsByAccount), ctx, accountID)
+}
+
+// UpdateBudget mocks base method.
+func (m *MockBudgetRepository) UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateBudget", ctx, req, userID, budgetID)
+	ret0, _ := ret[0].(models.Budget)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateBudget indicates an expected call of UpdateBudget.
+func (mr *MockBudgetRepositoryMockRecorder) UpdateBudget(ctx, req, userID, budgetID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBudget", reflect.TypeOf((*MockBudgetRepository)(nil).UpdateBudget), ctx, req, userID, budgetID)
 }

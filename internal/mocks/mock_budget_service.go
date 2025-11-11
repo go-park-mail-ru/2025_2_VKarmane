@@ -41,6 +41,36 @@ func (m *MockBudgetService) EXPECT() *MockBudgetServiceMockRecorder {
 	return m.recorder
 }
 
+// CreateBudget mocks base method.
+func (m *MockBudgetService) CreateBudget(ctx context.Context, req models.CreateBudgetRequest, userID int) (models.Budget, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBudget", ctx, req, userID)
+	ret0, _ := ret[0].(models.Budget)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBudget indicates an expected call of CreateBudget.
+func (mr *MockBudgetServiceMockRecorder) CreateBudget(ctx, req, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBudget", reflect.TypeOf((*MockBudgetService)(nil).CreateBudget), ctx, req, userID)
+}
+
+// DeleteBudget mocks base method.
+func (m *MockBudgetService) DeleteBudget(ctx context.Context, userID, budgetID int) (models.Budget, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteBudget", ctx, userID, budgetID)
+	ret0, _ := ret[0].(models.Budget)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteBudget indicates an expected call of DeleteBudget.
+func (mr *MockBudgetServiceMockRecorder) DeleteBudget(ctx, userID, budgetID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBudget", reflect.TypeOf((*MockBudgetService)(nil).DeleteBudget), ctx, userID, budgetID)
+}
+
 // GetBudgetByID mocks base method.
 func (m *MockBudgetService) GetBudgetByID(ctx context.Context, userID, budgetID int) (models.Budget, error) {
 	m.ctrl.T.Helper()
@@ -69,4 +99,19 @@ func (m *MockBudgetService) GetBudgetsForUser(ctx context.Context, userID int) (
 func (mr *MockBudgetServiceMockRecorder) GetBudgetsForUser(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBudgetsForUser", reflect.TypeOf((*MockBudgetService)(nil).GetBudgetsForUser), ctx, userID)
+}
+
+// UpdateBudget mocks base method.
+func (m *MockBudgetService) UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateBudget", ctx, req, userID, budgetID)
+	ret0, _ := ret[0].(models.Budget)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateBudget indicates an expected call of UpdateBudget.
+func (mr *MockBudgetServiceMockRecorder) UpdateBudget(ctx, req, userID, budgetID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBudget", reflect.TypeOf((*MockBudgetService)(nil).UpdateBudget), ctx, req, userID, budgetID)
 }
