@@ -8,9 +8,10 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/errors"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
+
 var ErrForbidden = pkgerrors.New("forbidden")
 
 type Service struct {
@@ -19,7 +20,7 @@ type Service struct {
 		GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
 		GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
 		CreateBudget(ctx context.Context, budget models.Budget) (models.Budget, error)
-		UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest,  userID, budgetID int) (models.Budget, error)
+		UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error)
 		DeleteBudget(ctx context.Context, budgetID int) (models.Budget, error)
 	}
 	clock clock.Clock
@@ -30,7 +31,7 @@ func NewService(repo interface {
 	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
 	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
 	CreateBudget(ctx context.Context, budget models.Budget) (models.Budget, error)
-	UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest,  userID, budgetID int) (models.Budget, error)
+	UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error)
 	DeleteBudget(ctx context.Context, budgetID int) (models.Budget, error)
 }, clck clock.Clock) *Service {
 	return &Service{
@@ -104,7 +105,7 @@ func (s *Service) GetBudgetsForUser(ctx context.Context, userID int) ([]models.B
 }
 
 func (s *Service) GetBudgetByID(ctx context.Context, userID, budgetID int) (models.Budget, error) {
-	if (!s.CheckBudgetOwnership(ctx, budgetID)) {
+	if !s.CheckBudgetOwnership(ctx, budgetID) {
 		return models.Budget{}, serviceerrors.ErrForbidden
 	}
 	budgets, err := s.repo.GetBudgetsByUser(ctx, userID)
@@ -123,25 +124,25 @@ func (s *Service) GetBudgetByID(ctx context.Context, userID, budgetID int) (mode
 
 func (s *Service) CreateBudget(ctx context.Context, req models.CreateBudgetRequest, userID int) (models.Budget, error) {
 	budget := models.Budget{
-		UserID: userID,
-		CategoryID: req.CategoryID,
-		Amount: req.Amount,
-		Actual: 0,
-		CurrencyID: 1,
+		UserID:      userID,
+		CategoryID:  req.CategoryID,
+		Amount:      req.Amount,
+		Actual:      0,
+		CurrencyID:  1,
 		Description: req.Description,
-		CreatedAt: s.clock.Now(),
+		CreatedAt:   s.clock.Now(),
 		PeriodStart: req.PeriodStart,
-		PeriodEnd: req.PeriodEnd,
+		PeriodEnd:   req.PeriodEnd,
 	}
 	createdBgt, err := s.repo.CreateBudget(ctx, budget)
 	if err != nil {
 		return models.Budget{}, pkgerrors.Wrap(err, "Failed to create budget")
 	}
-	
+
 	return createdBgt, nil
 }
 
-func (s *Service) UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest,  userID, budgetID int) (models.Budget, error) {
+func (s *Service) UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error) {
 	if !s.CheckBudgetOwnership(ctx, budgetID) {
 		return models.Budget{}, serviceerrors.ErrForbidden
 	}

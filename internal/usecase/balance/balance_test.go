@@ -202,3 +202,196 @@ func TestUseCase_GetAccountByID(t *testing.T) {
 		})
 	}
 }
+
+
+func TestUseCase_CreateAccount(t *testing.T) {
+	tests := []struct {
+		name            string
+		userID          int
+		req             models.CreateAccountRequest
+		mockAccount     models.Account
+		mockError       error
+		expectedAccount models.Account
+		expectedError   error
+	}{
+		{
+			name:   "successful create account",
+			userID: 1,
+			req: models.CreateAccountRequest{
+				Balance:    100.0,
+				Type:       models.PrivateAccount,
+				CurrencyID: 1,
+			},
+			mockAccount: models.Account{
+				ID:         10,
+				Balance:    100.0,
+				Type:       string(models.PrivateAccount),
+				CurrencyID: 1,
+			},
+			mockError:       nil,
+			expectedAccount: models.Account{ID: 10, Balance: 100.0, Type: string(models.PrivateAccount), CurrencyID: 1},
+			expectedError:   nil,
+		},
+		{
+			name:   "service error",
+			userID: 1,
+			req: models.CreateAccountRequest{
+				Balance:    100.0,
+				Type:       models.SharedAccount,
+				CurrencyID: 2,
+			},
+			mockAccount:     models.Account{},
+			mockError:       errors.New("failed to insert"),
+			expectedAccount: models.Account{},
+			expectedError:   errors.New("balance.CreateAccount: failed to insert"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockBalanceService := mocks.NewMockBalanceService(ctrl)
+			uc := &UseCase{balanceSvc: mockBalanceService}
+
+			mockBalanceService.EXPECT().CreateAccount(gomock.Any(), tt.req, tt.userID).Return(tt.mockAccount, tt.mockError)
+
+			ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+			account, err := uc.CreateAccount(ctx, tt.req, tt.userID)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedAccount, account)
+			}
+		})
+	}
+}
+
+func TestUseCase_UpdateAccount(t *testing.T) {
+	tests := []struct {
+		name            string
+		userID          int
+		accID           int
+		req             models.UpdateAccountRequest
+		mockAccount     models.Account
+		mockError       error
+		expectedAccount models.Account
+		expectedError   error
+	}{
+		{
+			name:   "successful update account",
+			userID: 1,
+			accID:  2,
+			req: models.UpdateAccountRequest{
+				Balance: 200.0,
+			},
+			mockAccount: models.Account{
+				ID:         2,
+				Balance:    200.0,
+				Type:       string(models.PrivateAccount),
+				CurrencyID: 1,
+			},
+			mockError:       nil,
+			expectedAccount: models.Account{ID: 2, Balance: 200.0, Type: string(models.PrivateAccount), CurrencyID: 1},
+			expectedError:   nil,
+		},
+		{
+			name:   "service error",
+			userID: 1,
+			accID:  2,
+			req: models.UpdateAccountRequest{
+				Balance: 300.0,
+			},
+			mockAccount:     models.Account{},
+			mockError:       errors.New("db update failed"),
+			expectedAccount: models.Account{},
+			expectedError:   errors.New("balance.UpdateAccount: db update failed"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockBalanceService := mocks.NewMockBalanceService(ctrl)
+			uc := &UseCase{balanceSvc: mockBalanceService}
+
+			mockBalanceService.EXPECT().UpdateAccount(gomock.Any(), tt.req, tt.userID, tt.accID).Return(tt.mockAccount, tt.mockError)
+
+			ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+			account, err := uc.UpdateAccount(ctx, tt.req, tt.userID, tt.accID)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedAccount, account)
+			}
+		})
+	}
+}
+
+func TestUseCase_DeleteAccount(t *testing.T) {
+	tests := []struct {
+		name            string
+		userID          int
+		accID           int
+		mockAccount     models.Account
+		mockError       error
+		expectedAccount models.Account
+		expectedError   error
+	}{
+		{
+			name:   "successful delete account",
+			userID: 1,
+			accID:  10,
+			mockAccount: models.Account{
+				ID:         10,
+				Balance:    0,
+				Type:       string(models.PrivateAccount),
+				CurrencyID: 1,
+			},
+			mockError:       nil,
+			expectedAccount: models.Account{ID: 10, Balance: 0, Type: string(models.PrivateAccount), CurrencyID: 1},
+			expectedError:   nil,
+		},
+		{
+			name:            "service error",
+			userID:          1,
+			accID:           99,
+			mockAccount:     models.Account{},
+			mockError:       errors.New("delete failed"),
+			expectedAccount: models.Account{},
+			expectedError:   errors.New("balance.DeleteAccount: delete failed"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockBalanceService := mocks.NewMockBalanceService(ctrl)
+			uc := &UseCase{balanceSvc: mockBalanceService}
+
+			mockBalanceService.EXPECT().DeleteAccount(gomock.Any(), tt.userID, tt.accID).Return(tt.mockAccount, tt.mockError)
+
+			ctx := logger.WithLogger(context.Background(), logger.NewSlogLogger())
+			account, err := uc.DeleteAccount(ctx, tt.userID, tt.accID)
+
+			if tt.expectedError != nil {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedError.Error())
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedAccount, account)
+			}
+		})
+	}
+}

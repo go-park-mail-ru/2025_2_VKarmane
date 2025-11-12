@@ -41,6 +41,36 @@ func (m *MockBalanceUseCase) EXPECT() *MockBalanceUseCaseMockRecorder {
 	return m.recorder
 }
 
+// CreateAccount mocks base method.
+func (m *MockBalanceUseCase) CreateAccount(ctx context.Context, req models.CreateAccountRequest, userID int) (models.Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAccount", ctx, req, userID)
+	ret0, _ := ret[0].(models.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateAccount indicates an expected call of CreateAccount.
+func (mr *MockBalanceUseCaseMockRecorder) CreateAccount(ctx, req, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAccount", reflect.TypeOf((*MockBalanceUseCase)(nil).CreateAccount), ctx, req, userID)
+}
+
+// DeleteAccount mocks base method.
+func (m *MockBalanceUseCase) DeleteAccount(ctx context.Context, userID, accID int) (models.Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAccount", ctx, userID, accID)
+	ret0, _ := ret[0].(models.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteAccount indicates an expected call of DeleteAccount.
+func (mr *MockBalanceUseCaseMockRecorder) DeleteAccount(ctx, userID, accID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAccount", reflect.TypeOf((*MockBalanceUseCase)(nil).DeleteAccount), ctx, userID, accID)
+}
+
 // GetAccountByID mocks base method.
 func (m *MockBalanceUseCase) GetAccountByID(ctx context.Context, userID, accountID int) (models.Account, error) {
 	m.ctrl.T.Helper()
@@ -69,4 +99,19 @@ func (m *MockBalanceUseCase) GetBalanceForUser(ctx context.Context, userID int) 
 func (mr *MockBalanceUseCaseMockRecorder) GetBalanceForUser(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalanceForUser", reflect.TypeOf((*MockBalanceUseCase)(nil).GetBalanceForUser), ctx, userID)
+}
+
+// UpdateAccount mocks base method.
+func (m *MockBalanceUseCase) UpdateAccount(ctx context.Context, req models.UpdateAccountRequest, userID, accID int) (models.Account, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAccount", ctx, req, userID, accID)
+	ret0, _ := ret[0].(models.Account)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAccount indicates an expected call of UpdateAccount.
+func (mr *MockBalanceUseCaseMockRecorder) UpdateAccount(ctx, req, userID, accID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAccount", reflect.TypeOf((*MockBalanceUseCase)(nil).UpdateAccount), ctx, req, userID, accID)
 }

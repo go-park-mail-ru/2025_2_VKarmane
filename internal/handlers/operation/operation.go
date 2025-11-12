@@ -9,11 +9,11 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/errors"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
-	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/errors"
 
 	"github.com/gorilla/mux"
 )

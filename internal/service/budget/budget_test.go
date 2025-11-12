@@ -33,19 +33,17 @@ func (c *combinedRepo) GetOperationsByAccount(ctx context.Context, accountID int
 	return c.operationRepo.GetOperationsByAccount(ctx, accountID)
 }
 
-
 func (c *combinedRepo) CreateBudget(ctx context.Context, budget models.Budget) (models.Budget, error) {
-    return c.budgetRepo.CreateBudget(ctx, budget)
+	return c.budgetRepo.CreateBudget(ctx, budget)
 }
 
 func (c *combinedRepo) UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error) {
-    return c.budgetRepo.UpdateBudget(ctx, req, userID, budgetID)
+	return c.budgetRepo.UpdateBudget(ctx, req, userID, budgetID)
 }
 
 func (c *combinedRepo) DeleteBudget(ctx context.Context, budgetID int) (models.Budget, error) {
-    return c.budgetRepo.DeleteBudget(ctx, budgetID)
+	return c.budgetRepo.DeleteBudget(ctx, budgetID)
 }
-
 
 func TestService_GetBudgetsForUser(t *testing.T) {
 	fixedClock := clock.FixedClock{

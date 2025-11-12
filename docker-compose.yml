@@ -53,12 +53,12 @@ services:
       HOST: 0.0.0.0
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
       LOG_LEVEL: info
-      HTTPS_ENABLED: "false"
-      # HTTPS_CERT_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/fullchain.pem
-      # HTTPS_KEY_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
+      HTTPS_ENABLED: "true"
+      HTTPS_CERT_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/fullchain.pem
+      HTTPS_KEY_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
       CORS_HOST: "localhost"
       CORS_FRONTEND_PORT: "3000"
-      CORS_ORIGINS: "https://vkarmane.duckdns.org:8080,http://localhost:8000,http://localhost:8070"
+      CORS_ORIGINS: "https://vkarmane.duckdns.org:8080"
       MINIO_ENDPOINT: minio
       MINIO_PORT: "9000"
       MINIO_ACCESS_KEY: minioadmin
@@ -66,9 +66,9 @@ services:
       MINIO_USE_SSL: "false"
       MINIO_BUCKET_NAME: images
     ports:
-      - "8070:8080"
+      - "8080:8080"
     volumes:
-      # - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./logs:/root/logs
     depends_on:
       postgres:

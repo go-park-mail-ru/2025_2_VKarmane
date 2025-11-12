@@ -76,8 +76,6 @@ func (s *PostgresStore) EditUserByID(ctx context.Context, req models.UpdateProfi
 	return s.UserRepo.EditUserByIDModel(ctx, req, userID)
 }
 
-
-
 // AccountRepository
 func (s *PostgresStore) GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error) {
 	return s.AccountRepo.GetAccountsByUser(ctx, userID)
@@ -87,10 +85,10 @@ func (s *PostgresStore) CreateAccount(ctx context.Context, account models.Accoun
 	return s.AccountRepo.CreateAccount(ctx, account, userID)
 }
 
-func (s *PostgresStore)	UpdateAccount(ctx context.Context, req models.UpdateAccountRequest, userID, accID int) (models.Account, error) {
+func (s *PostgresStore) UpdateAccount(ctx context.Context, req models.UpdateAccountRequest, userID, accID int) (models.Account, error) {
 	return s.AccountRepo.UpdateAccount(ctx, req, userID, accID)
 }
-func (s *PostgresStore)	DeleteAccount(ctx context.Context, userID, accID int) (models.Account, error) {
+func (s *PostgresStore) DeleteAccount(ctx context.Context, userID, accID int) (models.Account, error) {
 	return s.AccountRepo.DeleteAccount(ctx, userID, accID)
 }
 
@@ -99,13 +97,13 @@ func (s *PostgresStore) GetBudgetsByUser(ctx context.Context, userID int) ([]mod
 	return s.BudgetRepo.GetBudgetsByUser(ctx, userID)
 }
 
-func (s *PostgresStore) CreateBudget(ctx context.Context, budget models.Budget) (models.Budget ,error) {
+func (s *PostgresStore) CreateBudget(ctx context.Context, budget models.Budget) (models.Budget, error) {
 	return s.BudgetRepo.CreateBudget(ctx, budget)
 }
-func (s *PostgresStore) UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget ,error) {
+func (s *PostgresStore) UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error) {
 	return s.BudgetRepo.UpdateBudget(ctx, req, userID, budgetID)
 }
-func (s *PostgresStore) DeleteBudget(ctx context.Context, budgetID int) (models.Budget ,error) {
+func (s *PostgresStore) DeleteBudget(ctx context.Context, budgetID int) (models.Budget, error) {
 	return s.BudgetRepo.DeleteBudget(ctx, budgetID)
 }
 

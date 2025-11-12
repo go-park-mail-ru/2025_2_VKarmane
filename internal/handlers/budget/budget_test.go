@@ -94,9 +94,9 @@ func TestCreateBudget_Success(t *testing.T) {
 	h := NewHandler(mockUC, clock.RealClock{})
 
 	reqBody := models.CreateBudgetRequest{
-		CategoryID: 1,
+		CategoryID:  1,
 		Description: "Test budget",
-		Amount: 100,
+		Amount:      100,
 	}
 	budget := models.Budget{ID: 10, Amount: 100, CategoryID: 1}
 
@@ -137,7 +137,7 @@ func TestUpdateBudget_Success(t *testing.T) {
 	mockUC := mocks.NewMockBudgetUseCase(ctrl)
 	h := NewHandler(mockUC, clock.RealClock{})
 
-	sum  := 200.5
+	sum := 200.5
 	reqBody := models.UpdatedBudgetRequest{Amount: &sum}
 	updatedBudget := models.Budget{ID: 5, Amount: sum}
 

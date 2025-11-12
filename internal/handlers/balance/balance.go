@@ -10,10 +10,10 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	accounterrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
 	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/errors"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 )
 
@@ -103,7 +103,6 @@ func (h *Handler) GetAccountByID(w http.ResponseWriter, r *http.Request) {
 	accountDTO := AccountToAPI(account)
 	httputils.Success(w, r, accountDTO)
 }
-
 
 func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	userID, ok := h.getUserID(r)
@@ -197,4 +196,3 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	accDTO := AccountToAPI(acc)
 	httputils.Success(w, r, accDTO)
 }
-

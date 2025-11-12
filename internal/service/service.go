@@ -44,7 +44,7 @@ type BudgetRepository interface {
 	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
 	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
 	CreateBudget(ctx context.Context, budget models.Budget) (models.Budget, error)
-	UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest,  userID, budgetID int) (models.Budget, error)
+	UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error)
 	DeleteBudget(ctx context.Context, budgetID int) (models.Budget, error)
 }
 

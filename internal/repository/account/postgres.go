@@ -116,7 +116,6 @@ func (r *PostgresRepository) UpdateAccountBalance(ctx context.Context, accountID
 	return nil
 }
 
-
 func (r *PostgresRepository) CreateAccount(ctx context.Context, account models.Account, userID int) (models.Account, error) {
 	query := `
 		INSERT INTO account (balance, account_type, currency_id, created_at, updated_at)
@@ -168,7 +167,7 @@ func (r *PostgresRepository) CreateUserAccount(ctx context.Context, ua models.Us
 				return ErrAccountNotFound
 			default:
 				return fmt.Errorf("failed to create user account: %w", err)
-			} 
+			}
 		}
 		return fmt.Errorf("failed to create user account: %w", err)
 	}

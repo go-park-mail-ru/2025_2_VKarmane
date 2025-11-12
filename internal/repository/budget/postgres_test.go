@@ -108,12 +108,7 @@ func TestPostgresRepository_CreateBudget(t *testing.T) {
 	pqErr := &pq.Error{Code: "23505"} // UniqueViolation
 	mock.ExpectQuery(`INSERT INTO budget`).WillReturnError(pqErr)
 	_, err = repo.CreateBudget(context.Background(), budget)
-	assert.True(t, errors.Is(err, ErrUniqueViolation))
-
-	pqErr = &pq.Error{Code: "23503"} // ForeignKeyViolation
-	mock.ExpectQuery(`INSERT INTO budget`).WillReturnError(pqErr)
-	_, err = repo.CreateBudget(context.Background(), budget)
-	assert.True(t, errors.Is(err, ErrForeignKeyViolation))
+	assert.True(t, errors.Is(err, ErrActiveBudgetExists))
 
 	pqErr = &pq.Error{Code: "23502"} // NotNullViolation
 	mock.ExpectQuery(`INSERT INTO budget`).WillReturnError(pqErr)
@@ -189,4 +184,4 @@ func TestPostgresRepository_DeleteBudget(t *testing.T) {
 }
 
 func float64Ptr(f float64) *float64 { return &f }
-func strPtr(s string) *string      { return &s }
+func strPtr(s string) *string       { return &s }

@@ -124,7 +124,7 @@ func (h *Handler) CreateBudget(w http.ResponseWriter, r *http.Request) {
 		httputils.ValidationErrors(w, r, validationErrors)
 		return
 	}
-	
+
 	budget, err := h.budgetUC.CreateBudget(r.Context(), req, userID)
 	if err != nil {
 		if errors.Is(err, budgeterrors.ErrActiveBudgetExists) {

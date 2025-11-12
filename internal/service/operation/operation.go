@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/errors"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type Service struct {

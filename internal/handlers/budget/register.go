@@ -17,5 +17,5 @@ func Register(r *mux.Router, uc BudgetUseCase) {
 	r.HandleFunc("/budgets/{id}", handler.GetBudgetByID).Methods(http.MethodGet)
 	r.HandleFunc("/budgets/{id}", handler.UpdateBudget).Methods(http.MethodPut)
 	r.HandleFunc("/budgets/{id}", handler.DeleteBudget).Methods(http.MethodDelete)
-	
+
 }

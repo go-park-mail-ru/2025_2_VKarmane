@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/errors"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type Service struct {
@@ -30,7 +30,6 @@ func NewService(repo interface {
 }, clck clock.Clock) *Service {
 	return &Service{repo: repo, clock: clck}
 }
-
 
 func (s *Service) CheckAccountOwnership(ctx context.Context, accID int) bool {
 	userID, ok := middleware.GetUserIDFromContext(ctx)
@@ -86,7 +85,6 @@ func (s *Service) CreateAccount(ctx context.Context, req models.CreateAccountReq
 		UpdatedAt:  s.clock.Now(),
 	}
 
-
 	createdAcc, err := s.repo.CreateAccount(ctx, account, userID)
 	if err != nil {
 		return models.Account{}, pkgerrors.Wrap(err, "failed to create account")
@@ -94,7 +92,6 @@ func (s *Service) CreateAccount(ctx context.Context, req models.CreateAccountReq
 
 	return createdAcc, nil
 }
-
 
 func (s *Service) UpdateAccount(ctx context.Context, req models.UpdateAccountRequest, userID, accID int) (models.Account, error) {
 	if !s.CheckAccountOwnership(ctx, accID) {
@@ -122,10 +119,9 @@ func (s *Service) DeleteAccount(ctx context.Context, userID, accID int) (models.
 	return deletedAcc, nil
 }
 
-
-	// userAcc := models.UserAccount{
-	// 	UserID:    userID,
-	// 	AccountID: createdAcc.ID,
-	// 	CreatedAt: s.clock.Now(),
-	// 	UpdatedAt: s.clock.Now(),
-	// }
+// userAcc := models.UserAccount{
+// 	UserID:    userID,
+// 	AccountID: createdAcc.ID,
+// 	CreatedAt: s.clock.Now(),
+// 	UpdatedAt: s.clock.Now(),
+// }
