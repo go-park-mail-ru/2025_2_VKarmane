@@ -85,9 +85,7 @@ func (r *PostgresRepository) CreateBudget(ctx context.Context, budget models.Bud
 		if errors.As(err, &pqErr) {
 			switch pqErr.Code {
 			case postgreserrors.UniqueViolation:
-				return models.Budget{}, ErrUniqueViolation
-			case postgreserrors.ForeignKeyViolation:
-				return models.Budget{}, ErrForeignKeyViolation
+				return models.Budget{}, ErrActiveBudgetExists
 			case postgreserrors.NotNullViolation:
 				return models.Budget{}, ErrNotNullViolation
 			case postgreserrors.CheckViolation:

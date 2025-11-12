@@ -12,7 +12,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	// accounterrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
+	accounterrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
 	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/errors"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 )
@@ -157,6 +157,10 @@ func (h *Handler) UpdateAccount(w http.ResponseWriter, r *http.Request) {
 			httputils.Error(w, r, "Доступ к счету запрещен", http.StatusForbidden)
 			return
 		}
+		if errors.Is(err, accounterrors.ErrAccountNotFound) {
+			httputils.NotFoundError(w, r, "Счет не найден")
+			return
+		}
 		httputils.InternalError(w, r, "failed to update budget")
 		return
 	}
@@ -183,10 +187,10 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 			httputils.Error(w, r, "Доступ к бюджету запрещен", 403)
 			return
 		}
-		// if errors.Is(err, budgeterrors.ErrBudgetNotFound) {
-		// 	httputils.NotFoundError(w, r, "Бюджет не найден")
-		// 	return
-		// }
+		if errors.Is(err, accounterrors.ErrAccountNotFound) {
+			httputils.NotFoundError(w, r, "Счет не найден")
+			return
+		}
 		httputils.InternalError(w, r, "failed to delete budget")
 		return
 	}

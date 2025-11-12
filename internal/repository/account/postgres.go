@@ -133,19 +133,6 @@ func (r *PostgresRepository) CreateAccount(ctx context.Context, account models.A
 	).Scan(&account.ID, &account.CreatedAt, &account.UpdatedAt)
 
 	if err != nil {
-		var pqErr *pq.Error
-		if errors.As(err, &pqErr) {
-			switch pqErr.Code {
-			case postgreserrors.UniqueViolation:
-				return models.Account{}, ErrUniqueViolation
-			case postgreserrors.ForeignKeyViolation:
-				return models.Account{}, ErrForeignKeyViolation
-			case postgreserrors.NotNullViolation:
-				return models.Account{}, ErrNotNullViolation
-			case postgreserrors.CheckViolation:
-				return models.Account{}, ErrCheckViolation
-			}
-		}
 		return models.Account{}, fmt.Errorf("failed to create account: %w", err)
 	}
 
@@ -174,6 +161,15 @@ func (r *PostgresRepository) CreateUserAccount(ctx context.Context, ua models.Us
 		ua.UpdatedAt,
 	)
 	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			switch pqErr.Code {
+			case postgreserrors.ForeignKeyViolation:
+				return ErrAccountNotFound
+			default:
+				return fmt.Errorf("failed to create user account: %w", err)
+			} 
+		}
 		return fmt.Errorf("failed to create user account: %w", err)
 	}
 	return nil
@@ -232,7 +228,7 @@ func (r *PostgresRepository) DeleteAccount(ctx context.Context, userID, accID in
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return models.Account{}, fmt.Errorf("account not found")
+			return models.Account{}, ErrAccountNotFound
 		}
 		return models.Account{}, fmt.Errorf("failed to delete account: %w", err)
 	}
