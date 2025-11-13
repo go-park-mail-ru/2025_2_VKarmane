@@ -3,10 +3,13 @@ package category
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/dto"
+	postgreserrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/errors"
+	"github.com/lib/pq"
 )
 
 type PostgresRepository struct {
@@ -37,6 +40,16 @@ func (r *PostgresRepository) CreateCategory(ctx context.Context, category dto.Ca
 	).Scan(&id)
 
 	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			switch pqErr.Code {
+			case postgreserrors.UniqueViolation:
+				return 0, ErrCategoryExists
+			default:
+				return 0, fmt.Errorf("failed to create  category : %w", err)
+			}
+		}
+
 		return 0, fmt.Errorf("failed to create category: %w", err)
 	}
 
@@ -148,12 +161,16 @@ func (r *PostgresRepository) DeleteCategory(ctx context.Context, userID, categor
 func (r *PostgresRepository) GetCategoryStats(ctx context.Context, userID, categoryID int) (int, error) {
 	query := `
 		SELECT COUNT(*)
-		FROM operation
-		WHERE category_id = $1 AND (account_from_id IN (
-			SELECT _id FROM account WHERE user_id = $2
-		) OR account_to_id IN (
-			SELECT _id FROM account WHERE user_id = $2
-		)) AND operation_status != 'reverted'
+		FROM operation AS op
+		JOIN account AS acc
+		ON acc._id = op.account_from_id OR acc._id = op.account_to_id
+		JOIN sharings AS sh
+		ON sh.account_id = acc._id
+		JOIN "user" AS u
+		ON u._id = sh.user_id
+		WHERE op.category_id = $1
+		AND op.operation_status != 'reverted'
+		AND u._id = $2;
 	`
 
 	var count int

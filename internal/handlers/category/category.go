@@ -2,6 +2,7 @@ package category
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	categoryerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/category"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/category"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
@@ -150,7 +152,7 @@ func (h *Handler) CreateCategory(w http.ResponseWriter, r *http.Request) {
 		defer func() { _ = file.Close() }()
 
 		ext := strings.ToLower(filepath.Ext(header.Filename))
-		allowedExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}
+		allowedExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"}
 		allowed := false
 		for _, allowedExt := range allowedExts {
 			if ext == allowedExt {
@@ -180,6 +182,9 @@ func (h *Handler) CreateCategory(w http.ResponseWriter, r *http.Request) {
 
 	category, err := h.categoryUC.CreateCategory(r.Context(), req, userID)
 	if err != nil {
+		if errors.Is(err, categoryerrors.ErrCategoryExists) {
+			httputils.ConflictError(w, r, "Такая категория уже существует", models.ErrCodeCategoryExists)
+		}
 		httputils.InternalError(w, r, "Failed to create category")
 		return
 	}
