@@ -184,6 +184,7 @@ func (h *Handler) CreateCategory(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, categoryerrors.ErrCategoryExists) {
 			httputils.ConflictError(w, r, "Такая категория уже существует", models.ErrCodeCategoryExists)
+			return
 		}
 		httputils.InternalError(w, r, "Failed to create category")
 		return
