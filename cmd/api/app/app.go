@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -20,11 +21,11 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 
-	httpSwagger "github.com/swaggo/http-swagger"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
-    "google.golang.org/grpc"
+	httpSwagger "github.com/swaggo/http-swagger"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-    "google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func Run() error {
@@ -47,9 +48,10 @@ func Run() error {
 		dialOpts = grpc.WithTransportCredentials(insecure.NewCredentials())
 	}
 
-	authGrpcConn, err := grpc.NewClient(config.AuthServicePort, dialOpts)
+	authGrpcConn, err := grpc.NewClient(fmt.Sprintf("%s:%s", config.AuthServiceHost, config.AuthServicePort), dialOpts)
 	if err != nil {
 		appLogger.Error("Failed to connect to auth gRPC service", "error", err)
+		log.Fatal(err)
 		return err
 	}
 	defer authGrpcConn.Close()
@@ -103,14 +105,14 @@ func Run() error {
 
 	public := r.PathPrefix("/api/v1").Subrouter()
 	// Временно отключен CSRF для фронтенда
-	public.Use(middleware.CSRFMiddleware(config.JWTSecret))
+	// public.Use(middleware.CSRFMiddleware(config.JWTSecret))
 
 	protected := r.PathPrefix("/api/v1").Subrouter()
 	protected.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
 	protected.Use(middleware.LoggerMiddleware(appLogger))
 	protected.Use(middleware.RequestLoggerMiddleware(appLogger))
 	protected.Use(middleware.SecurityLoggerMiddleware(appLogger))
-	protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
+	// protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
 	handler.Register(public, protected, authClient)

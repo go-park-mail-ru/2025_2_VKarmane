@@ -105,8 +105,15 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.authUC.Login(r.Context(), req)
+	// response, err := h.authUC.Login(r.Context(), req)
+	response, err := h.authClient.Login(r.Context(), &authpb.LoginRequest{
+		Login: req.Login,
+		Password: req.Password,
+	})
+	
 	if err != nil {
+		log := logger.FromContext(r.Context())
+		log.Error("grpc error", err)
 		switch {
 		case errors.Is(err, user.ErrUserNotFound):
 			httputil.UnauthorizedError(w, r, "Пользователь не найден", models.ErrCodeUserNotFound)
@@ -154,6 +161,8 @@ func (h *Handler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
 // @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
 // @Router /auth/logout [post]
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
-	h.authUC.Logout(r.Context(), w)
+	isProduction := os.Getenv("ENV") == "production"
+	utils.ClearAuthCookie(w, isProduction)
+	utils.ClearCSRFCookie(w, isProduction)
 	httputil.Success(w, r, map[string]string{"message": "Logged out successfully"})
 }
