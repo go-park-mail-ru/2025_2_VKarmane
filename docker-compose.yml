@@ -54,8 +54,8 @@ services:
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
       LOG_LEVEL: info
       HTTPS_ENABLED: "true"
-      HTTPS_CERT_FILE: ssl/server.crt
-      HTTPS_KEY_FILE: ssl/server.key
+      HTTPS_CERT_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/fullchain.pem
+      HTTPS_KEY_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
       CORS_HOST: "localhost"
       CORS_FRONTEND_PORT: "3000"
       CORS_ORIGINS: "https://vkarmane.duckdns.org:8080"
@@ -68,7 +68,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./ssl:/root/ssl:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./logs:/root/logs
     depends_on:
       postgres:

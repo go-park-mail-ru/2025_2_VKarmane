@@ -1,6 +1,8 @@
 package balance
 
 import (
+	"time"
+
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
 
@@ -10,6 +12,8 @@ func AccountToAPI(account models.Account) AccountAPI {
 		Balance:    account.Balance,
 		Type:       account.Type,
 		CurrencyID: account.CurrencyID,
+		CreatedAt:  account.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:  account.UpdatedAt.Format(time.RFC3339),
 	}
 }
 

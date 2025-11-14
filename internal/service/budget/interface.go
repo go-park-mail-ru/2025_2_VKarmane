@@ -20,5 +20,5 @@ type AccountRepository interface {
 }
 
 type OperationRepository interface {
-	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
 }

@@ -1,31 +1,51 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
-	"os"
 
-	"github.com/gorilla/csrf"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 )
 
-func CSRFMiddleware(authKey []byte) func(http.Handler) http.Handler {
-	isProduction := os.Getenv("ENV") == "production"
-
-	csrfProtect := csrf.Protect(
-		authKey,
-		csrf.Secure(isProduction),
-		csrf.HttpOnly(true),
-		csrf.SameSite(csrf.SameSiteStrictMode),
-		csrf.Path("/"),
-		csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusForbidden)
-			_, _ = w.Write([]byte(`{"error": "CSRF token validation failed", "code": "CSRF_TOKEN_INVALID"}`))
-		})),
-	)
-
-	return csrfProtect
+var safeMethods = map[string]bool{
+	http.MethodGet:     true,
+	http.MethodHead:    true,
+	http.MethodOptions: true,
+	http.MethodTrace:   true,
 }
 
-func GetCSRFToken(r *http.Request) string {
-	return csrf.Token(r)
+func IsSafeMethod(method string) bool {
+	return safeMethods[method]
+}
+
+func CSRFMiddleware(jwtSecret string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if !IsSafeMethod(r.Method) {
+				cookie, err := r.Cookie("csrf_token")
+				if err != nil {
+					http.Error(w, "CSRF token was not provided in cookies", http.StatusForbidden)
+					return
+				}
+				headerToken := r.Header.Get("X-CSRF-Token")
+				if headerToken == "" {
+					http.Error(w, "CSRF token was not provided in headers", http.StatusForbidden)
+					return
+				}
+				cookieToken := cookie.Value
+
+				if cookieToken != headerToken {
+					http.Error(w, "Tokens do not match", http.StatusForbidden)
+					return
+				}
+
+				if _, err := utils.ValidateCSRF(headerToken, jwtSecret); err != nil {
+					http.Error(w, "Invalid CSRF token", http.StatusForbidden)
+					return
+				}
+			}
+			ctx := context.WithValue(r.Context(), "csrf_secret", jwtSecret)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }

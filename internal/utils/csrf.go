@@ -1,21 +1,28 @@
 package utils
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type ClaimsJWT struct {
-	UserID int    `json:"user_id"`
-	Login  string `json:"login"`
+type ClaimsCSRF struct {
+	CSRFID    string    `json:"csrf_id"`
+	TimeStamp time.Time `json:"timestamp"`
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(userID int, login, secret string) (string, error) {
-	claims := ClaimsJWT{
-		UserID: userID,
-		Login:  login,
+func GenerateCSRF(timeStamp time.Time, secret string) (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+
+	claims := ClaimsCSRF{
+		CSRFID:    base64.RawStdEncoding.EncodeToString(b),
+		TimeStamp: timeStamp,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -27,12 +34,11 @@ func GenerateJWT(userID int, login, secret string) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
-func ValidateJWT(tokenString, secret string) (*ClaimsJWT, error) {
-	claims := &ClaimsJWT{}
+func ValidateCSRF(tokenString string, secret string) (*ClaimsCSRF, error) {
+	claims := &ClaimsCSRF{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
 	})
-
 	if err != nil {
 		return nil, err
 	}

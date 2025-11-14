@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
+	// "github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
@@ -16,9 +17,9 @@ import (
 )
 
 type Handler struct {
-	authUC AuthUseCase
-	clock  clock.Clock
-	logger logger.Logger
+	authUC    AuthUseCase
+	clock     clock.Clock
+	logger    logger.Logger
 }
 
 func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger) *Handler {
@@ -117,6 +118,25 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	httputil.Success(w, r, response)
 }
 
+// GetCSRFToken godoc
+// @Summary Получение CSRF токена
+// @Description Возвращает CSRF токен для использования в последующих запросах
+// @Tags auth
+// @Produce json
+// @Success 200 {object} map[string]string "CSRF токен"
+// @Router /auth/csrf [get]
+func (h *Handler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
+	isProduction := os.Getenv("ENV") == "production"
+
+	token, err := h.authUC.GetCSRFToken(r.Context())
+	if err != nil {
+		httputil.InternalError(w, r, "Failed to get CSRF-Token")
+	}
+
+	utils.SetCSRFCookie(w, token, isProduction)
+	httputil.Success(w, r, map[string]string{"csrf_token": token})
+}
+
 // Logout godoc
 // @Summary Выход из системы
 // @Description Завершает сессию пользователя
@@ -127,8 +147,6 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 // @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
 // @Router /auth/logout [post]
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
-	isProduction := os.Getenv("ENV") == "production"
-	utils.ClearAuthCookie(w, isProduction)
-
+	h.authUC.Logout(r.Context(), w)
 	httputil.Success(w, r, map[string]string{"message": "Logged out successfully"})
 }

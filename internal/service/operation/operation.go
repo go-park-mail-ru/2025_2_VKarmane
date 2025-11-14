@@ -17,7 +17,7 @@ var ErrForbidden = errors.New("forbidden")
 type Service struct {
 	repo interface {
 		GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
-		GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+		GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
 		GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error)
 		CreateOperation(ctx context.Context, op models.Operation) (models.Operation, error)
 		UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error)
@@ -28,7 +28,7 @@ type Service struct {
 
 func NewService(repo interface {
 	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
-	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
 	GetOperationByID(ctx context.Context, accID int, opID int) (models.Operation, error)
 	CreateOperation(ctx context.Context, op models.Operation) (models.Operation, error)
 	UpdateOperation(ctx context.Context, req models.UpdateOperationRequest, accID int, opID int) (models.Operation, error)
@@ -41,28 +41,34 @@ func NewService(repo interface {
 }
 
 func (s *Service) CheckAccountOwnership(ctx context.Context, accID int) bool {
-	userID, _ := middleware.GetUserIDFromContext(ctx)
+	userID, ok := middleware.GetUserIDFromContext(ctx)
+	if !ok || userID == 0 {
+		return false
+	}
 	accs, err := s.repo.GetAccountsByUser(ctx, userID)
 	if err != nil {
 		return false
 	}
-	if len(accs) > 0 {
-		for _, acc := range accs {
-			if acc.ID == accID {
-				return true
-			}
+
+	if len(accs) == 0 {
+		return false
+	}
+	for _, acc := range accs {
+		if acc.ID == accID {
+			return true
 		}
 	}
 	return false
 }
 
-func (s *Service) GetAccountOperations(ctx context.Context, accID int) ([]models.Operation, error) {
+func (s *Service) GetAccountOperations(ctx context.Context, accID int) ([]models.OperationInList, error) {
 	if !s.CheckAccountOwnership(ctx, accID) {
-		return []models.Operation{}, ErrForbidden
+		// Если счет не принадлежит пользователю или у пользователя нет счетов, возвращаем пустой массив
+		return []models.OperationInList{}, nil
 	}
 	ops, err := s.repo.GetOperationsByAccount(ctx, accID)
 	if err != nil {
-		return []models.Operation{}, pkgerrors.Wrap(err, "Failed to get account operations")
+		return []models.OperationInList{}, pkgerrors.Wrap(err, "Failed to get account operations")
 	}
 	return ops, nil
 }
@@ -72,6 +78,7 @@ func (s *Service) GetOperationByID(ctx context.Context, accID int, opID int) (mo
 		return models.Operation{}, ErrForbidden
 	}
 	op, err := s.repo.GetOperationByID(ctx, accID, opID)
+
 	if err != nil {
 		return models.Operation{}, pkgerrors.Wrap(err, "Failed to get operation by ID")
 	}

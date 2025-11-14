@@ -86,6 +86,9 @@ func TestLogout_Success(t *testing.T) {
 	mockUC := mocks.NewMockAuthUseCase(ctrl)
 	handler := NewHandler(mockUC, clock.RealClock{}, logger.NewSlogLogger())
 
+	mockUC.EXPECT().
+		Logout(gomock.Any(), gomock.Any())
+
 	req := httptest.NewRequest(http.MethodPost, "/auth/logout", nil)
 	rr := httptest.NewRecorder()
 

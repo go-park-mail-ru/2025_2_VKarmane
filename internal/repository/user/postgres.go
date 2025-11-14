@@ -21,6 +21,32 @@ func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 }
 
 func (r *PostgresRepository) CreateUser(ctx context.Context, user dto.UserDB) (int, error) {
+	// Если CreatedAt или UpdatedAt не установлены, используем NOW() в SQL
+	if user.CreatedAt.IsZero() || user.UpdatedAt.IsZero() {
+		query := `
+			INSERT INTO "user" (user_name, surname, email, user_login, user_hashed_password, user_description, logo_hashed_id, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+			RETURNING _id
+		`
+
+		var id int
+		err := r.db.QueryRowContext(ctx, query,
+			user.FirstName,
+			user.LastName,
+			user.Email,
+			user.Login,
+			user.Password,
+			user.Description,
+			user.LogoHashedID,
+		).Scan(&id)
+
+		if err != nil {
+			return 0, fmt.Errorf("failed to create user: %w", err)
+		}
+
+		return id, nil
+	}
+
 	query := `
 		INSERT INTO "user" (user_name, surname, email, user_login, user_hashed_password, user_description, logo_hashed_id, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -125,6 +151,9 @@ func (r *PostgresRepository) GetUserByID(ctx context.Context, id int) (dto.UserD
 	)
 
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return dto.UserDB{}, ErrUserNotFound
+		}
 		return dto.UserDB{}, fmt.Errorf("failed to get user by ID: %w", err)
 	}
 
@@ -155,6 +184,15 @@ func (r *PostgresRepository) UpdateUser(ctx context.Context, user dto.UserDB) er
 }
 
 func (r *PostgresRepository) CreateUserModel(ctx context.Context, user models.User) (models.User, error) {
+	now := time.Now()
+	// Если CreatedAt не установлен, используем текущее время
+	if user.CreatedAt.IsZero() {
+		user.CreatedAt = now
+	}
+	if user.UpdatedAt.IsZero() {
+		user.UpdatedAt = now
+	}
+
 	userDB := dto.UserDB{
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,

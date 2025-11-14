@@ -2,13 +2,16 @@ package profile
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/profile"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
@@ -36,12 +39,17 @@ func (h *Handler) enrichProfileWithLogoURL(ctx context.Context, profile *models.
 	if profile.LogoHashedID == "" {
 		return
 	}
-	url, err := h.imageUC.GetImageURL(ctx, profile.LogoHashedID)
+	// Используем контекст с таймаутом, чтобы избежать зависания
+	urlCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	url, err := h.imageUC.GetImageURL(urlCtx, profile.LogoHashedID)
 	if err != nil {
 		log := logger.FromContext(ctx)
 		if log != nil {
 			log.Error("Failed to get image URL for profile", "image_id", profile.LogoHashedID, "error", err)
 		}
+		// Не блокируем ответ, если не удалось получить URL изображения
 		return
 	}
 	profile.LogoURL = url
@@ -66,6 +74,10 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := h.profileUC.GetProfile(r.Context(), userID)
 	if err != nil {
+		if errors.Is(err, user.ErrUserNotFound) {
+			httputils.NotFoundError(w, r, "Пользователь не найден")
+			return
+		}
 		httputils.InternalError(w, r, "Failed to get profile")
 		return
 	}

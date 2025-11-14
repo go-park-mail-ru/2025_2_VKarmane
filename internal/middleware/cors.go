@@ -26,18 +26,33 @@ func CORSMiddleware(allowedOrigins []string, appLogger logger.Logger) func(http.
 			}
 
 			if r.Method == http.MethodOptions {
-				if allowed && origin != "" {
-					w.Header().Set("Access-Control-Allow-Origin", origin)
-					w.Header().Set("Access-Control-Allow-Credentials", "true")
+				// Для OPTIONS запросов разрешаем origin, если он в списке разрешенных
+				if origin != "" {
+					var originAllowed bool
+					for _, allowedOrigin := range allowedOrigins {
+						if origin == allowedOrigin {
+							originAllowed = true
+							break
+						}
+					}
+					if originAllowed {
+						w.Header().Set("Access-Control-Allow-Origin", origin)
+						w.Header().Set("Access-Control-Allow-Credentials", "true")
+					} else {
+						// Если origin не разрешен, но OPTIONS запрос - все равно отвечаем
+						w.Header().Set("Access-Control-Allow-Origin", origin)
+						w.Header().Set("Access-Control-Allow-Credentials", "true")
+						appLogger.Warn("OPTIONS request from non-allowed origin, but allowing for CORS preflight", "origin", origin)
+					}
 				} else {
 					w.Header().Set("Access-Control-Allow-Origin", "*")
 				}
 
 				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, X-CSRF-Token")
 				w.Header().Set("Access-Control-Max-Age", "3600")
 
-				appLogger.Info("Handling OPTIONS preflight request", "path", r.URL.Path)
+				appLogger.Info("Handling OPTIONS preflight request", "path", r.URL.Path, "origin", origin)
 				w.WriteHeader(http.StatusOK)
 				return
 			}
@@ -55,7 +70,7 @@ func CORSMiddleware(allowedOrigins []string, appLogger logger.Logger) func(http.
 			}
 
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, X-CSRF-Token")
 			w.Header().Set("Access-Control-Max-Age", "3600")
 
 			appLogger.Debug("CORS Headers set",

@@ -19,7 +19,7 @@ func TestUseCase_GetAccountOperations_Success(t *testing.T) {
 	mockSvc := mocks.NewMockOperationService(ctrl)
 	uc := NewUseCase(mockSvc)
 
-	expectedOps := []models.Operation{
+	expectedOps := []models.OperationInList{
 		{ID: 1, Name: "Test"},
 	}
 

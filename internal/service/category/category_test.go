@@ -148,5 +148,5 @@ func TestService_GetCategoriesByUser_Error(t *testing.T) {
 
 	result, err := svc.GetCategoriesByUser(context.Background(), 1)
 	assert.Error(t, err)
-	assert.Nil(t, result)
+	assert.Empty(t, result)
 }

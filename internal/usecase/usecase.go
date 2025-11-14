@@ -28,7 +28,7 @@ type UseCase struct {
 
 func NewUseCase(service *service.Service, store Repository, jwtSecret string) *UseCase {
 	realClock := clock.RealClock{}
-	authUC := authUC.NewUseCase(service.AuthUC, realClock)
+	authUC := authUC.NewUseCase(service.AuthUC, realClock, jwtSecret)
 	balanceUC := balance.NewUseCase(service.BalanceUC)
 	budgetUC := budget.NewUseCase(service.BudgetUC)
 	opUC := operation.NewUseCase(service.OpUC)

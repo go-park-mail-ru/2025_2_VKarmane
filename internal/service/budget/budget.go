@@ -14,7 +14,7 @@ type Service struct {
 	repo interface {
 		GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error)
 		GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
-		GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+		GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
 	}
 	clock clock.Clock
 }
@@ -22,7 +22,7 @@ type Service struct {
 func NewService(repo interface {
 	GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error)
 	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
-	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.Operation, error)
+	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
 }, clck clock.Clock) *Service {
 	return &Service{
 		repo:  repo,
@@ -35,9 +35,16 @@ func (s *Service) GetBudgetsForUser(ctx context.Context, userID int) ([]models.B
 	if err != nil {
 		return []models.Budget{}, pkgerrors.Wrap(err, "Failed to get budgets for user")
 	}
+	if budgets == nil {
+		budgets = []models.Budget{}
+	}
 	accounts, err := s.repo.GetAccountsByUser(ctx, userID)
 	if err != nil {
 		return []models.Budget{}, pkgerrors.Wrap(err, "Failed to get accounts for user")
+	}
+
+	if accounts == nil {
+		accounts = []models.Account{}
 	}
 
 	for i := range budgets {
