@@ -12,6 +12,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/profile"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 )
 
 type Registrator struct {
@@ -27,8 +28,8 @@ func NewRegistrator(uc *usecase.UseCase, log logger.Logger) *Registrator {
 
 }
 
-func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux.Router, uc *usecase.UseCase, log logger.Logger) {
-	auth.Register(publicRouter, protectedRouter, uc.AuthUC, log)
+func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux.Router, uc *usecase.UseCase, log logger.Logger, authClient authpb.AuthServiceClient) {
+	auth.Register(publicRouter, protectedRouter, uc.AuthUC, log, authClient)
 	balance.Register(protectedRouter, uc.BalanceUC)
 	budget.Register(protectedRouter, uc.BudgetUC)
 	operation.Register(protectedRouter, uc.OpUC, uc.ImageUC)

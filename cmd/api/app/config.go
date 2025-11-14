@@ -7,13 +7,14 @@ import (
 )
 
 type Config struct {
-	Port      string
-	Host      string
-	JWTSecret string
-	LogLevel  string
-	Database  DatabaseConfig
-	HTTPS     HTTPSConfig
-	MinIO     MinIOConfig
+	Port            string
+	AuthServicePort string
+	Host            string
+	JWTSecret       string
+	LogLevel        string
+	Database        DatabaseConfig
+	HTTPS           HTTPSConfig
+	MinIO           MinIOConfig
 }
 
 type DatabaseConfig struct {
@@ -42,10 +43,11 @@ type MinIOConfig struct {
 
 func LoadConfig() *Config {
 	config := &Config{
-		Port:      getEnv("PORT", "8080"),
-		Host:      getEnv("HOST", "0.0.0.0"),
-		JWTSecret: getEnv("JWT_SECRET", "your-secret-key"),
-		LogLevel:  getEnv("LOG_LEVEL", "info"),
+		Port:            getEnv("PORT", "8080"),
+		AuthServicePort: getEnv("AUTH_SERVICE_PORT", "8090"),
+		Host:            getEnv("HOST", "0.0.0.0"),
+		JWTSecret:       getEnv("JWT_SECRET", "your-secret-key"),
+		LogLevel:        getEnv("LOG_LEVEL", "info"),
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),

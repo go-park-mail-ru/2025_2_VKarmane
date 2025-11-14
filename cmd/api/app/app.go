@@ -21,6 +21,10 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 
 	httpSwagger "github.com/swaggo/http-swagger"
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
+    "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+    "google.golang.org/grpc/credentials/insecure"
 )
 
 func Run() error {
@@ -31,6 +35,26 @@ func Run() error {
 		appLogger = logger.NewSlogLogger()
 	}
 
+	var dialOpts grpc.DialOption
+	if config.HTTPS.Enabled {
+		creds, err := credentials.NewClientTLSFromFile(config.HTTPS.CertFile, "")
+		if err != nil {
+			appLogger.Error("Failed to load TLS credentials", "error", err)
+			return err
+    	}
+		dialOpts = grpc.WithTransportCredentials(creds)
+	} else {
+		dialOpts = grpc.WithTransportCredentials(insecure.NewCredentials())
+	}
+
+	authGrpcConn, err := grpc.NewClient(config.AuthServicePort, dialOpts)
+	if err != nil {
+		appLogger.Error("Failed to connect to auth gRPC service", "error", err)
+		return err
+	}
+	defer authGrpcConn.Close()
+
+	authClient := authpb.NewAuthServiceClient(authGrpcConn)
 	store, err := repository.NewPostgresStore(config.GetDatabaseDSN())
 	if err != nil {
 		return err
@@ -55,7 +79,7 @@ func Run() error {
 	var repo service.Repository = store
 	serviceInstance := service.NewService(repo, config.JWTSecret, imageStorage)
 	usecaseInstance := usecase.NewUseCase(serviceInstance, repo, config.JWTSecret)
-	handler := handlers.NewHandler(usecaseInstance, appLogger)
+	handler := handlers.NewHandler(usecaseInstance, appLogger, authClient)
 
 	r := mux.NewRouter()
 
@@ -89,7 +113,7 @@ func Run() error {
 	protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
-	handler.Register(public, protected)
+	handler.Register(public, protected, authClient)
 
 	// Swagger документация
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)

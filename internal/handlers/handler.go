@@ -12,6 +12,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 )
 
 type Handler struct {
@@ -25,12 +26,12 @@ type Handler struct {
 	registrator     *Registrator
 }
 
-func NewHandler(uc *usecase.UseCase, logger logger.Logger) *Handler {
+func NewHandler(uc *usecase.UseCase, logger logger.Logger, authClient authpb.AuthServiceClient) *Handler {
 	realClock := clock.RealClock{}
 	return &Handler{
 		balanceHandler:  balance.NewHandler(uc.BalanceUC, realClock),
 		budgetHandler:   budget.NewHandler(uc.BudgetUC, realClock),
-		authHandler:     auth.NewHandler(uc.AuthUC, realClock, logger),
+		authHandler:     auth.NewHandler(uc.AuthUC, realClock, logger, authClient),
 		opHandler:       operation.NewHandler(uc.OpUC, uc.ImageUC, realClock),
 		categoryHandler: category.NewHandler(uc.CategoryUC, uc.ImageUC),
 		profileHandler:  profile.NewHandler(uc.ProfileUC, uc.ImageUC),
@@ -39,6 +40,6 @@ func NewHandler(uc *usecase.UseCase, logger logger.Logger) *Handler {
 	}
 }
 
-func (h *Handler) Register(publicRouter *mux.Router, protectedRouter *mux.Router) {
-	h.registrator.RegisterAll(publicRouter, protectedRouter, h.registrator.uc, h.logger)
+func (h *Handler) Register(publicRouter *mux.Router, protectedRouter *mux.Router, authCleint authpb.AuthServiceClient) {
+	h.registrator.RegisterAll(publicRouter, protectedRouter, h.registrator.uc, h.logger, authCleint)
 }

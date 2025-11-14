@@ -14,16 +14,18 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputil "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 )
 
 type Handler struct {
 	authUC AuthUseCase
 	clock  clock.Clock
 	logger logger.Logger
+	authClient authpb.AuthServiceClient
 }
 
-func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger) *Handler {
-	return &Handler{authUC: authUC, clock: clck, logger: logger}
+func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger, authCLient authpb.AuthServiceClient) *Handler {
+	return &Handler{authUC: authUC, clock: clck, logger: logger, authClient: authCLient}
 }
 
 // Register godoc
@@ -52,7 +54,12 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.authUC.Register(r.Context(), req)
+	// response, err := h.authUC.Register(r.Context(), req)
+	response, err := h.authClient.Register(r.Context(), &authpb.RegisterRequest{
+		Login: req.Login,
+		Email: req.Email,
+		Password: req.Password,
+	})
 	if err != nil {
 		switch {
 		case errors.Is(err, user.ErrEmailExists):
