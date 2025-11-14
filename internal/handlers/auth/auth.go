@@ -17,9 +17,9 @@ import (
 )
 
 type Handler struct {
-	authUC AuthUseCase
-	clock  clock.Clock
-	logger logger.Logger
+	authUC    AuthUseCase
+	clock     clock.Clock
+	logger    logger.Logger
 }
 
 func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger) *Handler {

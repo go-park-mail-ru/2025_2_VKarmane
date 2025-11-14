@@ -225,7 +225,6 @@ func (h *Handler) GetOperationByID(w http.ResponseWriter, r *http.Request) {
 	op, err := h.opUC.GetOperationByID(r.Context(), accID, opID)
 	if err != nil {
 		if errors.Is(err, serviceerrors.ErrForbidden) {
-
 			httputils.Error(w, r, "Доступ к операции запрещен", 403)
 			return
 		}
