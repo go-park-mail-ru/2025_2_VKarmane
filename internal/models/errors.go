@@ -14,7 +14,7 @@ const (
 	ErrCodeLoginExists  ErrorCode = "LOGIN_EXISTS"
 	ErrCodeWeakPassword ErrorCode = "WEAK_PASSWORD"
 
-	ErrCodeBudgetExists ErrorCode = "BUDGET_EXISTS"
+	ErrCodeBudgetExists   ErrorCode = "BUDGET_EXISTS"
 	ErrCodeCategoryExists ErrorCode = "CATEGORY_EXISTS"
 
 	ErrCodeUserNotFound       ErrorCode = "USER_NOT_FOUND"
@@ -44,6 +44,8 @@ const (
 	ErrCodeInternalError      ErrorCode = "INTERNAL_ERROR"
 	ErrCodeServiceUnavailable ErrorCode = "SERVICE_UNAVAILABLE"
 	ErrCodeDatabaseError      ErrorCode = "DATABASE_ERROR"
+
+	ErrCodeSupportRequestNotFound ErrorCode = "SUPPORT_REQUEST_NOT_FOUND"
 )
 
 type ErrorResponse struct {

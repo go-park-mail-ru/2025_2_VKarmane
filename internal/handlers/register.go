@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/support"
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/auth"
@@ -34,5 +35,6 @@ func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux
 	operation.Register(protectedRouter, uc.OpUC, uc.ImageUC)
 	category.Register(protectedRouter, uc.CategoryUC, uc.ImageUC)
 	profile.Register(protectedRouter, uc.ProfileUC, uc.ImageUC)
+	support.Register(protectedRouter, uc.SupportUC)
 	image.Register(protectedRouter, uc.ImageUC)
 }

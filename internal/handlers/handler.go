@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/support"
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/auth"
@@ -21,6 +22,7 @@ type Handler struct {
 	opHandler       *operation.Handler
 	categoryHandler *category.Handler
 	profileHandler  *profile.Handler
+	supportHandler  *support.Handler
 	logger          logger.Logger
 	registrator     *Registrator
 }
@@ -34,6 +36,7 @@ func NewHandler(uc *usecase.UseCase, logger logger.Logger) *Handler {
 		opHandler:       operation.NewHandler(uc.OpUC, uc.ImageUC, realClock),
 		categoryHandler: category.NewHandler(uc.CategoryUC, uc.ImageUC),
 		profileHandler:  profile.NewHandler(uc.ProfileUC, uc.ImageUC),
+		supportHandler:  support.NewHandler(uc.SupportUC),
 		logger:          logger,
 		registrator:     NewRegistrator(uc, logger),
 	}

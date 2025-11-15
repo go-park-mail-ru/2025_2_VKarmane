@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/operation"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/profile"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/support"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
@@ -23,6 +24,7 @@ type UseCase struct {
 	AuthUC     *authUC.UseCase
 	CategoryUC *category.UseCase
 	ProfileUC  *profile.UseCase
+	SupportUC  *support.UseCase
 	ImageUC    *image.UseCase
 }
 
@@ -34,6 +36,7 @@ func NewUseCase(service *service.Service, store Repository, jwtSecret string) *U
 	opUC := operation.NewUseCase(service.OpUC)
 	categoryUC := category.NewUseCase(service.CategoryUC)
 	profileUC := profile.NewUseCase(service.ProfileUC)
+	supportUC := support.NewUseCase(service.SupportUC)
 	imageUC := image.NewUseCase(service.ImageUC)
 
 	return &UseCase{
@@ -44,6 +47,7 @@ func NewUseCase(service *service.Service, store Repository, jwtSecret string) *U
 		AuthUC:     authUC,
 		CategoryUC: categoryUC,
 		ProfileUC:  profileUC,
+		SupportUC:  supportUC,
 		ImageUC:    imageUC,
 	}
 }

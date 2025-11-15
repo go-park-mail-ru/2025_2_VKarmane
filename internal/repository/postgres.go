@@ -10,6 +10,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
 	categoryrepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/category"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/support"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	_ "github.com/lib/pq"
 )
@@ -21,6 +22,7 @@ type PostgresStore struct {
 	BudgetRepo    *budget.PostgresRepository
 	OperationRepo *operation.PostgresRepository
 	CategoryRepo  *categoryrepo.PostgresRepository
+	SupportRepo   *support.PostgresRepository
 }
 
 func NewPostgresStore(dsn string) (*PostgresStore, error) {
@@ -42,6 +44,7 @@ func NewPostgresStore(dsn string) (*PostgresStore, error) {
 	store.BudgetRepo = budget.NewPostgresRepository(db)
 	store.OperationRepo = operation.NewPostgresRepository(db)
 	store.CategoryRepo = categoryrepo.NewPostgresRepository(db)
+	store.SupportRepo = support.NewPostgresRepository(db)
 
 	return store, nil
 }
@@ -187,4 +190,21 @@ func (s *PostgresStore) GetCategoryStats(ctx context.Context, userID, categoryID
 		return 0, fmt.Errorf("failed to get category stats: %w", err)
 	}
 	return stats, nil
+}
+
+// SupportRepository
+func (s *PostgresStore) Create(ctx context.Context, req models.Support) (models.Support, error) {
+	return s.SupportRepo.Create(ctx, req)
+}
+
+func (s *PostgresStore) GetByUser(ctx context.Context, userID int) ([]models.Support, error) {
+	return s.SupportRepo.GetByUser(ctx, userID)
+}
+
+func (s *PostgresStore) UpdateStatus(ctx context.Context, id int, status models.StatusContacting) error {
+	return s.SupportRepo.UpdateStatus(ctx, id, status)
+}
+
+func (s *PostgresStore) GetStats(ctx context.Context) (map[models.StatusContacting]int, error) {
+	return s.SupportRepo.GetStats(ctx)
 }
