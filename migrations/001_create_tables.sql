@@ -1,6 +1,9 @@
 -- Типы
 CREATE TYPE OPERATION_STATUS AS ENUM ('finished', 'reverted');
 CREATE TYPE OPERATION_TYPE AS ENUM ('expense', 'income');
+CREATE TYPE SUPPORT_STATUS AS ENUM ('opened', 'closed', 'at work');
+CREATE TYPE SUPPORT_STATUS AS ENUM ('opened', 'closed', 'at work');
+CREATE TYPE SUPPORT_CATEGORY AS ENUM ('bug', 'offer', 'product complaint');
 
 -- ========================================================
 -- Таблица USER
@@ -144,6 +147,16 @@ CREATE TABLE IF NOT EXISTS receiver (
     UNIQUE (user_id, receiver_name)
 );
 
+-- ========================================================
+-- Таблица SUPPORT_REQUEST
+-- ========================================================
+CREATE TABLE IF NOT EXISTS support_request (
+    _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES "user"(_id) ON DELETE CASCADE,
+    message_text TEXT NOT NULL CHECK (LENGTH(message_text) <= 500),
+    support_status SUPPORT_STATUS DEFAULT 'opened',
+    support_category SUPPORT_CATEGORY DEFAULT 'bug'
+)
 -- ========================================================
 -- Функция обновления updated_at
 -- ========================================================
