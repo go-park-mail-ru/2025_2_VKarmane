@@ -5,13 +5,11 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/storage/image"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/balance"
 	budgetService "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/budget"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/category"
 	imageservice "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/profile"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
@@ -67,33 +65,27 @@ type CategoryRepository interface {
 }
 
 type Service struct {
-	AuthUC     auth.AuthService
 	BalanceUC  balance.BalanceService
 	BudgetUC   budgetService.BudgetService
 	OpUC       operation.OperationService
 	CategoryUC category.CategoryService
-	ProfileUC  profile.ProfileService
 	ImageUC    imageservice.ImageService
 }
 
 func NewService(store Repository, jwtSecret string, imageStorage image.ImageStorage) *Service {
 	realClock := clock.RealClock{}
 
-	authService := auth.NewService(store, jwtSecret, realClock)
 	balanceService := balance.NewService(store, realClock)
 	budgetService := budgetService.NewService(store, realClock)
 	opService := operation.NewService(store, realClock)
 	categoryService := category.NewService(store)
-	profileService := profile.NewService(store)
 	imageService := imageservice.NewService(imageStorage)
 
 	return &Service{
-		AuthUC:     authService,
 		BalanceUC:  balanceService,
 		BudgetUC:   budgetService,
 		OpUC:       opService,
 		CategoryUC: categoryService,
-		ProfileUC:  profileService,
 		ImageUC:    imageService,
 	}
 }
