@@ -31,7 +31,7 @@ func NewHandler(uc *usecase.UseCase, logger logger.Logger, authClient authpb.Aut
 	realClock := clock.RealClock{}
 	return &Handler{
 		balanceHandler:  balance.NewHandler(uc.BalanceUC, realClock),
-		budgetHandler:   budget.NewHandler(uc.BudgetUC, realClock, budgetClient),
+		budgetHandler:   budget.NewHandler(realClock, budgetClient),
 		authHandler:     auth.NewHandler(realClock, logger, authClient),
 		opHandler:       operation.NewHandler(uc.OpUC, uc.ImageUC, realClock),
 		categoryHandler: category.NewHandler(uc.CategoryUC, uc.ImageUC),

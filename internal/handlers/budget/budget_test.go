@@ -7,23 +7,26 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	budgeterrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestGetListBudgets_Unauthorized(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUC := mocks.NewMockBudgetUseCase(ctrl)
-	h := NewHandler(mockUC, clock.RealClock{})
+	mockClient := mocks.NewMockBudgetServiceClient(ctrl)
+	h := NewHandler(clock.RealClock{}, mockClient)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/budgets", nil)
 	rr := httptest.NewRecorder()
@@ -36,11 +39,19 @@ func TestGetListBudgets_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUC := mocks.NewMockBudgetUseCase(ctrl)
-	h := NewHandler(mockUC, clock.RealClock{})
+	mockClient := mocks.NewMockBudgetServiceClient(ctrl)
+	h := NewHandler(clock.RealClock{}, mockClient)
 
-	budgets := []models.Budget{{ID: 1}, {ID: 2}}
-	mockUC.EXPECT().GetBudgetsForUser(gomock.Any(), 42).Return(budgets, nil)
+	budgetsResp := &bdgpb.ListBudgetsResponse{
+		Budgets: []*bdgpb.Budget{
+			{Id: 1},
+			{Id: 2},
+		},
+	}
+
+	mockClient.EXPECT().
+		GetListBudgets(gomock.Any(), &bdgpb.UserID{UserID: 42}).
+		Return(budgetsResp, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/budgets", nil)
 	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 42))
@@ -48,16 +59,23 @@ func TestGetListBudgets_Success(t *testing.T) {
 
 	h.GetListBudgets(rr, req)
 	require.Equal(t, http.StatusOK, rr.Code)
+
+	var resp []models.Budget
+	err := json.NewDecoder(rr.Body).Decode(&resp)
+	require.NoError(t, err)
+	require.Len(t, resp, 2)
 }
 
 func TestGetBudgetByID_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUC := mocks.NewMockBudgetUseCase(ctrl)
-	h := NewHandler(mockUC, clock.RealClock{})
+	mockClient := mocks.NewMockBudgetServiceClient(ctrl)
+	h := NewHandler(clock.RealClock{}, mockClient)
 
-	mockUC.EXPECT().GetBudgetByID(gomock.Any(), 1, 5).Return(models.Budget{ID: 5}, nil)
+	mockClient.EXPECT().
+		GetBudget(gomock.Any(), &bdgpb.BudgetRequest{UserID: 1, BudgetID: 5}).
+		Return(&bdgpb.Budget{Id: 5}, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/budget/5", nil)
 	req = mux.SetURLVars(req, map[string]string{"id": "5"})
@@ -72,10 +90,12 @@ func TestGetBudgetByID_NotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUC := mocks.NewMockBudgetUseCase(ctrl)
-	h := NewHandler(mockUC, clock.RealClock{})
+	mockClient := mocks.NewMockBudgetServiceClient(ctrl)
+	h := NewHandler(clock.RealClock{}, mockClient)
 
-	mockUC.EXPECT().GetBudgetByID(gomock.Any(), 1, 5).Return(models.Budget{}, budgeterrors.ErrBudgetNotFound)
+	mockClient.EXPECT().
+		GetBudget(gomock.Any(), &bdgpb.BudgetRequest{UserID: 1, BudgetID: 5}).
+		Return(nil, status.Error(codes.NotFound, "not found"))
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/budget/5", nil)
 	req = mux.SetURLVars(req, map[string]string{"id": "5"})
@@ -90,17 +110,21 @@ func TestCreateBudget_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUC := mocks.NewMockBudgetUseCase(ctrl)
-	h := NewHandler(mockUC, clock.RealClock{})
+	mockClient := mocks.NewMockBudgetServiceClient(ctrl)
+	h := NewHandler(clock.RealClock{}, mockClient)
 
 	reqBody := models.CreateBudgetRequest{
 		CategoryID:  1,
 		Description: "Test budget",
 		Amount:      100,
+		CreatedAt:   time.Now(),
+		PeriodStart: time.Now(),
+		PeriodEnd:   time.Now().Add(30 * 24 * time.Hour),
 	}
-	budget := models.Budget{ID: 10, Amount: 100, CategoryID: 1}
 
-	mockUC.EXPECT().CreateBudget(gomock.Any(), reqBody, 42).Return(budget, nil)
+	mockClient.EXPECT().
+		CreateBudget(gomock.Any(), ModelCreateReqtoProtoReq(reqBody, 42)).
+		Return(&bdgpb.Budget{Id: 10, Sum: 100, CategoryId: 1}, nil)
 
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/budget", bytes.NewReader(body))
@@ -115,11 +139,14 @@ func TestCreateBudget_Conflict(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUC := mocks.NewMockBudgetUseCase(ctrl)
-	h := NewHandler(mockUC, clock.RealClock{})
+	mockClient := mocks.NewMockBudgetServiceClient(ctrl)
+	h := NewHandler(clock.RealClock{}, mockClient)
 
 	reqBody := models.CreateBudgetRequest{CategoryID: 1, Amount: 50}
-	mockUC.EXPECT().CreateBudget(gomock.Any(), reqBody, 1).Return(models.Budget{}, budgeterrors.ErrActiveBudgetExists)
+
+	mockClient.EXPECT().
+		CreateBudget(gomock.Any(), ModelCreateReqtoProtoReq(reqBody, 1)).
+		Return(nil, status.Error(codes.AlreadyExists, "active budget exists"))
 
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/budget", bytes.NewReader(body))
@@ -134,14 +161,15 @@ func TestUpdateBudget_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUC := mocks.NewMockBudgetUseCase(ctrl)
-	h := NewHandler(mockUC, clock.RealClock{})
+	mockClient := mocks.NewMockBudgetServiceClient(ctrl)
+	h := NewHandler(clock.RealClock{}, mockClient)
 
 	sum := 200.5
-	reqBody := models.UpdatedBudgetRequest{Amount: &sum}
-	updatedBudget := models.Budget{ID: 5, Amount: sum}
+	reqBody := models.UpdatedBudgetRequest{Amount: &sum, PeriodStart: &time.Time{}, PeriodEnd: &time.Time{}}
 
-	mockUC.EXPECT().UpdateBudget(gomock.Any(), reqBody, 1, 5).Return(updatedBudget, nil)
+	mockClient.EXPECT().
+		UpdateBudget(gomock.Any(), ModelUpdateReqtoProtoReq(reqBody, 5, 1)).
+		Return(&bdgpb.Budget{Id: 5, Sum: sum}, nil)
 
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPut, "/api/v1/budget/5", bytes.NewReader(body))
@@ -157,10 +185,12 @@ func TestDeleteBudget_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUC := mocks.NewMockBudgetUseCase(ctrl)
-	h := NewHandler(mockUC, clock.RealClock{})
+	mockClient := mocks.NewMockBudgetServiceClient(ctrl)
+	h := NewHandler(clock.RealClock{}, mockClient)
 
-	mockUC.EXPECT().DeleteBudget(gomock.Any(), 1, 5).Return(models.Budget{ID: 5}, nil)
+	mockClient.EXPECT().
+		DeleteBudget(gomock.Any(), IDsToBudgetRequest(5, 1)).
+		Return(&bdgpb.Budget{Id: 5}, nil)
 
 	req := httptest.NewRequest(http.MethodDelete, "/api/v1/budget/5", nil)
 	req = mux.SetURLVars(req, map[string]string{"id": "5"})
@@ -175,10 +205,12 @@ func TestDeleteBudget_NotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUC := mocks.NewMockBudgetUseCase(ctrl)
-	h := NewHandler(mockUC, clock.RealClock{})
+	mockClient := mocks.NewMockBudgetServiceClient(ctrl)
+	h := NewHandler(clock.RealClock{}, mockClient)
 
-	mockUC.EXPECT().DeleteBudget(gomock.Any(), 1, 5).Return(models.Budget{}, budgeterrors.ErrBudgetNotFound)
+	mockClient.EXPECT().
+		DeleteBudget(gomock.Any(), IDsToBudgetRequest(5, 1)).
+		Return(nil, status.Error(codes.NotFound, "not found"))
 
 	req := httptest.NewRequest(http.MethodDelete, "/api/v1/budget/5", nil)
 	req = mux.SetURLVars(req, map[string]string{"id": "5"})

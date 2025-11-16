@@ -19,13 +19,12 @@ import (
 )
 
 type Handler struct {
-	budgetUC BudgetUseCase
 	budgetClient bdgpb.BudgetServiceClient
 	clock    clock.Clock
 }
 
-func NewHandler(budgetUC BudgetUseCase, clck clock.Clock, budgetClient bdgpb.BudgetServiceClient) *Handler {
-	return &Handler{budgetUC: budgetUC, clock: clck, budgetClient: budgetClient}
+func NewHandler(clck clock.Clock, budgetClient bdgpb.BudgetServiceClient) *Handler {
+	return &Handler{clock: clck, budgetClient: budgetClient}
 }
 
 func (h *Handler) getUserID(r *http.Request) (int, bool) {

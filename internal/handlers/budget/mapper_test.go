@@ -6,12 +6,15 @@ import (
 
 	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestBudgetToAPI(t *testing.T) {
-	createdAt := time.Now()
+	fixedTime := time.Date(2030, 5, 20, 10, 0, 0, 0, time.UTC)
+	fixed := clock.FixedClock{FixedTime: fixedTime}
+	createdAt := fixed.FixedTime
 	updatedAt := createdAt.Add(time.Hour)
 	periodStart := createdAt.Add(-time.Hour * 24)
 	periodEnd := createdAt.Add(time.Hour * 24)
@@ -67,7 +70,9 @@ func TestIDsToBudgetRequest(t *testing.T) {
 }
 
 func TestModelCreateReqtoProtoReq(t *testing.T) {
-	now := time.Now()
+	fixedTime := time.Date(2030, 5, 20, 10, 0, 0, 0, time.UTC)
+	fixed := clock.FixedClock{FixedTime: fixedTime}
+	now := fixed.FixedTime
 	req := models.CreateBudgetRequest{
 		CategoryID:  1,
 		Amount:      100,
@@ -88,7 +93,9 @@ func TestModelCreateReqtoProtoReq(t *testing.T) {
 }
 
 func TestModelUpdateReqtoProtoReq(t *testing.T) {
-	now := time.Now()
+	fixedTime := time.Date(2030, 5, 20, 10, 0, 0, 0, time.UTC)
+	fixed := clock.FixedClock{FixedTime: fixedTime}
+	now := fixed.FixedTime
 	periodStart := now
 	periodEnd := now.Add(time.Hour)
 	amount := 200.0
@@ -104,8 +111,8 @@ func TestModelUpdateReqtoProtoReq(t *testing.T) {
 	protoReq := ModelUpdateReqtoProtoReq(req, 7, 42)
 	assert.Equal(t, int32(42), protoReq.UserID)
 	assert.Equal(t, int32(7), protoReq.BudgetID)
-	assert.Equal(t, 200.0, protoReq.Sum)
-	assert.Equal(t, "Update Test", protoReq.Description)
+	assert.Equal(t, 200.0, *protoReq.Sum)
+	assert.Equal(t, "test", *protoReq.Description)
 	assert.Equal(t, periodStart, protoReq.PeriodStart.AsTime())
 	assert.Equal(t, periodEnd, protoReq.PeriodEnd.AsTime())
 }

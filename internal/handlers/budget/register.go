@@ -11,7 +11,7 @@ import (
 
 func Register(r *mux.Router, uc BudgetUseCase, budgetClient bdgpb.BudgetServiceClient) {
 	realClock := clock.RealClock{}
-	handler := NewHandler(uc, realClock, budgetClient)
+	handler := NewHandler(realClock, budgetClient)
 
 	r.HandleFunc("/budgets", handler.GetListBudgets).Methods(http.MethodGet)
 	r.HandleFunc("/budgets", handler.CreateBudget).Methods(http.MethodPost)
