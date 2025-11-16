@@ -25,7 +25,7 @@ func ModelBudgetToProto(bdg bdgmodels.Budget) *bdgpb.Budget {
 		Id: int32(bdg.ID),
 		UserId: int32(bdg.UserID),
 		CategoryId: int32(bdg.CategoryID),
-		Sum: bdg.Actual,
+		Sum: bdg.Amount,
 		Actual: bdg.Actual,
 		CurrencyId: int32(bdg.CurrencyID),
 		Description: bdg.Description,

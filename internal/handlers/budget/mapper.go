@@ -50,12 +50,22 @@ func ModelCreateReqtoProtoReq(req models.CreateBudgetRequest, userID int) *bdgpb
 }
 
 func ModelUpdateReqtoProtoReq(req models.UpdatedBudgetRequest, budgetID, userID int) *bdgpb.UpdateBudgetRequest {
+	var periodStart, periodEnd *timestamppb.Timestamp
+
+	if req.PeriodStart != nil {
+		periodStart = timestamppb.New(*req.PeriodStart)
+	}
+
+	if req.PeriodEnd != nil {
+		periodEnd = timestamppb.New(*req.PeriodEnd)
+	}
+
 	return &bdgpb.UpdateBudgetRequest{
-		UserID: int32(userID),
-		BudgetID: int32(budgetID),
-		Sum: req.Amount,
+		UserID:      int32(userID),
+		BudgetID:    int32(budgetID),
+		Sum:         req.Amount,
 		Description: req.Description,
-		PeriodStart: timestamppb.New(*req.PeriodStart),
-		PeriodEnd: timestamppb.New(*req.PeriodEnd),
+		PeriodStart: periodStart,
+		PeriodEnd:   periodEnd,
 	}
 }
