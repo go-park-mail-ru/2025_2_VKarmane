@@ -3,8 +3,6 @@ package auth
 import (
 	"context"
 
-	"github.com/golang/protobuf/ptypes/empty"
-
 	authmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/models"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
@@ -44,13 +42,6 @@ func (uc *UseCase) Login(ctx context.Context, req authmodels.LoginRequest) (*aut
 	}
 	
 	return user, nil
-}
-
-func (uc *UseCase) Logout(ctx context.Context) (*empty.Empty, error) {
-	return nil, nil
-	// isProduction := os.Getenv("ENV") == "production"
-	// utils.ClearAuthCookie(w, isProduction)
-	// utils.ClearCSRFCookie(w, isProduction)
 }
 
 func (uc *UseCase) GetProfile(ctx context.Context, userID int) (*authpb.ProfileResponse, error) {

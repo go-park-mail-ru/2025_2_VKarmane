@@ -6,12 +6,11 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/lib/pq"
+
+	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/errors"
 	authmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/models"
 )
-
-var ErrLoginExists = errors.New("login exists")
-var ErrEmailExists = errors.New("email exists")
-var ErrUserNotFound = errors.New("not Found")
 
 type PostgresRepository struct {
 	db *sql.DB
@@ -44,6 +43,22 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user authmodels.Use
 		).Scan(&id, &user.CreatedAt, &user.UpdatedAt)
 
 		if err != nil {
+			var pqErr *pq.Error
+			if errors.As(err, &pqErr) {
+				switch pqErr.Code {
+					case UniqueViolation:
+						switch pqErr.Constraint {
+						case "user_login_key":
+							return authmodels.User{}, serviceerrors.ErrLoginExists
+						case "user_email_key":
+							return authmodels.User{}, serviceerrors.ErrEmailExists
+						default:
+							return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
+						}
+					default:
+						return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
+				}
+			}
 			return authmodels.User{}, fmt.Errorf("failed to create user: %w", err)
 		}
 	} else {
@@ -66,6 +81,22 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user authmodels.Use
 		).Scan(&id)
 
 		if err != nil {
+			var pqErr *pq.Error
+			if errors.As(err, &pqErr) {
+				switch pqErr.Code {
+					case UniqueViolation:
+						switch pqErr.Constraint {
+						case "user_login_key":
+							return authmodels.User{}, serviceerrors.ErrLoginExists
+						case "user_email_key":
+							return authmodels.User{}, serviceerrors.ErrEmailExists
+						default:
+							return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
+						}
+					default:
+						return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
+				}
+			}
 			return authmodels.User{}, fmt.Errorf("failed to create user: %w", err)
 		}
 	}
@@ -74,34 +105,6 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user authmodels.Use
 	return user, nil
 }
 
-
-// func (r *PostgresRepository) GetUserByEmail(ctx context.Context, email string) (dto.UserDB, error) {
-// 	query := `
-// 		SELECT _id, user_name, surname, email, user_login, user_hashed_password, user_description, logo_hashed_id, created_at, updated_at
-// 		FROM "user"
-// 		WHERE email = $1
-// 	`
-
-// 	var user dto.UserDB
-// 	err := r.db.QueryRowContext(ctx, query, email).Scan(
-// 		&user.ID,
-// 		&user.FirstName,
-// 		&user.LastName,
-// 		&user.Email,
-// 		&user.Login,
-// 		&user.Password,
-// 		&user.Description,
-// 		&user.LogoHashedID,
-// 		&user.CreatedAt,
-// 		&user.UpdatedAt,
-// 	)
-
-// 	if err != nil {
-// 		return dto.UserDB{}, fmt.Errorf("failed to get user by email: %w", err)
-// 	}
-
-// 	return user, nil
-// }
 
 func (r *PostgresRepository) GetUserByLogin(ctx context.Context, login string) (authmodels.User, error) {
 	query := `
@@ -125,6 +128,9 @@ func (r *PostgresRepository) GetUserByLogin(ctx context.Context, login string) (
 	)
 
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return authmodels.User{}, serviceerrors.ErrUserNotFound
+		}
 		return authmodels.User{}, fmt.Errorf("failed to get user by login: %w", err)
 	}
 
@@ -154,7 +160,7 @@ func (r *PostgresRepository) GetUserByID(ctx context.Context, id int) (authmodel
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return authmodels.User{}, ErrUserNotFound
+			return authmodels.User{}, serviceerrors.ErrUserNotFound
 		}
 		return authmodels.User{}, fmt.Errorf("failed to get user by ID: %w", err)
 	}
@@ -198,6 +204,13 @@ func (r *PostgresRepository) EditUserByID(ctx context.Context, user authmodels.U
 	)
 
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return authmodels.User{}, serviceerrors.ErrUserNotFound
+		}
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) {
+			return  authmodels.User{}, serviceerrors.ErrEmailExists
+		}
 		return authmodels.User{}, fmt.Errorf("failed to update user: %w", err)
 	}
 

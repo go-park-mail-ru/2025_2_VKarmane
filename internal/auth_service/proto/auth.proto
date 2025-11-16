@@ -75,7 +75,6 @@ message CSRFTokenResponse {
 service AuthService {
     rpc Login(LoginRequest) returns (AuthResponse);
     rpc Register(RegisterRequest) returns (AuthResponse);
-    rpc Logout(google.protobuf.Empty) returns (google.protobuf.Empty);
     rpc GetProfile(UserID) returns (ProfileResponse);
     rpc UpdateProfile(UpdateProfileRequest) returns (ProfileResponse);
     rpc GetCSRF(google.protobuf.Empty) returns (CSRFTokenResponse);

@@ -34,7 +34,7 @@ func NewHandler(uc *usecase.UseCase, logger logger.Logger, authClient authpb.Aut
 		authHandler:     auth.NewHandler(uc.AuthUC, realClock, logger, authClient),
 		opHandler:       operation.NewHandler(uc.OpUC, uc.ImageUC, realClock),
 		categoryHandler: category.NewHandler(uc.CategoryUC, uc.ImageUC),
-		profileHandler:  profile.NewHandler(uc.ProfileUC, uc.ImageUC),
+		profileHandler:  profile.NewHandler(uc.ProfileUC, uc.ImageUC, authClient),
 		logger:          logger,
 		registrator:     NewRegistrator(uc, logger),
 	}

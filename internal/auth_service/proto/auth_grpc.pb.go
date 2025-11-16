@@ -21,7 +21,6 @@ const _ = grpc.SupportPackageIsVersion7
 type AuthServiceClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*AuthResponse, error)
-	Logout(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetProfile(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*ProfileResponse, error)
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*ProfileResponse, error)
 	GetCSRF(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CSRFTokenResponse, error)
@@ -47,15 +46,6 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ..
 func (c *authServiceClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*AuthResponse, error) {
 	out := new(AuthResponse)
 	err := c.cc.Invoke(ctx, "/auth.AuthService/Register", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authServiceClient) Logout(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/auth.AuthService/Logout", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +85,6 @@ func (c *authServiceClient) GetCSRF(ctx context.Context, in *emptypb.Empty, opts
 type AuthServiceServer interface {
 	Login(context.Context, *LoginRequest) (*AuthResponse, error)
 	Register(context.Context, *RegisterRequest) (*AuthResponse, error)
-	Logout(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	GetProfile(context.Context, *UserID) (*ProfileResponse, error)
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*ProfileResponse, error)
 	GetCSRF(context.Context, *emptypb.Empty) (*CSRFTokenResponse, error)
@@ -111,9 +100,6 @@ func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*Au
 }
 func (UnimplementedAuthServiceServer) Register(context.Context, *RegisterRequest) (*AuthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Register not implemented")
-}
-func (UnimplementedAuthServiceServer) Logout(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Logout not implemented")
 }
 func (UnimplementedAuthServiceServer) GetProfile(context.Context, *UserID) (*ProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProfile not implemented")
@@ -169,24 +155,6 @@ func _AuthService_Register_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).Register(ctx, req.(*RegisterRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AuthService_Logout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServiceServer).Logout(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/auth.AuthService/Logout",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).Logout(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -259,10 +227,6 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Register",
 			Handler:    _AuthService_Register_Handler,
-		},
-		{
-			MethodName: "Logout",
-			Handler:    _AuthService_Logout_Handler,
 		},
 		{
 			MethodName: "GetProfile",
