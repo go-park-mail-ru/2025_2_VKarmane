@@ -11,6 +11,7 @@ import (
 func ModelUserToProtoUser(user authmodels.User) *authpb.User {
 	return &authpb.User{
 		Id: int32(user.ID),
+		Login: user.Login,
 		FirstName: user.FirstName,
 		LastName: user.LastName,
 		Email: user.Email,

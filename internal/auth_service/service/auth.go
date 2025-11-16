@@ -2,20 +2,18 @@ package auth
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"log"
 
 	pkgerrors "github.com/pkg/errors"
 
 	authmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/models"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
+	svcerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/errors"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
-var ErrInvalidPassword = errors.New("invalid credentials")
+
 
 type Service struct {
 	repo interface {
@@ -45,7 +43,9 @@ func (s *Service) Register(ctx context.Context, req authmodels.RegisterRequest) 
 	log := logger.FromContext(ctx)
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		log.Error("Failed to hash password", "error", err)
+		if log != nil {
+			log.Error("Failed to hash password", "error", err)
+		}
 		return nil, pkgerrors.Wrap(err, "auth.Register: failed to hash password")
 	}
 
@@ -59,7 +59,9 @@ func (s *Service) Register(ctx context.Context, req authmodels.RegisterRequest) 
 
 	createdUser, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
-		log.Error("Failed to create user", "error", err, "login", req.Login)
+		if log != nil {
+			log.Error("Failed to create user", "error", err, "login", req.Login)
+		}
 		return nil, pkgerrors.Wrap(err, "auth.Register: failed to create user")
 	}
 
@@ -75,30 +77,35 @@ func (s *Service) Register(ctx context.Context, req authmodels.RegisterRequest) 
 }
 
 func (s *Service) Login(ctx context.Context, req authmodels.LoginRequest) (*authpb.AuthResponse, error) {
-	logger := logger.FromContext(ctx)
+	log := logger.FromContext(ctx)
 	user, err := s.repo.GetUserByLogin(ctx, req.Login)
 	if err != nil {
-		logger.Warn("Login attempt with invalid credentials", "login", req.Login, "error", err)
+		if log != nil {
+			log.Warn("Login attempt with invalid credentials", "login", req.Login, "error", err)
+		}
 		return nil, pkgerrors.Wrap(err, "auth.Login: invalid credentials")
 	}
 
 	valid, err := utils.VerifyPassword(req.Password, user.Password)
 	if err != nil {
-		logger.Error("Failed to verify password", "error", err, "user_id", user.ID)
+		if log != nil {
+			log.Error("Failed to verify password", "error", err, "user_id", user.ID)
+		}
 		return nil, pkgerrors.Wrap(err, "auth.Login: failed to verify password")
 	}
 
 	if !valid {
-		logger.Warn("Login attempt with invalid password", "login", req.Login, "user_id", user.ID)
-		return nil, ErrInvalidPassword
+		if log != nil {
+			log.Warn("Login attempt with invalid password", "login", req.Login, "user_id", user.ID)
+		}
+		return nil, svcerrors.ErrInvalidCredentials
 	}
-	// log.Info(fmt.Sprintf("id, login, secret: %s %s %s", user.ID, user.Login, s.jwtSecret))
-	log.Println(fmt.Sprintf("id, login, secret: %s %s %s", user.ID, user.Login, s.jwtSecret))
-	log.Println(fmt.Sprintf("logger %s", logger))
+
 	token, err := utils.GenerateJWT(user.ID, user.Login, s.jwtSecret)
-	// log.Info(fmt.Sprintf("token: %s", token))
 	if err != nil {
-		logger.Error("Failed to generate JWT token", "error", err, "user_id", user.ID)
+		if log != nil {
+			log.Error("Failed to generate JWT token", "error", err, "user_id", user.ID)
+		}
 		return nil, pkgerrors.Wrap(err, "auth.Login: failed to generate token")
 	}
 
@@ -114,7 +121,9 @@ func (s *Service) GetUserByID(ctx context.Context, userID int) (*authpb.ProfileR
 	log := logger.FromContext(ctx)
 	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
-		log.Error("Failed to get user by ID", "error", err, "user_id", userID)
+		if log != nil {
+			log.Error("Failed to get user by ID", "error", err, "user_id", userID)
+		}
 		return nil, pkgerrors.Wrap(err, "auth.GetUserByID")
 	}
 
@@ -125,7 +134,9 @@ func (s *Service) EditUserByID(ctx context.Context, req authmodels.UpdateProfile
 	log := logger.FromContext(ctx)
 	user, err := s.repo.EditUserByID(ctx, req)
 	if err != nil {
-		log.Error("Failed to get update user by ID", "error", err, "user_id", req.UserID)
+		if log != nil {
+			log.Error("Failed to get update user by ID", "error", err, "user_id", req.UserID)
+		}
 		return nil, pkgerrors.Wrap(err, "auth.EditUserByID")
 	}
 
