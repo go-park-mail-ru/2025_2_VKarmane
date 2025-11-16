@@ -12,5 +12,5 @@ type AuthUseCase interface {
     Login(context.Context, auth.LoginRequest) (*authpb.AuthResponse, error)
 	GetProfile(context.Context, int) (*authpb.ProfileResponse, error)
 	UpdateProfile(context.Context, auth.UpdateProfileRequest) (*authpb.ProfileResponse, error)
-	GetCSRFToken(ctx context.Context) (*authpb.CSRFTokenResponse, error)
+	GetCSRFToken(context.Context) (*authpb.CSRFTokenResponse, error)
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
+	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -56,7 +57,16 @@ func Run() error {
 	}
 	defer authGrpcConn.Close()
 
+	bdgGrpcConn, err := grpc.NewClient(fmt.Sprintf("%s:%s", config.BudgetServiceHost, config.BudgetServicePort), dialOpts)
+	if err != nil {
+		appLogger.Error("Failed to connect to budget gRPC service", "error", err)
+		log.Fatal(err)
+		return err
+	}
+	defer bdgGrpcConn.Close()
+
 	authClient := authpb.NewAuthServiceClient(authGrpcConn)
+	bdgClient := bdgpb.NewBudgetServiceClient(bdgGrpcConn)
 	store, err := repository.NewPostgresStore(config.GetDatabaseDSN())
 	if err != nil {
 		return err
@@ -81,7 +91,7 @@ func Run() error {
 	var repo service.Repository = store
 	serviceInstance := service.NewService(repo, config.JWTSecret, imageStorage)
 	usecaseInstance := usecase.NewUseCase(serviceInstance, repo, config.JWTSecret)
-	handler := handlers.NewHandler(usecaseInstance, appLogger, authClient)
+	handler := handlers.NewHandler(usecaseInstance, appLogger, authClient, bdgClient)
 
 	r := mux.NewRouter()
 
@@ -115,7 +125,7 @@ func Run() error {
 	// protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
-	handler.Register(public, protected, authClient)
+	handler.Register(public, protected, authClient, bdgClient)
 
 	// Swagger документация
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)

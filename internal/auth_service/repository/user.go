@@ -86,7 +86,7 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user authmodels.Use
 				switch pqErr.Code {
 					case UniqueViolation:
 						switch pqErr.Constraint {
-						case "user_login_key":
+						case "user_user_login_key":
 							return authmodels.User{}, serviceerrors.ErrLoginExists
 						case "user_email_key":
 							return authmodels.User{}, serviceerrors.ErrEmailExists

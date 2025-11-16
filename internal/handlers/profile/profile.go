@@ -14,21 +14,18 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/profile"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 )
 
 type Handler struct {
-	profileUC profile.ProfileUseCase
 	imageUC   image.ImageUseCase
 	authClient authpb.AuthServiceClient
 }
 
-func NewHandler(profileUC profile.ProfileUseCase, imageUC image.ImageUseCase, authClient authpb.AuthServiceClient) *Handler {
+func NewHandler(imageUC image.ImageUseCase, authClient authpb.AuthServiceClient) *Handler {
 	return &Handler{
-		profileUC: profileUC,
 		imageUC:   imageUC,
 		authClient: authClient,
 

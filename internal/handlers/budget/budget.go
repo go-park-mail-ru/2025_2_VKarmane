@@ -7,7 +7,10 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"google.golang.org/grpc/status"
 
+	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	budgeterrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
@@ -19,11 +22,12 @@ import (
 
 type Handler struct {
 	budgetUC BudgetUseCase
+	budgetClient bdgpb.BudgetServiceClient
 	clock    clock.Clock
 }
 
-func NewHandler(budgetUC BudgetUseCase, clck clock.Clock) *Handler {
-	return &Handler{budgetUC: budgetUC, clock: clck}
+func NewHandler(budgetUC BudgetUseCase, clck clock.Clock, budgetClient bdgpb.BudgetServiceClient) *Handler {
+	return &Handler{budgetUC: budgetUC, clock: clck, budgetClient: budgetClient}
 }
 
 func (h *Handler) getUserID(r *http.Request) (int, bool) {
@@ -53,14 +57,29 @@ func (h *Handler) GetListBudgets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	budgets, err := h.budgetUC.GetBudgetsForUser(r.Context(), userID)
-	if err != nil {
-		httputils.InternalError(w, r, "Failed to get budgets for user")
-		return
-	}
+	// budgets, err := h.budgetUC.GetBudgetsForUser(r.Context(), userID)
+	budgets, err := h.budgetClient.GetListBudgets(r.Context(), &bdgpb.UserID{
+    UserID: int32(userID),
+})
+if err != nil {
+    log := logger.FromContext(r.Context())
 
-	budgetsDTO := BudgetsToAPI(userID, budgets)
-	httputils.Success(w, r, budgetsDTO)
+    st, ok := status.FromError(err)
+    if ok {
+        log.Error("grpc GetListBudgets failed",
+            "code", st.Code(),
+            "message", st.Message(),
+        )
+    } else {
+        log.Error("grpc GetListBudgets unknown error", "error", err)
+    }
+
+    httputils.InternalError(w, r, "Failed to get budgets for user")
+    return
+}
+
+	// budgetsDTO := BudgetsToAPI(userID, budgets)
+	httputils.Success(w, r, budgets)
 }
 
 // GetBudgetByID godoc

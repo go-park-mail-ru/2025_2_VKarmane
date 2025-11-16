@@ -1,7 +1,7 @@
 package auth
 
 import (
-	 "google.golang.org/protobuf/types/known/timestamppb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	authmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/models"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"

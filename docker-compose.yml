@@ -64,6 +64,32 @@ services:
     ports:
       - "8090:8090"
     restart: unless-stopped
+  
+  budget_service:
+    build:
+      context: .
+      dockerfile: cmd/budget_service/Dockerfile
+    container_name: vkarmane-budget
+    environment:
+      PORT: 8100
+      HOST: 0.0.0.0
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: vkarmane
+      DB_PASSWORD: vkarmane_password
+      DB_NAME: vkarmane
+      DB_SSLMODE: disable
+
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      LOG_LEVEL: debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vkarmane-network
+    ports:
+      - "8100:8100"
+    restart: unless-stopped
 
 
   app:
@@ -85,6 +111,8 @@ services:
       HTTPS_ENABLED: "false"
       AUTH_SERVICE_HOST: auth_service
       AUTH_SERVICE_PORT: 8090
+      BUDGET_SERVICE_HOST: budget_service
+      BUDGET_SERVICE_PORT: 8100
       # HTTPS_CERT_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/fullchain.pem
       # HTTPS_KEY_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
       CORS_HOST: "localhost"

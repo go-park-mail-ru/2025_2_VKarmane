@@ -19,14 +19,13 @@ import (
 )
 
 type Handler struct {
-	authUC AuthUseCase
 	clock  clock.Clock
 	logger logger.Logger
 	authClient authpb.AuthServiceClient
 }
 
-func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger, authCLient authpb.AuthServiceClient) *Handler {
-	return &Handler{authUC: authUC, clock: clck, logger: logger, authClient: authCLient}
+func NewHandler(clck clock.Clock, logger logger.Logger, authCLient authpb.AuthServiceClient) *Handler {
+	return &Handler{clock: clck, logger: logger, authClient: authCLient}
 }
 
 // Register godoc
