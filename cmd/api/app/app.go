@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
@@ -150,6 +151,10 @@ func Run() error {
 		if err != nil && err != http.ErrServerClosed {
 			appLogger.Error("Server failed to start", "error", err)
 		}
+	}()
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":10000", nil)
 	}()
 
 	quit := make(chan os.Signal, 1)
