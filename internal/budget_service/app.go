@@ -9,7 +9,7 @@ import (
 	bdg "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/impl"
 	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
 	bdgsvc "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/service"
-	store "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/store"
+	bdgrepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/repository"
 	bdgusecase "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/interceptors"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
@@ -38,7 +38,12 @@ func Run() error {
 
 	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors.LoggerInterceptor(appLogger)))
 	
-	store, err := store.NewPostgresStore(config.GetDatabaseDSN())
+	db, err := bdgrepo.NewDBConnection(config.GetDatabaseDSN())
+	if err != nil {
+		appLogger.Error("BudgetService failed to connect to DB %w", err)
+		return err
+	}
+	store := bdgrepo.NewPostgresRepository(db)
 	svc := bdgsvc.NewService(store, clock)
 	
 

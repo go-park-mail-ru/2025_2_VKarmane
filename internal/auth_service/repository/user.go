@@ -16,6 +16,20 @@ type PostgresRepository struct {
 	db *sql.DB
 }
 
+
+func NewDBConnection(dsn string) (*sql.DB, error) {
+    db, err := sql.Open("postgres", dsn)
+    if err != nil {
+        return nil, fmt.Errorf("failed to open database: %w", err)
+    }
+
+    if err := db.Ping(); err != nil {
+        return nil, fmt.Errorf("failed to ping database: %w", err)
+    }
+
+    return db, nil
+}
+
 func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 	return &PostgresRepository{
 		db: db,

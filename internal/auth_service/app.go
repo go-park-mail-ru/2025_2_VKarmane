@@ -9,7 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/impl"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 	authsvc "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/service"
-	store "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/store"
+	repo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/repository"
 	authusecase "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/interceptors"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
@@ -37,8 +37,12 @@ func Run() error {
 
 
 	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors.LoggerInterceptor(appLogger)))
-	
-	store, err := store.NewPostgresStore(config.GetDatabaseDSN())
+	db, err := repo.NewDBConnection(config.GetDatabaseDSN())
+	if err != nil {
+		appLogger.Error("AuthService failed to connect do DB %w", err)
+		return err
+	}
+	store := repo.NewPostgresRepository(db)
 	svc := authsvc.NewService(store, config.JWTSecret, clock)
 	
 
