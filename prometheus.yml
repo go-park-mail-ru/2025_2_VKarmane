@@ -8,11 +8,11 @@ scrape_configs:
 
   - job_name: "budget_service"
     static_configs:
-      - targets: ["budget_service:10300"]
+      - targets: ["budget_service:8800"]
 
   - job_name: "auth_service"
     static_configs:
-      - targets: ["auth_service:10200"]
+      - targets: ["auth_service:8700"]
 
   - job_name: "node_exporter"
     static_configs:

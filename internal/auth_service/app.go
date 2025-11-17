@@ -53,8 +53,8 @@ func Run() error {
 	go func() {
     mux := http.NewServeMux()
     mux.Handle("/metrics", promhttp.Handler())
-    appLogger.Info("Metrics server started on :9200")
-    if err := http.ListenAndServe(":10200", mux); err != nil {
+    appLogger.Info("Metrics server started on :10300")
+    if err := http.ListenAndServe(":8700", mux); err != nil {
         appLogger.Error("Metrics server failed", err)
     }
 	}()
