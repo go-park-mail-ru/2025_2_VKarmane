@@ -11,7 +11,7 @@ import (
 
 func main() {
 	if err := budgservice.Run(); err != nil {
-		log.Fatal(fmt.Sprintf("BudgetService failed to run: %w", err))
+		log.Fatal(fmt.Sprintf("BudgetService failed to run: %v", err))
 	}
 }
 

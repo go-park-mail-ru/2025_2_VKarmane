@@ -5,15 +5,13 @@ import (
 
 	pkgerrors "github.com/pkg/errors"
 
+	svcerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/errors"
 	authmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/models"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
-	svcerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/errors"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
-
-
 
 type Service struct {
 	repo interface {
@@ -39,7 +37,7 @@ func NewService(repo interface {
 	}
 }
 
-func (s *Service) Register(ctx context.Context, req authmodels.RegisterRequest) (* authpb.AuthResponse, error) {
+func (s *Service) Register(ctx context.Context, req authmodels.RegisterRequest) (*authpb.AuthResponse, error) {
 	log := logger.FromContext(ctx)
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {

@@ -16,18 +16,17 @@ type PostgresRepository struct {
 	db *sql.DB
 }
 
-
 func NewDBConnection(dsn string) (*sql.DB, error) {
-    db, err := sql.Open("postgres", dsn)
-    if err != nil {
-        return nil, fmt.Errorf("failed to open database: %w", err)
-    }
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open database: %w", err)
+	}
 
-    if err := db.Ping(); err != nil {
-        return nil, fmt.Errorf("failed to ping database: %w", err)
-    }
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
 
-    return db, nil
+	return db, nil
 }
 
 func NewPostgresRepository(db *sql.DB) *PostgresRepository {
@@ -60,17 +59,17 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user authmodels.Use
 			var pqErr *pq.Error
 			if errors.As(err, &pqErr) {
 				switch pqErr.Code {
-					case UniqueViolation:
-						switch pqErr.Constraint {
-						case "user_login_key":
-							return authmodels.User{}, serviceerrors.ErrLoginExists
-						case "user_email_key":
-							return authmodels.User{}, serviceerrors.ErrEmailExists
-						default:
-							return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
-						}
+				case UniqueViolation:
+					switch pqErr.Constraint {
+					case "user_login_key":
+						return authmodels.User{}, serviceerrors.ErrLoginExists
+					case "user_email_key":
+						return authmodels.User{}, serviceerrors.ErrEmailExists
 					default:
 						return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
+					}
+				default:
+					return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
 				}
 			}
 			return authmodels.User{}, fmt.Errorf("failed to create user: %w", err)
@@ -98,17 +97,17 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user authmodels.Use
 			var pqErr *pq.Error
 			if errors.As(err, &pqErr) {
 				switch pqErr.Code {
-					case UniqueViolation:
-						switch pqErr.Constraint {
-						case "user_user_login_key":
-							return authmodels.User{}, serviceerrors.ErrLoginExists
-						case "user_email_key":
-							return authmodels.User{}, serviceerrors.ErrEmailExists
-						default:
-							return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
-						}
+				case UniqueViolation:
+					switch pqErr.Constraint {
+					case "user_user_login_key":
+						return authmodels.User{}, serviceerrors.ErrLoginExists
+					case "user_email_key":
+						return authmodels.User{}, serviceerrors.ErrEmailExists
 					default:
 						return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
+					}
+				default:
+					return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
 				}
 			}
 			return authmodels.User{}, fmt.Errorf("failed to create user: %w", err)
@@ -118,7 +117,6 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user authmodels.Use
 	user.ID = id
 	return user, nil
 }
-
 
 func (r *PostgresRepository) GetUserByLogin(ctx context.Context, login string) (authmodels.User, error) {
 	query := `
@@ -182,7 +180,6 @@ func (r *PostgresRepository) GetUserByID(ctx context.Context, id int) (authmodel
 	return user, nil
 }
 
-
 func (r *PostgresRepository) EditUserByID(ctx context.Context, user authmodels.UpdateProfileRequest) (authmodels.User, error) {
 	query := `
 		UPDATE "user"
@@ -203,7 +200,7 @@ func (r *PostgresRepository) EditUserByID(ctx context.Context, user authmodels.U
 		user.LastName,
 		user.Email,
 		user.LogoHashedID,
-		user.UserID, 
+		user.UserID,
 	).Scan(
 		&updatedUser.ID,
 		&updatedUser.FirstName,
@@ -223,7 +220,7 @@ func (r *PostgresRepository) EditUserByID(ctx context.Context, user authmodels.U
 		}
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) {
-			return  authmodels.User{}, serviceerrors.ErrEmailExists
+			return authmodels.User{}, serviceerrors.ErrEmailExists
 		}
 		return authmodels.User{}, fmt.Errorf("failed to update user: %w", err)
 	}

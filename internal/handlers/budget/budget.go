@@ -20,7 +20,7 @@ import (
 
 type Handler struct {
 	budgetClient bdgpb.BudgetServiceClient
-	clock    clock.Clock
+	clock        clock.Clock
 }
 
 func NewHandler(clck clock.Clock, budgetClient bdgpb.BudgetServiceClient) *Handler {
@@ -56,7 +56,7 @@ func (h *Handler) GetListBudgets(w http.ResponseWriter, r *http.Request) {
 
 	// budgets, err := h.budgetUC.GetBudgetsForUser(r.Context(), userID)
 	budgets, err := h.budgetClient.GetListBudgets(r.Context(), &bdgpb.UserID{
-    	UserID: int32(userID),
+		UserID: int32(userID),
 	})
 	if err != nil {
 		log := logger.FromContext(r.Context())
@@ -78,7 +78,7 @@ func (h *Handler) GetListBudgets(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// budgetsDTO := BudgetsToAPI(userID, budgets)
-	httputils.Success(w, r, BudgetsToAPI(userID, budgets))
+	httputils.Success(w, r, map[string][]models.Budget{"budgets": BudgetsToAPI(userID, budgets)})
 }
 
 // GetBudgetByID godoc
@@ -120,18 +120,18 @@ func (h *Handler) GetBudgetByID(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		switch st.Code() {
-			case codes.NotFound:
-				if log != nil {
-					log.Error("grpc GetBudget invalid arg", "error", err)
-				}
-				httputils.NotFoundError(w, r, "Бюджет не найден")
-				return
-			default:
-				if log != nil {
-					log.Error("grpc GetBudget error", "error", err)
-				}
-				httputils.InternalError(w, r, "failed to get budget")
-				return
+		case codes.NotFound:
+			if log != nil {
+				log.Error("grpc GetBudget invalid arg", "error", err)
+			}
+			httputils.NotFoundError(w, r, "Бюджет не найден")
+			return
+		default:
+			if log != nil {
+				log.Error("grpc GetBudget error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to get budget")
+			return
 		}
 	}
 
@@ -169,7 +169,7 @@ func (h *Handler) CreateBudget(w http.ResponseWriter, r *http.Request) {
 			httputils.InternalError(w, r, "failed to create budget")
 			return
 		}
-		
+
 		switch st.Code() {
 		case codes.InvalidArgument:
 			if log != nil {

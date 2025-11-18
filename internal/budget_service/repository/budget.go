@@ -11,29 +11,25 @@ import (
 
 	bdgerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/errors"
 	bdgmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/models"
-// 	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
+	// 	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
 )
 
 type PostgresRepository struct {
 	db *sql.DB
 }
 
-
 func NewDBConnection(dsn string) (*sql.DB, error) {
-    db, err := sql.Open("postgres", dsn)
-    if err != nil {
-        return nil, fmt.Errorf("failed to open database: %w", err)
-    }
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open database: %w", err)
+	}
 
-    if err := db.Ping(); err != nil {
-        return nil, fmt.Errorf("failed to ping database: %w", err)
-    }
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
 
-    return db, nil
+	return db, nil
 }
-
-
-
 
 func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 	return &PostgresRepository{db: db}

@@ -8,8 +8,8 @@ import (
 
 	authmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"

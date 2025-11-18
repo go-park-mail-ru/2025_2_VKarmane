@@ -6,7 +6,6 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/storage/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/balance"
-	budgetService "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/budget"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/category"
 	imageservice "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
@@ -15,19 +14,9 @@ import (
 
 type Repository interface {
 	Close() error
-	UserRepository
 	AccountRepository
-	BudgetRepository
 	OperationRepository
 	CategoryRepository
-}
-
-type UserRepository interface {
-	CreateUser(ctx context.Context, user models.User) (models.User, error)
-	GetUserByLogin(ctx context.Context, login string) (models.User, error)
-	GetUserByID(ctx context.Context, id int) (models.User, error)
-	UpdateUser(ctx context.Context, user models.User) error
-	EditUserByID(ctx context.Context, req models.UpdateProfileRequest, userID int) (models.User, error)
 }
 
 type AccountRepository interface {
@@ -37,14 +26,6 @@ type AccountRepository interface {
 	DeleteAccount(ctx context.Context, userID, accID int) (models.Account, error)
 }
 
-type BudgetRepository interface {
-	GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error)
-	GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
-	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
-	CreateBudget(ctx context.Context, budget models.Budget) (models.Budget, error)
-	UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error)
-	DeleteBudget(ctx context.Context, budgetID int) (models.Budget, error)
-}
 
 type OperationRepository interface {
 	GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error)
@@ -66,7 +47,6 @@ type CategoryRepository interface {
 
 type Service struct {
 	BalanceUC  balance.BalanceService
-	BudgetUC   budgetService.BudgetService
 	OpUC       operation.OperationService
 	CategoryUC category.CategoryService
 	ImageUC    imageservice.ImageService
@@ -76,14 +56,12 @@ func NewService(store Repository, jwtSecret string, imageStorage image.ImageStor
 	realClock := clock.RealClock{}
 
 	balanceService := balance.NewService(store, realClock)
-	budgetService := budgetService.NewService(store, realClock)
 	opService := operation.NewService(store, realClock)
 	categoryService := category.NewService(store)
 	imageService := imageservice.NewService(imageStorage)
 
 	return &Service{
 		BalanceUC:  balanceService,
-		BudgetUC:   budgetService,
 		OpUC:       opService,
 		CategoryUC: categoryService,
 		ImageUC:    imageService,

@@ -10,25 +10,24 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
-	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 )
 
 type Handler struct {
-	imageUC   image.ImageUseCase
+	imageUC    image.ImageUseCase
 	authClient authpb.AuthServiceClient
 }
 
 func NewHandler(imageUC image.ImageUseCase, authClient authpb.AuthServiceClient) *Handler {
 	return &Handler{
-		imageUC:   imageUC,
+		imageUC:    imageUC,
 		authClient: authClient,
-
 	}
 }
 
@@ -91,10 +90,10 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	
-	h.enrichProfileWithLogoURL(r.Context(), ProtoProfileToApiProfile(profile))
+	profileDTO := ProtoProfileToApiProfile(profile)
+	h.enrichProfileWithLogoURL(r.Context(), profileDTO)
 
-	httputils.Success(w, r, profile)
+	httputils.Success(w, r, profileDTO)
 }
 
 // UpdateProfile godoc
@@ -191,7 +190,8 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	h.enrichProfileWithLogoURL(r.Context(), ProtoProfileToApiProfile(profile))
+	profileDTO := ProtoProfileToApiProfile(profile)
+	h.enrichProfileWithLogoURL(r.Context(), profileDTO)
 
-	httputils.Success(w, r, profile)
+	httputils.Success(w, r, profileDTO)
 }

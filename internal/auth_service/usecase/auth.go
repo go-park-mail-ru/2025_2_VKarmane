@@ -14,15 +14,15 @@ import (
 
 type UseCase struct {
 	authService AuthService
-	jwtSecret string
-	clck clock.Clock
+	jwtSecret   string
+	clck        clock.Clock
 }
 
 func NewAuthUseCase(svc AuthService, secret string, clck clock.Clock) *UseCase {
 	return &UseCase{
 		authService: svc,
-		jwtSecret: secret,
-		clck: clck,
+		jwtSecret:   secret,
+		clck:        clck,
 	}
 }
 
@@ -48,7 +48,7 @@ func (uc *UseCase) Login(ctx context.Context, req authmodels.LoginRequest) (*aut
 		}
 		return nil, err
 	}
-	
+
 	return user, nil
 }
 
@@ -73,7 +73,7 @@ func (uc *UseCase) UpdateProfile(ctx context.Context, req authmodels.UpdateProfi
 		}
 		return nil, err
 	}
-	return profile, nil 
+	return profile, nil
 }
 
 func (uc *UseCase) GetCSRFToken(ctx context.Context) (*authpb.CSRFTokenResponse, error) {

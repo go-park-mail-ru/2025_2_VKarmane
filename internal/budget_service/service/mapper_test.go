@@ -12,9 +12,9 @@ import (
 
 func TestCreateRequestToModel(t *testing.T) {
 	req := bdgmodels.CreateBudgetRequest{
-		CategoryID: 2,
-		Amount:     5000,
-		CreatedAt:  time.Now(),
+		CategoryID:  2,
+		Amount:      5000,
+		CreatedAt:   time.Now(),
 		PeriodStart: time.Now(),
 		PeriodEnd:   time.Now().AddDate(0, 1, 0),
 	}
@@ -35,15 +35,15 @@ func TestCreateRequestToModel(t *testing.T) {
 func TestModelBudgetToProto(t *testing.T) {
 	now := time.Now()
 	bdg := bdgmodels.Budget{
-		ID:         1,
-		UserID:     42,
-		CategoryID: 2,
-		Amount:     5000,
-		Actual:     1000,
-		CurrencyID: 1,
+		ID:          1,
+		UserID:      42,
+		CategoryID:  2,
+		Amount:      5000,
+		Actual:      1000,
+		CurrencyID:  1,
 		Description: "Test budget",
-		CreatedAt:  now,
-		UpdatedAt:  now,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 		PeriodStart: now,
 		PeriodEnd:   now.AddDate(0, 1, 0),
 	}
@@ -78,7 +78,6 @@ func TestModelListToProto(t *testing.T) {
 	assert.Equal(t, budgets[0].Amount, resp.Budgets[0].Sum)
 	assert.Equal(t, budgets[1].Amount, resp.Budgets[1].Sum)
 }
-
 
 func TestCreateRequestToModel_Empty(t *testing.T) {
 	req := bdgmodels.CreateBudgetRequest{} // все поля нулевые

@@ -8,8 +8,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 	svcerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/errors"
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
 
@@ -43,7 +43,7 @@ func (s *AuthServerImpl) Login(ctx context.Context, req *authpb.LoginRequest) (*
 	logReq := LoginToRequest(req)
 	user, err := s.authUC.Login(ctx, logReq)
 	if err != nil {
-		if errors.Is(err, svcerrors.ErrInvalidCredentials) ||  errors.Is(err, svcerrors.ErrUserNotFound) {
+		if errors.Is(err, svcerrors.ErrInvalidCredentials) || errors.Is(err, svcerrors.ErrUserNotFound) {
 			return nil, status.Error(codes.Unauthenticated, string(models.ErrCodeInvalidCredentials))
 		}
 		return nil, status.Error(codes.Internal, string(models.ErrCodeInternalError))
@@ -63,7 +63,7 @@ func (s *AuthServerImpl) UpdateProfile(ctx context.Context, req *authpb.UpdatePr
 			return nil, status.Error(codes.AlreadyExists, string(models.ErrCodeEmailExists))
 		}
 		if errors.Is(err, svcerrors.ErrForbidden) {
-			return nil, status.Error(codes.PermissionDenied, string(models.ErrCodeForbidden	))
+			return nil, status.Error(codes.PermissionDenied, string(models.ErrCodeForbidden))
 		}
 		return nil, status.Error(codes.Internal, string(models.ErrCodeInternalError))
 	}
@@ -89,5 +89,3 @@ func (s *AuthServerImpl) GetCSRF(ctx context.Context, _ *emptypb.Empty) (*authpb
 	}
 	return token, err
 }
-
-

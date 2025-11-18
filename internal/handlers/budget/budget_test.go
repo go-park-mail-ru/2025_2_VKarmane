@@ -60,10 +60,11 @@ func TestGetListBudgets_Success(t *testing.T) {
 	h.GetListBudgets(rr, req)
 	require.Equal(t, http.StatusOK, rr.Code)
 
-	var resp []models.Budget
+	var resp map[string][]models.Budget
 	err := json.NewDecoder(rr.Body).Decode(&resp)
 	require.NoError(t, err)
-	require.Len(t, resp, 2)
+	require.Contains(t, resp, "budgets")
+	require.Len(t, resp["budgets"], 2)
 }
 
 func TestGetBudgetByID_Success(t *testing.T) {

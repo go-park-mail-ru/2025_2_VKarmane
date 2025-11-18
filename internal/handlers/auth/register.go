@@ -5,9 +5,9 @@ import (
 
 	"github.com/gorilla/mux"
 
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 )
 
 func Register(publicRouter *mux.Router, protectedRouter *mux.Router, log logger.Logger, authClient authpb.AuthServiceClient) {

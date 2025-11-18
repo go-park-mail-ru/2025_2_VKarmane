@@ -32,7 +32,7 @@ type AuthResponse struct {
 }
 
 type UpdateProfileRequest struct {
-	UserID       int32 `json:"user_id"`
+	UserID       int32  `json:"user_id"`
 	FirstName    string `json:"first_name" validate:"required,max=50"`
 	LastName     string `json:"last_name" validate:"required,max=50"`
 	Email        string `json:"email" validate:"required,email"`

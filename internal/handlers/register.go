@@ -32,7 +32,7 @@ func NewRegistrator(uc *usecase.UseCase, log logger.Logger) *Registrator {
 func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux.Router, uc *usecase.UseCase, log logger.Logger, authClient authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient) {
 	auth.Register(publicRouter, protectedRouter, log, authClient)
 	balance.Register(protectedRouter, uc.BalanceUC)
-	budget.Register(protectedRouter, uc.BudgetUC, budgetClient)
+	budget.Register(protectedRouter, budgetClient)
 	operation.Register(protectedRouter, uc.OpUC, uc.ImageUC)
 	category.Register(protectedRouter, uc.CategoryUC, uc.ImageUC)
 	profile.Register(protectedRouter, uc.ImageUC, authClient)

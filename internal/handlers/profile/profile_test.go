@@ -8,13 +8,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
-	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
-
 
 func TestGetProfile_Unauthorized(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -75,7 +74,6 @@ func TestUpdateProfile_Unauthorized(t *testing.T) {
 	require.Equal(t, http.StatusUnauthorized, rr.Code)
 }
 
-
 func TestUpdateProfile_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -111,7 +109,6 @@ func TestUpdateProfile_Success(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rr.Code)
 }
-
 
 func TestUpdateProfile_WithImage(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -157,5 +154,3 @@ func TestUpdateProfile_WithImage(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rr.Code)
 }
-
-

@@ -54,12 +54,12 @@ func TestPostgresRepository_GetUserByLogin(t *testing.T) {
 	repo := NewPostgresRepository(db)
 
 	user := authmodels.User{
-		ID:       1,
+		ID:        1,
 		FirstName: "John",
 		LastName:  "Doe",
-		Email:    "john@example.com",
-		Login:    "johndoe",
-		Password: "hashedpassword",
+		Email:     "john@example.com",
+		Login:     "johndoe",
+		Password:  "hashedpassword",
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
@@ -85,12 +85,12 @@ func TestPostgresRepository_GetUserByID(t *testing.T) {
 	repo := NewPostgresRepository(db)
 
 	user := authmodels.User{
-		ID:       1,
+		ID:        1,
 		FirstName: "John",
 		LastName:  "Doe",
-		Email:    "john@example.com",
-		Login:    "johndoe",
-		Password: "hashedpassword",
+		Email:     "john@example.com",
+		Login:     "johndoe",
+		Password:  "hashedpassword",
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
@@ -115,10 +115,10 @@ func TestPostgresRepository_EditUserByID(t *testing.T) {
 	repo := NewPostgresRepository(db)
 
 	req := authmodels.UpdateProfileRequest{
-		UserID:    1,
-		FirstName: "JohnUpdated",
-		LastName:  "DoeUpdated",
-		Email:     "johnupdated@example.com",
+		UserID:       1,
+		FirstName:    "JohnUpdated",
+		LastName:     "DoeUpdated",
+		Email:        "johnupdated@example.com",
 		LogoHashedID: "logo456",
 	}
 
@@ -218,10 +218,10 @@ func TestPostgresRepository_EditUserByID_NotFound(t *testing.T) {
 	repo := NewPostgresRepository(db)
 
 	req := authmodels.UpdateProfileRequest{
-		UserID: 99,
+		UserID:    99,
 		FirstName: "Test",
-		LastName: "User",
-		Email: "test@example.com",
+		LastName:  "User",
+		Email:     "test@example.com",
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
@@ -250,10 +250,10 @@ func TestPostgresRepository_EditUserByID_EmailExists(t *testing.T) {
 	repo := NewPostgresRepository(db)
 
 	req := authmodels.UpdateProfileRequest{
-		UserID: 1,
+		UserID:    1,
 		FirstName: "John",
-		LastName: "Doe",
-		Email: "existing@example.com",
+		LastName:  "Doe",
+		Email:     "existing@example.com",
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(`

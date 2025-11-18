@@ -75,8 +75,6 @@ func TestService_Login_Success(t *testing.T) {
 
 	repo.EXPECT().GetUserByLogin(gomock.Any(), "testuser").Return(user, nil)
 
-
-
 	resp, err := s.Login(context.Background(), req)
 	require.NoError(t, err)
 	require.NotNil(t, resp)

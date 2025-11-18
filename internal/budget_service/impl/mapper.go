@@ -9,32 +9,32 @@ import (
 
 func ProtoBudgetToApi(bdg *budgpb.Budget) budgmodels.Budget {
 	return budgmodels.Budget{
-		ID: int(bdg.Id),
-		UserID: int(bdg.UserId),
-		CategoryID: int(bdg.CategoryId),
-		Amount: bdg.Sum,
-		Actual: bdg.Actual,
-		CurrencyID: int(bdg.CurrencyId),
+		ID:          int(bdg.Id),
+		UserID:      int(bdg.UserId),
+		CategoryID:  int(bdg.CategoryId),
+		Amount:      bdg.Sum,
+		Actual:      bdg.Actual,
+		CurrencyID:  int(bdg.CurrencyId),
 		Description: bdg.Description,
-		CreatedAt: bdg.CreatedAt.AsTime(),
-		UpdatedAt: bdg.UpdatedAt.AsTime(),
+		CreatedAt:   bdg.CreatedAt.AsTime(),
+		UpdatedAt:   bdg.UpdatedAt.AsTime(),
 		PeriodStart: bdg.PeriodStart.AsTime(),
-		PeriodEnd: bdg.PeriodEnd.AsTime(),
+		PeriodEnd:   bdg.PeriodEnd.AsTime(),
 	}
 }
 
 func ProtoCreateRequestToModel(req *budgpb.CreateBudgetRequest) (budgmodels.CreateBudgetRequest, int) {
 	return budgmodels.CreateBudgetRequest{
-		CategoryID: int(req.CategoryId),
-		Amount: req.Sum,
+		CategoryID:  int(req.CategoryId),
+		Amount:      req.Sum,
 		Description: req.Description,
-		CreatedAt: req.CreatedAt.AsTime(),
+		CreatedAt:   req.CreatedAt.AsTime(),
 		PeriodStart: req.PeriodEnd.AsTime(),
-		PeriodEnd: req.PeriodEnd.AsTime(),
+		PeriodEnd:   req.PeriodEnd.AsTime(),
 	}, int(req.UserID)
 }
 
-func ProtoUpdateRequestToModel(req *budgpb.UpdateBudgetRequest) (budgmodels.UpdatedBudgetRequest) {
+func ProtoUpdateRequestToModel(req *budgpb.UpdateBudgetRequest) budgmodels.UpdatedBudgetRequest {
 	var periodStart *time.Time
 	if req.PeriodStart != nil {
 		t := req.PeriodStart.AsTime()
@@ -46,12 +46,12 @@ func ProtoUpdateRequestToModel(req *budgpb.UpdateBudgetRequest) (budgmodels.Upda
 		periodEnd = &t
 	}
 	return budgmodels.UpdatedBudgetRequest{
-		UserID: int(req.UserID),
-		BudgetID: int(req.BudgetID),
-		Amount: req.Sum,
+		UserID:      int(req.UserID),
+		BudgetID:    int(req.BudgetID),
+		Amount:      req.Sum,
 		Description: req.Description,
 		PeriodStart: periodStart,
-		PeriodEnd: periodEnd,
+		PeriodEnd:   periodEnd,
 	}
 }
 

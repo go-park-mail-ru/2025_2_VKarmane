@@ -21,14 +21,14 @@ func TestProtoProfileToApiProfile(t *testing.T) {
 	now := time.Now()
 
 	protoProfile := &proto.ProfileResponse{
-		Id:            10,
-		FirstName:     "John",
-		LastName:      "Doe",
-		Login:         "jdoe",
-		Email:         "john@example.com",
-		LogoHashedId:  "hash123",
-		LogoUrl:       "http://example.com/logo.jpg",
-		CreatedAt:     timestamppb.New(now),
+		Id:           10,
+		FirstName:    "John",
+		LastName:     "Doe",
+		Login:        "jdoe",
+		Email:        "john@example.com",
+		LogoHashedId: "hash123",
+		LogoUrl:      "http://example.com/logo.jpg",
+		CreatedAt:    timestamppb.New(now),
 	}
 
 	api := ProtoProfileToApiProfile(protoProfile)

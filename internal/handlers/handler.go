@@ -3,6 +3,8 @@ package handlers
 import (
 	"github.com/gorilla/mux"
 
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
+	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/balance"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/budget"
@@ -12,8 +14,6 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
-	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
 )
 
 type Handler struct {

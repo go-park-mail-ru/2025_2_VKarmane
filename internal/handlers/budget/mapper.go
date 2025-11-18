@@ -21,7 +21,6 @@ func BudgetToAPI(bdg *bdgpb.Budget) models.Budget {
 	}
 }
 
-
 func BudgetsToAPI(userID int, bdgs *bdgpb.ListBudgetsResponse) []models.Budget {
 	res := make([]models.Budget, 0, len(bdgs.Budgets))
 	for _, b := range bdgs.Budgets {
@@ -32,20 +31,20 @@ func BudgetsToAPI(userID int, bdgs *bdgpb.ListBudgetsResponse) []models.Budget {
 
 func IDsToBudgetRequest(budgetID, userID int) *bdgpb.BudgetRequest {
 	return &bdgpb.BudgetRequest{
-		UserID: int32(userID),
+		UserID:   int32(userID),
 		BudgetID: int32(budgetID),
 	}
 }
 
 func ModelCreateReqtoProtoReq(req models.CreateBudgetRequest, userID int) *bdgpb.CreateBudgetRequest {
 	return &bdgpb.CreateBudgetRequest{
-		UserID: int32(userID),
-		CategoryId: int32(req.CategoryID),
-		Sum: req.Amount,
+		UserID:      int32(userID),
+		CategoryId:  int32(req.CategoryID),
+		Sum:         req.Amount,
 		Description: req.Description,
-		CreatedAt: timestamppb.New(req.CreatedAt),
+		CreatedAt:   timestamppb.New(req.CreatedAt),
 		PeriodStart: timestamppb.New(req.PeriodStart),
-		PeriodEnd: timestamppb.New(req.PeriodEnd),
+		PeriodEnd:   timestamppb.New(req.PeriodEnd),
 	}
 }
 

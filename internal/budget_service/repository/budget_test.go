@@ -49,10 +49,10 @@ func TestPostgresRepository_CreateBudget(t *testing.T) {
 	ctx := context.Background()
 
 	budget := bdgmodels.Budget{
-		UserID:     1,
-		CategoryID: 2,
-		CurrencyID: 1,
-		Amount:     100.0,
+		UserID:      1,
+		CategoryID:  2,
+		CurrencyID:  1,
+		Amount:      100.0,
 		Description: "desc",
 		PeriodStart: time.Now(),
 		PeriodEnd:   time.Now().Add(24 * time.Hour),
@@ -107,8 +107,8 @@ func TestPostgresRepository_UpdateBudget(t *testing.T) {
 			req.UserID,
 			2,
 			1,
-			*req.Amount,       
-			*req.Description, 
+			*req.Amount,
+			*req.Description,
 			fixed.FixedTime,
 			fixed.FixedTime,
 			*req.PeriodStart,
@@ -121,7 +121,6 @@ func TestPostgresRepository_UpdateBudget(t *testing.T) {
 	require.Equal(t, *req.Amount, updated.Amount)
 	require.Equal(t, *req.Description, updated.Description)
 }
-
 
 func TestPostgresRepository_DeleteBudget(t *testing.T) {
 	db, mock, err := sqlmock.New()

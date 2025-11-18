@@ -5,18 +5,17 @@ import (
 
 	pkgerrors "github.com/pkg/errors"
 
+	bdgerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/errors"
 	bdgmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/models"
 	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
-	bdgerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/errors"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
-
 
 type Service struct {
 	repo interface {
 		GetBudgetsByUser(ctx context.Context, userID int) ([]bdgmodels.Budget, error)
 		// GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
-		// GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) //пока нет микросервисов 
+		// GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) //пока нет микросервисов
 		CreateBudget(ctx context.Context, budget bdgmodels.Budget) (bdgmodels.Budget, error)
 		UpdateBudget(ctx context.Context, req bdgmodels.UpdatedBudgetRequest) (bdgmodels.Budget, error)
 		DeleteBudget(ctx context.Context, budgetID int) (bdgmodels.Budget, error)
@@ -25,12 +24,12 @@ type Service struct {
 }
 
 func NewService(repo interface {
-		GetBudgetsByUser(ctx context.Context, userID int) ([]bdgmodels.Budget, error)
-		// GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
-		// GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) //пока нет микросервисов 
-		CreateBudget(ctx context.Context, budget bdgmodels.Budget) (bdgmodels.Budget, error)
-		UpdateBudget(ctx context.Context, req bdgmodels.UpdatedBudgetRequest) (bdgmodels.Budget, error)
-		DeleteBudget(ctx context.Context, budgetID int) (bdgmodels.Budget, error)
+	GetBudgetsByUser(ctx context.Context, userID int) ([]bdgmodels.Budget, error)
+	// GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
+	// GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) //пока нет микросервисов
+	CreateBudget(ctx context.Context, budget bdgmodels.Budget) (bdgmodels.Budget, error)
+	UpdateBudget(ctx context.Context, req bdgmodels.UpdatedBudgetRequest) (bdgmodels.Budget, error)
+	DeleteBudget(ctx context.Context, budgetID int) (bdgmodels.Budget, error)
 }, clck clock.Clock) *Service {
 	return &Service{
 		repo:  repo,
@@ -89,7 +88,7 @@ func (s *Service) GetBudgets(ctx context.Context, userID int) (*bdgpb.ListBudget
 		// 			actual += op.Sum
 		// 		}
 		// 	}
-		// } // пока нет сервиса 
+		// } // пока нет сервиса
 		budgets[i].Actual = 123
 	}
 

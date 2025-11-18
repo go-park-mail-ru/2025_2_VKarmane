@@ -11,7 +11,7 @@ import (
 
 func main() {
 	if err := authservice.Run(); err != nil {
-		log.Fatal(fmt.Sprintf("AuthService failed to run: %w", err))
+		log.Fatal(fmt.Sprintf("AuthService failed to run: %v", err))
 	}
 }
 

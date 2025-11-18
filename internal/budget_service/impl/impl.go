@@ -7,8 +7,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	budgetpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
 	bdgerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/errors"
+	budgetpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
 )
 
 type BudgetServerImpl struct {

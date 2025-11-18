@@ -26,7 +26,6 @@ import (
 	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -38,17 +37,7 @@ func Run() error {
 		appLogger = logger.NewSlogLogger()
 	}
 
-	var dialOpts grpc.DialOption
-	if config.HTTPS.Enabled {
-		creds, err := credentials.NewClientTLSFromFile(config.HTTPS.CertFile, "")
-		if err != nil {
-			appLogger.Error("Failed to load TLS credentials", "error", err)
-			return err
-    	}
-		dialOpts = grpc.WithTransportCredentials(creds)
-	} else {
-		dialOpts = grpc.WithTransportCredentials(insecure.NewCredentials())
-	}
+	dialOpts := grpc.WithTransportCredentials(insecure.NewCredentials())
 
 	authGrpcConn, err := grpc.NewClient(fmt.Sprintf("%s:%s", config.AuthServiceHost, config.AuthServicePort), dialOpts)
 	if err != nil {
@@ -100,6 +89,7 @@ func Run() error {
 
 	corsOrigins := config.GetCORSOrigins()
 	appLogger.Info("CORS Configuration", "origins", corsOrigins, "is_production", config.IsProduction())
+	r.Use(middleware.MetricsMiddleware)
 	r.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
 
 	r.Use(middleware.LoggerMiddleware(appLogger))
@@ -119,6 +109,7 @@ func Run() error {
 	// public.Use(middleware.CSRFMiddleware(config.JWTSecret))
 
 	protected := r.PathPrefix("/api/v1").Subrouter()
+	protected.Use(middleware.MetricsMiddleware)
 	protected.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
 	protected.Use(middleware.LoggerMiddleware(appLogger))
 	protected.Use(middleware.RequestLoggerMiddleware(appLogger))

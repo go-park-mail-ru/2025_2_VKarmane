@@ -9,7 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
-func Register(r *mux.Router, uc BudgetUseCase, budgetClient bdgpb.BudgetServiceClient) {
+func Register(r *mux.Router, budgetClient bdgpb.BudgetServiceClient) {
 	realClock := clock.RealClock{}
 	handler := NewHandler(realClock, budgetClient)
 

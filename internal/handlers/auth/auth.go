@@ -9,9 +9,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
-	// "github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
@@ -19,8 +18,8 @@ import (
 )
 
 type Handler struct {
-	clock  clock.Clock
-	logger logger.Logger
+	clock      clock.Clock
+	logger     logger.Logger
 	authClient authpb.AuthServiceClient
 }
 
@@ -53,7 +52,6 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		httputil.ValidationErrors(w, r, validationErrors)
 		return
 	}
-
 	// response, err := h.authUC.Register(r.Context(), req)
 	response, err := h.authClient.Register(r.Context(), RegisterApiToProtoRegister(req))
 	if err != nil {
@@ -113,7 +111,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	// response, err := h.authUC.Login(r.Context(), req)
 	response, err := h.authClient.Login(r.Context(), LoginApiToProtoLogin(req))
-	
+
 	if err != nil {
 		st, ok := status.FromError(err)
 		if !ok {

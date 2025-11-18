@@ -26,8 +26,8 @@ func TestService_GetBudgets(t *testing.T) {
 	userID := 1
 
 	budgets := []bdgmodels.Budget{
-		{ID: 1, UserID: userID, Amount: 100, CurrencyID: 1, PeriodStart: time.Now(), PeriodEnd: time.Now().Add(24*time.Hour)},
-		{ID: 2, UserID: userID, Amount: 200, CurrencyID: 1, PeriodStart: time.Now(), PeriodEnd: time.Now().Add(24*time.Hour)},
+		{ID: 1, UserID: userID, Amount: 100, CurrencyID: 1, PeriodStart: time.Now(), PeriodEnd: time.Now().Add(24 * time.Hour)},
+		{ID: 2, UserID: userID, Amount: 200, CurrencyID: 1, PeriodStart: time.Now(), PeriodEnd: time.Now().Add(24 * time.Hour)},
 	}
 
 	t.Run("success", func(t *testing.T) {
@@ -64,7 +64,6 @@ func TestService_GetBudgetByID(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockRepo.EXPECT().GetBudgetsByUser(ctx, userID).Return([]bdgmodels.Budget{budget}, nil).Times(2)
 
-
 		resp, err := svc.GetBudgetByID(ctx, budgetID, userID)
 		assert.NoError(t, err)
 		assert.Equal(t, int32(budgetID), resp.Id)
@@ -79,27 +78,27 @@ func TestService_GetBudgetByID(t *testing.T) {
 	})
 
 	t.Run("repo_error", func(t *testing.T) {
-    ctrl := gomock.NewController(t)
-    defer ctrl.Finish()
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 
-    mockRepo := mocks.NewMockBudgetRepository(ctrl)
-    s := NewService(mockRepo, clock.RealClock{})
+		mockRepo := mocks.NewMockBudgetRepository(ctrl)
+		s := NewService(mockRepo, clock.RealClock{})
 
-    ctx := context.Background()
-    userID := 1
-    budgetID := 1
+		ctx := context.Background()
+		userID := 1
+		budgetID := 1
 
-    mockRepo.EXPECT().GetBudgetsByUser(ctx, userID).Return([]bdgmodels.Budget{
-        {ID: budgetID, UserID: userID},
-    }, nil).Times(1)
+		mockRepo.EXPECT().GetBudgetsByUser(ctx, userID).Return([]bdgmodels.Budget{
+			{ID: budgetID, UserID: userID},
+		}, nil).Times(1)
 
-    mockRepo.EXPECT().GetBudgetsByUser(ctx, userID).Return(nil, errors.New("some db error")).Times(1)
+		mockRepo.EXPECT().GetBudgetsByUser(ctx, userID).Return(nil, errors.New("some db error")).Times(1)
 
-    _, err := s.GetBudgetByID(ctx, budgetID, userID)
-    if err == nil || !strings.Contains(err.Error(), "budget.GetBudgetByID") {
-        t.Fatalf("expected error containing 'budget.GetBudgetByID', got %v", err)
-    }
-})
+		_, err := s.GetBudgetByID(ctx, budgetID, userID)
+		if err == nil || !strings.Contains(err.Error(), "budget.GetBudgetByID") {
+			t.Fatalf("expected error containing 'budget.GetBudgetByID', got %v", err)
+		}
+	})
 
 }
 

@@ -76,4 +76,3 @@ func (uc *UseCase) DeleteBudget(ctx context.Context, budgetID, userID int) (*bdg
 	}
 	return budgetData, nil
 }
-
