@@ -3,6 +3,7 @@ package balance
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	pkgerrors "github.com/pkg/errors"
 
@@ -67,10 +68,9 @@ func (s *Service) GetAccountByID(ctx context.Context, userID, accountID int) (mo
 		return models.Account{}, pkgerrors.Wrap(err, "balance.GetAccountByID: failed to get accounts")
 	}
 
-	for _, account := range accounts {
-		if account.ID == accountID {
-			return account, nil
-		}
+	idx := slices.IndexFunc(accounts, func (account models.Account) bool {return account.ID == accountID })
+	if idx != -1 {
+		return accounts[idx], nil
 	}
 
 	return models.Account{}, fmt.Errorf("account not found: %s", models.ErrCodeAccountNotFound)
