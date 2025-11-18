@@ -2,31 +2,32 @@ package profile
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/profile"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 )
 
 type Handler struct {
-	profileUC profile.ProfileUseCase
-	imageUC   image.ImageUseCase
+	imageUC    image.ImageUseCase
+	authClient authpb.AuthServiceClient
 }
 
-func NewHandler(profileUC profile.ProfileUseCase, imageUC image.ImageUseCase) *Handler {
+func NewHandler(imageUC image.ImageUseCase, authClient authpb.AuthServiceClient) *Handler {
 	return &Handler{
-		profileUC: profileUC,
-		imageUC:   imageUC,
+		imageUC:    imageUC,
+		authClient: authClient,
 	}
 }
 
@@ -72,19 +73,27 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	profile, err := h.profileUC.GetProfile(r.Context(), userID)
+	// profile, err := h.profileUC.GetProfile(r.Context(), userID)
+	profile, err := h.authClient.GetProfile(r.Context(), IDtoProtoID(userID))
 	if err != nil {
-		if errors.Is(err, user.ErrUserNotFound) {
-			httputils.NotFoundError(w, r, "Пользователь не найден")
+		st, ok := status.FromError(err)
+		if !ok {
+			httputils.InternalError(w, r, string(models.ErrCodeInternalError))
 			return
 		}
-		httputils.InternalError(w, r, "Failed to get profile")
-		return
+		switch st.Code() {
+		case codes.NotFound:
+			httputils.NotFoundError(w, r, "Пользователь не найден")
+			return
+		default:
+			httputils.InternalError(w, r, "Failed to get profile")
+			return
+		}
 	}
+	profileDTO := ProtoProfileToApiProfile(profile)
+	h.enrichProfileWithLogoURL(r.Context(), profileDTO)
 
-	h.enrichProfileWithLogoURL(r.Context(), &profile)
-
-	httputils.Success(w, r, profile)
+	httputils.Success(w, r, profileDTO)
 }
 
 // UpdateProfile godoc
@@ -132,7 +141,7 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		defer func() { _ = file.Close() }()
 
 		ext := strings.ToLower(filepath.Ext(header.Filename))
-		allowedExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp"}
+		allowedExts := []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"}
 		allowed := false
 		for _, allowedExt := range allowedExts {
 			if ext == allowedExt {
@@ -160,13 +169,29 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		req.LogoHashedID = imageID
 	}
 
-	profile, err := h.profileUC.UpdateProfile(r.Context(), req, userID)
+	// profile, err := h.profileUC.UpdateProfile(r.Context(), req, userID)
+	profile, err := h.authClient.UpdateProfile(r.Context(), UpdateProfileApiToProto(req, userID))
 	if err != nil {
-		httputils.InternalError(w, r, "Failed to update profile")
-		return
+		st, ok := status.FromError(err)
+		if !ok {
+			httputils.InternalError(w, r, string(models.ErrCodeInternalError))
+			return
+		}
+		switch st.Code() {
+		case codes.NotFound:
+			httputils.NotFoundError(w, r, "Пользователь не найден")
+			return
+		case codes.AlreadyExists:
+			httputils.ConflictError(w, r, "Пользователь с таким email уже существует", models.ErrCodeEmailExists)
+			return
+		default:
+			httputils.InternalError(w, r, "Failed to update profile")
+			return
+		}
 	}
 
-	h.enrichProfileWithLogoURL(r.Context(), &profile)
+	profileDTO := ProtoProfileToApiProfile(profile)
+	h.enrichProfileWithLogoURL(r.Context(), profileDTO)
 
-	httputils.Success(w, r, profile)
+	httputils.Success(w, r, profileDTO)
 }

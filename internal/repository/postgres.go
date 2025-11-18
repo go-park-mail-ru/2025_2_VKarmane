@@ -7,18 +7,14 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
 	categoryrepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/category"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
 	_ "github.com/lib/pq"
 )
 
 type PostgresStore struct {
 	DB            *sql.DB
-	UserRepo      *user.PostgresRepository
 	AccountRepo   *account.PostgresRepository
-	BudgetRepo    *budget.PostgresRepository
 	OperationRepo *operation.PostgresRepository
 	CategoryRepo  *categoryrepo.PostgresRepository
 }
@@ -37,9 +33,7 @@ func NewPostgresStore(dsn string) (*PostgresStore, error) {
 		DB: db,
 	}
 
-	store.UserRepo = user.NewPostgresRepository(db)
 	store.AccountRepo = account.NewPostgresRepository(db)
-	store.BudgetRepo = budget.NewPostgresRepository(db)
 	store.OperationRepo = operation.NewPostgresRepository(db)
 	store.CategoryRepo = categoryrepo.NewPostgresRepository(db)
 
@@ -55,26 +49,6 @@ func (s *PostgresStore) Close() error {
 
 // Реализация интерфейсов репозиториев
 
-// UserRepository
-func (s *PostgresStore) CreateUser(ctx context.Context, user models.User) (models.User, error) {
-	return s.UserRepo.CreateUserModel(ctx, user)
-}
-
-func (s *PostgresStore) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
-	return s.UserRepo.GetUserByLoginModel(ctx, login)
-}
-
-func (s *PostgresStore) GetUserByID(ctx context.Context, id int) (models.User, error) {
-	return s.UserRepo.GetUserByIDModel(ctx, id)
-}
-
-func (s *PostgresStore) UpdateUser(ctx context.Context, user models.User) error {
-	return s.UserRepo.UpdateUserModel(ctx, user)
-}
-
-func (s *PostgresStore) EditUserByID(ctx context.Context, req models.UpdateProfileRequest, userID int) (models.User, error) {
-	return s.UserRepo.EditUserByIDModel(ctx, req, userID)
-}
 
 // AccountRepository
 func (s *PostgresStore) GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error) {
@@ -92,20 +66,6 @@ func (s *PostgresStore) DeleteAccount(ctx context.Context, userID, accID int) (m
 	return s.AccountRepo.DeleteAccount(ctx, userID, accID)
 }
 
-// BudgetRepository
-func (s *PostgresStore) GetBudgetsByUser(ctx context.Context, userID int) ([]models.Budget, error) {
-	return s.BudgetRepo.GetBudgetsByUser(ctx, userID)
-}
-
-func (s *PostgresStore) CreateBudget(ctx context.Context, budget models.Budget) (models.Budget, error) {
-	return s.BudgetRepo.CreateBudget(ctx, budget)
-}
-func (s *PostgresStore) UpdateBudget(ctx context.Context, req models.UpdatedBudgetRequest, userID, budgetID int) (models.Budget, error) {
-	return s.BudgetRepo.UpdateBudget(ctx, req, userID, budgetID)
-}
-func (s *PostgresStore) DeleteBudget(ctx context.Context, budgetID int) (models.Budget, error) {
-	return s.BudgetRepo.DeleteBudget(ctx, budgetID)
-}
 
 // OperationRepository
 func (s *PostgresStore) GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) {

@@ -2,28 +2,29 @@ package auth
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"os"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
+
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
-	// "github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/user"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputil "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 )
 
 type Handler struct {
-	authUC    AuthUseCase
-	clock     clock.Clock
-	logger    logger.Logger
+	clock      clock.Clock
+	logger     logger.Logger
+	authClient authpb.AuthServiceClient
 }
 
-func NewHandler(authUC AuthUseCase, clck clock.Clock, logger logger.Logger) *Handler {
-	return &Handler{authUC: authUC, clock: clck, logger: logger}
+func NewHandler(clck clock.Clock, logger logger.Logger, authCLient authpb.AuthServiceClient) *Handler {
+	return &Handler{clock: clck, logger: logger, authClient: authCLient}
 }
 
 // Register godoc
@@ -51,17 +52,29 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		httputil.ValidationErrors(w, r, validationErrors)
 		return
 	}
-
-	response, err := h.authUC.Register(r.Context(), req)
+	// response, err := h.authUC.Register(r.Context(), req)
+	response, err := h.authClient.Register(r.Context(), RegisterApiToProtoRegister(req))
 	if err != nil {
-		switch {
-		case errors.Is(err, user.ErrEmailExists):
-			httputil.ConflictError(w, r, "Пользователь с таким email уже существует", models.ErrCodeEmailExists)
-		case errors.Is(err, user.ErrLoginExists):
-			httputil.ConflictError(w, r, "Пользователь с таким логином уже существует", models.ErrCodeLoginExists)
-		default:
-			httputil.ConflictError(w, r, "Пользователь уже существует", models.ErrCodeUserExists)
+		st, ok := status.FromError(err)
+		if !ok {
+			httputil.InternalError(w, r, string(models.ErrCodeInternalError))
+			return
 		}
+		switch st.Code() {
+		case codes.AlreadyExists:
+			switch st.Message() {
+			case string(models.ErrCodeEmailExists):
+				httputil.ConflictError(w, r, "Пользователь с таким email уже существует", models.ErrCodeEmailExists)
+				return
+			case string(models.ErrCodeLoginExists):
+				httputil.ConflictError(w, r, "Пользователь с таким логином уже существует", models.ErrCodeLoginExists)
+				return
+			default:
+				httputil.InternalError(w, r, "Failed to register")
+				return
+			}
+		}
+		httputil.InternalError(w, r, string(models.ErrCodeInternalError))
 		return
 	}
 
@@ -98,15 +111,25 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := h.authUC.Login(r.Context(), req)
+	// response, err := h.authUC.Login(r.Context(), req)
+	response, err := h.authClient.Login(r.Context(), LoginApiToProtoLogin(req))
+
 	if err != nil {
-		switch {
-		case errors.Is(err, user.ErrUserNotFound):
-			httputil.UnauthorizedError(w, r, "Пользователь не найден", models.ErrCodeUserNotFound)
-		case errors.Is(err, auth.ErrInvalidPassword):
-			httputil.UnauthorizedError(w, r, "Неверный пароль", models.ErrCodeInvalidCredentials)
-		default:
-			httputil.UnauthorizedError(w, r, "Неверные учетные данные", models.ErrCodeInvalidCredentials)
+		st, ok := status.FromError(err)
+		if !ok {
+			httputil.InternalError(w, r, string(models.ErrCodeInternalError))
+			return
+		}
+		switch st.Code() {
+		case codes.NotFound:
+			switch st.Message() {
+			case string(models.ErrCodeInvalidCredentials):
+				httputil.UnauthorizedError(w, r, "Неверные логин или пароль", models.ErrCodeInvalidCredentials)
+				return
+			default:
+				httputil.InternalError(w, r, "Failed to login")
+				return
+			}
 		}
 		return
 	}
@@ -128,10 +151,13 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
 	isProduction := os.Getenv("ENV") == "production"
 
-	token, err := h.authUC.GetCSRFToken(r.Context())
+	// token, err := h.authUC.GetCSRFToken(r.Context())
+	tokenResponse, err := h.authClient.GetCSRF(r.Context(), &emptypb.Empty{})
 	if err != nil {
 		httputil.InternalError(w, r, "Failed to get CSRF-Token")
+		return
 	}
+	token := tokenResponse.Token
 
 	utils.SetCSRFCookie(w, token, isProduction)
 	httputil.Success(w, r, map[string]string{"csrf_token": token})
@@ -147,6 +173,8 @@ func (h *Handler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
 // @Failure 401 {object} models.ErrorResponse "Требуется аутентификация (UNAUTHORIZED, TOKEN_MISSING, TOKEN_INVALID, TOKEN_EXPIRED)"
 // @Router /auth/logout [post]
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
-	h.authUC.Logout(r.Context(), w)
+	isProduction := os.Getenv("ENV") == "production"
+	utils.ClearAuthCookie(w, isProduction)
+	utils.ClearCSRFCookie(w, isProduction)
 	httputil.Success(w, r, map[string]string{"message": "Logged out successfully"})
 }

@@ -58,49 +58,6 @@ func (r *PostgresRepository) GetAccountsByUser(ctx context.Context, userID int) 
 	return accounts, nil
 }
 
-// func (r *PostgresRepository) CreateAccount(ctx context.Context, account AccountDB) (int, error) {
-// 	query := `
-// 		INSERT INTO account (balance, account_type, currency_id, created_at, updated_at)
-// 		VALUES ($1, $2, $3, $4, $5)
-// 		RETURNING _id
-// 	`
-
-// 	var id int
-// 	err := r.db.QueryRowContext(ctx, query,
-// 		account.Balance,
-// 		account.Type,
-// 		account.CurrencyID,
-// 		account.CreatedAt,
-// 		account.UpdatedAt,
-// 	).Scan(&id)
-
-// 	if err != nil {
-// 		return 0, fmt.Errorf("failed to create account: %w", err)
-// 	}
-
-// 	return id, nil
-// }
-
-// func (r *PostgresRepository) CreateUserAccount(ctx context.Context, userAccount UserAccountDB) error {
-// 	query := `
-// 		INSERT INTO sharings (account_id, user_id, created_at, updated_at)
-// 		VALUES ($1, $2, $3, $4)
-// 	`
-
-// 	_, err := r.db.ExecContext(ctx, query,
-// 		userAccount.AccountID,
-// 		userAccount.UserID,
-// 		userAccount.CreatedAt,
-// 		userAccount.UpdatedAt,
-// 	)
-
-// 	if err != nil {
-// 		return fmt.Errorf("failed to create user account: %w", err)
-// 	}
-
-// 	return nil
-// }
-
 func (r *PostgresRepository) UpdateAccountBalance(ctx context.Context, accountID int, newBalance float64) error {
 	query := `
 		UPDATE account 

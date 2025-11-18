@@ -2,28 +2,29 @@ package budget
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
+	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	budgeterrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/budget"
-	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/errors"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 )
 
 type Handler struct {
-	budgetUC BudgetUseCase
-	clock    clock.Clock
+	budgetClient bdgpb.BudgetServiceClient
+	clock        clock.Clock
 }
 
-func NewHandler(budgetUC BudgetUseCase, clck clock.Clock) *Handler {
-	return &Handler{budgetUC: budgetUC, clock: clck}
+func NewHandler(clck clock.Clock, budgetClient bdgpb.BudgetServiceClient) *Handler {
+	return &Handler{clock: clck, budgetClient: budgetClient}
 }
 
 func (h *Handler) getUserID(r *http.Request) (int, bool) {
@@ -53,14 +54,31 @@ func (h *Handler) GetListBudgets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	budgets, err := h.budgetUC.GetBudgetsForUser(r.Context(), userID)
+	// budgets, err := h.budgetUC.GetBudgetsForUser(r.Context(), userID)
+	budgets, err := h.budgetClient.GetListBudgets(r.Context(), &bdgpb.UserID{
+		UserID: int32(userID),
+	})
 	if err != nil {
+		log := logger.FromContext(r.Context())
+
+		st, ok := status.FromError(err)
+		if log != nil {
+			if ok {
+				log.Error("grpc GetListBudgets failed",
+					"code", st.Code(),
+					"message", st.Message(),
+				)
+			} else {
+				log.Error("grpc GetListBudgets unknown error", "error", err)
+			}
+		}
+
 		httputils.InternalError(w, r, "Failed to get budgets for user")
 		return
 	}
 
-	budgetsDTO := BudgetsToAPI(userID, budgets)
-	httputils.Success(w, r, budgetsDTO)
+	// budgetsDTO := BudgetsToAPI(userID, budgets)
+	httputils.Success(w, r, map[string][]models.Budget{"budgets": BudgetsToAPI(userID, budgets)})
 }
 
 // GetBudgetByID godoc
@@ -89,18 +107,32 @@ func (h *Handler) GetBudgetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	budget, err := h.budgetUC.GetBudgetByID(r.Context(), userID, id)
+	// budget, err := h.budgetUC.GetBudgetByID(r.Context(), userID, id)
+	budget, err := h.budgetClient.GetBudget(r.Context(), IDsToBudgetRequest(id, userID))
 	if err != nil {
-		if errors.Is(err, serviceerrors.ErrForbidden) {
-			httputils.Error(w, r, "Доступ к бюджету запрещен", http.StatusForbidden)
+		st, ok := status.FromError(err)
+		log := logger.FromContext(r.Context())
+		if !ok {
+			if log != nil {
+				log.Error("grpc GetListBudgets unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to get budget")
 			return
 		}
-		if errors.Is(err, budgeterrors.ErrBudgetNotFound) {
+		switch st.Code() {
+		case codes.NotFound:
+			if log != nil {
+				log.Error("grpc GetBudget invalid arg", "error", err)
+			}
 			httputils.NotFoundError(w, r, "Бюджет не найден")
 			return
+		default:
+			if log != nil {
+				log.Error("grpc GetBudget error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to get budget")
+			return
 		}
-		httputils.InternalError(w, r, "failed to get budget")
-		return
 	}
 
 	budgetDTO := BudgetToAPI(budget)
@@ -125,16 +157,40 @@ func (h *Handler) CreateBudget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	budget, err := h.budgetUC.CreateBudget(r.Context(), req, userID)
+	// budget, err := h.budgetUC.CreateBudget(r.Context(), req, userID)
+	budget, err := h.budgetClient.CreateBudget(r.Context(), ModelCreateReqtoProtoReq(req, userID))
 	if err != nil {
-		if errors.Is(err, budgeterrors.ErrActiveBudgetExists) {
-			httputils.ConflictError(w, r, "Незакрытый бюджет с такой категорией уже существует", models.ErrCodeBudgetExists)
+		st, ok := status.FromError(err)
+		log := logger.FromContext(r.Context())
+		if !ok {
+			if log != nil {
+				log.Error("grpc Createbudget unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to create budget")
 			return
 		}
-		httputils.InternalError(w, r, "failed to creat budget")
-		return
-	}
 
+		switch st.Code() {
+		case codes.InvalidArgument:
+			if log != nil {
+				log.Error("grpc Createbudget invalid arg", "error", err)
+			}
+			httputils.Error(w, r, "failed to create budget", http.StatusBadRequest)
+			return
+		case codes.AlreadyExists:
+			if log != nil {
+				log.Error("grpc Createbudget exists error", "error", err)
+			}
+			httputils.ConflictError(w, r, "Незакрытый бюджет с такой категорией уже существует", models.ErrCodeBudgetExists)
+			return
+		default:
+			if log != nil {
+				log.Error("grpc CreateBudget error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to create budget")
+			return
+		}
+	}
 	budgetDTO := BudgetToAPI(budget)
 	httputils.Success(w, r, budgetDTO)
 }
@@ -157,14 +213,38 @@ func (h *Handler) UpdateBudget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	budget, err := h.budgetUC.UpdateBudget(r.Context(), req, userID, budgetID)
+	// budget, err := h.budgetUC.UpdateBudget(r.Context(), req, userID, budgetID)
+	budget, err := h.budgetClient.UpdateBudget(r.Context(), ModelUpdateReqtoProtoReq(req, budgetID, userID))
 	if err != nil {
-		if errors.Is(err, serviceerrors.ErrForbidden) {
-			httputils.Error(w, r, "Доступ к бюджету запрещен", http.StatusForbidden)
+		st, ok := status.FromError(err)
+		log := logger.FromContext(r.Context())
+		if !ok {
+			if log != nil {
+				log.Error("grpc Updatebudget unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to update budget")
 			return
 		}
-		httputils.InternalError(w, r, "failed to update budget")
-		return
+		switch st.Code() {
+		case codes.NotFound:
+			if log != nil {
+				log.Error("grpc UpdateBudget invalid arg", "error", err)
+			}
+			httputils.NotFoundError(w, r, "Бюджет не найден")
+			return
+		case codes.PermissionDenied:
+			if log != nil {
+				log.Error("grpc UpdateBudget forbidden", "error", err)
+			}
+			httputils.UnauthorizedError(w, r, "Отказано в доступе", models.ErrCodeForbidden)
+			return
+		default:
+			if log != nil {
+				log.Error("grpc UpdateBudget error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to update budget")
+			return
+		}
 	}
 	budgetDTO := BudgetToAPI(budget)
 	httputils.Success(w, r, budgetDTO)
@@ -183,18 +263,38 @@ func (h *Handler) DeleteBudget(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	budget, err := h.budgetUC.DeleteBudget(r.Context(), userID, budgetID)
+	// budget, err := h.budgetUC.DeleteBudget(r.Context(), userID, budgetID)
+	budget, err := h.budgetClient.DeleteBudget(r.Context(), IDsToBudgetRequest(budgetID, userID))
 	if err != nil {
-		if errors.Is(err, serviceerrors.ErrForbidden) {
-			httputils.Error(w, r, "Доступ к бюджету запрещен", 403)
+		st, ok := status.FromError(err)
+		log := logger.FromContext(r.Context())
+		if !ok {
+			if log != nil {
+				log.Error("grpc Deletebudget unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to delete budget")
 			return
 		}
-		if errors.Is(err, budgeterrors.ErrBudgetNotFound) {
+		switch st.Code() {
+		case codes.NotFound:
+			if log != nil {
+				log.Error("grpc DeleteBudget invalid arg", "error", err)
+			}
 			httputils.NotFoundError(w, r, "Бюджет не найден")
 			return
+		case codes.PermissionDenied:
+			if log != nil {
+				log.Error("grpc DeleteBudget forbidden", "error", err)
+			}
+			httputils.UnauthorizedError(w, r, "Отказано в доступе", models.ErrCodeForbidden)
+			return
+		default:
+			if log != nil {
+				log.Error("grpc DeleteBudget error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to update budget")
+			return
 		}
-		httputils.InternalError(w, r, "failed to delete budget")
-		return
 	}
 	budgetDTO := BudgetToAPI(budget)
 	httputils.Success(w, r, budgetDTO)

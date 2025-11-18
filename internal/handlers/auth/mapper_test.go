@@ -2,29 +2,33 @@ package auth
 
 import (
 	"testing"
-	"time"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUserToApi(t *testing.T) {
-	now := time.Now()
-	user := models.User{
-		ID:        1,
-		FirstName: "John",
-		LastName:  "Doe",
-		Login:     "johndoe",
-		Email:     "john@example.com",
-		CreatedAt: now,
+func TestLoginApiToProtoLogin(t *testing.T) {
+	req := models.LoginRequest{
+		Login:    "testuser",
+		Password: "secret123",
 	}
 
-	apiUser := UserToApi(user)
+	protoReq := LoginApiToProtoLogin(req)
 
-	assert.Equal(t, 1, apiUser.ID)
-	assert.Equal(t, "John", apiUser.FirstName)
-	assert.Equal(t, "Doe", apiUser.LastName)
-	assert.Equal(t, "johndoe", apiUser.Login)
-	assert.Equal(t, "john@example.com", apiUser.Email)
-	assert.Equal(t, now, apiUser.CreatedAt)
+	assert.Equal(t, "testuser", protoReq.Login)
+	assert.Equal(t, "secret123", protoReq.Password)
+}
+
+func TestRegisterApiToProtoRegister(t *testing.T) {
+	req := models.RegisterRequest{
+		Login:    "newuser",
+		Email:    "new@example.com",
+		Password: "pass1234",
+	}
+
+	protoReq := RegisterApiToProtoRegister(req)
+
+	assert.Equal(t, "newuser", protoReq.Login)
+	assert.Equal(t, "new@example.com", protoReq.Email)
+	assert.Equal(t, "pass1234", protoReq.Password)
 }

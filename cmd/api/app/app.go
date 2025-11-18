@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
@@ -20,7 +22,11 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
+	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func Run() error {
@@ -31,6 +37,26 @@ func Run() error {
 		appLogger = logger.NewSlogLogger()
 	}
 
+	dialOpts := grpc.WithTransportCredentials(insecure.NewCredentials())
+
+	authGrpcConn, err := grpc.NewClient(fmt.Sprintf("%s:%s", config.AuthServiceHost, config.AuthServicePort), dialOpts)
+	if err != nil {
+		appLogger.Error("Failed to connect to auth gRPC service", "error", err)
+		log.Fatal(err)
+		return err
+	}
+	defer authGrpcConn.Close()
+
+	bdgGrpcConn, err := grpc.NewClient(fmt.Sprintf("%s:%s", config.BudgetServiceHost, config.BudgetServicePort), dialOpts)
+	if err != nil {
+		appLogger.Error("Failed to connect to budget gRPC service", "error", err)
+		log.Fatal(err)
+		return err
+	}
+	defer bdgGrpcConn.Close()
+
+	authClient := authpb.NewAuthServiceClient(authGrpcConn)
+	bdgClient := bdgpb.NewBudgetServiceClient(bdgGrpcConn)
 	store, err := repository.NewPostgresStore(config.GetDatabaseDSN())
 	if err != nil {
 		return err
@@ -55,7 +81,7 @@ func Run() error {
 	var repo service.Repository = store
 	serviceInstance := service.NewService(repo, config.JWTSecret, imageStorage)
 	usecaseInstance := usecase.NewUseCase(serviceInstance, repo, config.JWTSecret)
-	handler := handlers.NewHandler(usecaseInstance, appLogger)
+	handler := handlers.NewHandler(usecaseInstance, appLogger, authClient, bdgClient)
 
 	r := mux.NewRouter()
 
@@ -63,6 +89,7 @@ func Run() error {
 
 	corsOrigins := config.GetCORSOrigins()
 	appLogger.Info("CORS Configuration", "origins", corsOrigins, "is_production", config.IsProduction())
+	r.Use(middleware.MetricsMiddleware)
 	r.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
 
 	r.Use(middleware.LoggerMiddleware(appLogger))
@@ -82,6 +109,7 @@ func Run() error {
 	public.Use(middleware.CSRFMiddleware(config.JWTSecret))
 
 	protected := r.PathPrefix("/api/v1").Subrouter()
+	protected.Use(middleware.MetricsMiddleware)
 	protected.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
 	protected.Use(middleware.LoggerMiddleware(appLogger))
 	protected.Use(middleware.RequestLoggerMiddleware(appLogger))
@@ -89,7 +117,7 @@ func Run() error {
 	protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
-	handler.Register(public, protected)
+	handler.Register(public, protected, authClient, bdgClient)
 
 	// Swagger документация
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
@@ -114,6 +142,10 @@ func Run() error {
 		if err != nil && err != http.ErrServerClosed {
 			appLogger.Error("Server failed to start", "error", err)
 		}
+	}()
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":10000", nil)
 	}()
 
 	quit := make(chan os.Signal, 1)
