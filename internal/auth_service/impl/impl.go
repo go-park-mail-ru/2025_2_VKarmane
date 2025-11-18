@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"log"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -29,11 +30,15 @@ func (s *AuthServerImpl) Register(ctx context.Context, req *authpb.RegisterReque
 	user, err := s.authUC.Register(ctx, regReq)
 	if err != nil {
 		if errors.Is(err, svcerrors.ErrLoginExists) {
+			log.Println("login", err.Error())
 			return nil, status.Error(codes.AlreadyExists, string(models.ErrCodeLoginExists))
+			
 		}
 		if errors.Is(err, svcerrors.ErrEmailExists) {
+			log.Println("mail", err.Error())
 			return nil, status.Error(codes.AlreadyExists, string(models.ErrCodeEmailExists))
 		}
+		log.Println("def", err.Error())
 		return nil, status.Error(codes.Internal, string(models.ErrCodeInternalError))
 	}
 	return user, nil

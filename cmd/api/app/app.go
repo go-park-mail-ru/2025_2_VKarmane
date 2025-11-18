@@ -106,7 +106,7 @@ func Run() error {
 
 	public := r.PathPrefix("/api/v1").Subrouter()
 	// Временно отключен CSRF для фронтенда
-	// public.Use(middleware.CSRFMiddleware(config.JWTSecret))
+	public.Use(middleware.CSRFMiddleware(config.JWTSecret))
 
 	protected := r.PathPrefix("/api/v1").Subrouter()
 	protected.Use(middleware.MetricsMiddleware)
@@ -114,7 +114,7 @@ func Run() error {
 	protected.Use(middleware.LoggerMiddleware(appLogger))
 	protected.Use(middleware.RequestLoggerMiddleware(appLogger))
 	protected.Use(middleware.SecurityLoggerMiddleware(appLogger))
-	// protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
+	protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
 	handler.Register(public, protected, authClient, bdgClient)

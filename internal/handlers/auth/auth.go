@@ -58,6 +58,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		st, ok := status.FromError(err)
 		if !ok {
 			httputil.InternalError(w, r, string(models.ErrCodeInternalError))
+			return
 		}
 		switch st.Code() {
 		case codes.AlreadyExists:
@@ -73,6 +74,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+		httputil.InternalError(w, r, string(models.ErrCodeInternalError))
 		return
 	}
 

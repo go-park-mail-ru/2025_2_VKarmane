@@ -118,10 +118,3 @@ func (s *Service) DeleteAccount(ctx context.Context, userID, accID int) (models.
 
 	return deletedAcc, nil
 }
-
-// userAcc := models.UserAccount{
-// 	UserID:    userID,
-// 	AccountID: createdAcc.ID,
-// 	CreatedAt: s.clock.Now(),
-// 	UpdatedAt: s.clock.Now(),
-// }

@@ -102,7 +102,7 @@ func (c *Config) GetCORSOrigins() []string {
 	var result []string
 
 	corsHost := getEnv("CORS_HOST", "localhost")
-	corsFrontendPort := getEnv("CORS_FRONTEND_PORT", "3000")
+	corsFrontendPort := getEnv("CORS_FRONTEND_PORT", "8000")
 
 	if corsHost != "" {
 		if corsFrontendPort != "" {
