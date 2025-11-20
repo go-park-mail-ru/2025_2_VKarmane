@@ -3,12 +3,8 @@ package user
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
-	"github.com/lib/pq"
-
-	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/errors"
 	authmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/models"
 )
 
@@ -56,23 +52,7 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user authmodels.Use
 		).Scan(&id, &user.CreatedAt, &user.UpdatedAt)
 
 		if err != nil {
-			var pqErr *pq.Error
-			if errors.As(err, &pqErr) {
-				switch pqErr.Code {
-				case UniqueViolation:
-					switch pqErr.Constraint {
-					case "user_user_login_key":
-						return authmodels.User{}, serviceerrors.ErrLoginExists
-					case "user_email_key":
-						return authmodels.User{}, serviceerrors.ErrEmailExists
-					default:
-						return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
-					}
-				default:
-					return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
-				}
-			}
-			return authmodels.User{}, fmt.Errorf("failed to create user: %w", err)
+			return authmodels.User{}, MapPgError(err)
 		}
 	} else {
 		query := `
@@ -94,23 +74,7 @@ func (r *PostgresRepository) CreateUser(ctx context.Context, user authmodels.Use
 		).Scan(&id)
 
 		if err != nil {
-			var pqErr *pq.Error
-			if errors.As(err, &pqErr) {
-				switch pqErr.Code {
-				case UniqueViolation:
-					switch pqErr.Constraint {
-					case "user_user_login_key":
-						return authmodels.User{}, serviceerrors.ErrLoginExists
-					case "user_email_key":
-						return authmodels.User{}, serviceerrors.ErrEmailExists
-					default:
-						return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
-					}
-				default:
-					return authmodels.User{}, fmt.Errorf("failed to create user due to db error: %w", err)
-				}
-			}
-			return authmodels.User{}, fmt.Errorf("failed to create user: %w", err)
+			return authmodels.User{}, MapPgError(err)
 		}
 	}
 
@@ -140,10 +104,7 @@ func (r *PostgresRepository) GetUserByLogin(ctx context.Context, login string) (
 	)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return authmodels.User{}, serviceerrors.ErrUserNotFound
-		}
-		return authmodels.User{}, fmt.Errorf("failed to get user by login: %w", err)
+		return authmodels.User{}, MapPgError(err)
 	}
 
 	return user, nil
@@ -171,10 +132,7 @@ func (r *PostgresRepository) GetUserByID(ctx context.Context, id int) (authmodel
 	)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return authmodels.User{}, serviceerrors.ErrUserNotFound
-		}
-		return authmodels.User{}, fmt.Errorf("failed to get user by ID: %w", err)
+		return authmodels.User{}, MapPgError(err)
 	}
 
 	return user, nil
@@ -215,14 +173,7 @@ func (r *PostgresRepository) EditUserByID(ctx context.Context, user authmodels.U
 	)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return authmodels.User{}, serviceerrors.ErrUserNotFound
-		}
-		var pqErr *pq.Error
-		if errors.As(err, &pqErr) {
-			return authmodels.User{}, serviceerrors.ErrEmailExists
-		}
-		return authmodels.User{}, fmt.Errorf("failed to update user: %w", err)
+		return authmodels.User{}, MapPgError(err)
 	}
 
 	return updatedUser, nil

@@ -1,4 +1,4 @@
-package auth
+package grpc
 
 import (
 	authmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/models"

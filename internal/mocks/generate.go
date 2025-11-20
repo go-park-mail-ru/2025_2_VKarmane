@@ -1,18 +1,15 @@
 // Package mocks provides gomock-generated mocks for testing
 package mocks
 
-
-
 //go:generate go run go.uber.org/mock/mockgen -destination=mock_budget_client.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto BudgetServiceClient
 //go:generate go run go.uber.org/mock/mockgen -destination=mock_budget_service.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/usecase BudgetService
-//go:generate go run go.uber.org/mock/mockgen -destination=mock_budget_usecase.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/impl BudgetUseCase
+//go:generate go run go.uber.org/mock/mockgen -destination=mock_budget_usecase.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/grpc BudgetUseCase
 //go:generate go run go.uber.org/mock/mockgen -destination=mock_budget_repository.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/service BudgetRepository
 
 //go:generate go run go.uber.org/mock/mockgen -destination=mock_auth_client.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto AuthServiceClient
 //go:generate go run go.uber.org/mock/mockgen -destination=mock_auth_service.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/usecase AuthService
-//go:generate go run go.uber.org/mock/mockgen -destination=mock_auth_usecase.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/impl AuthUseCase
+//go:generate go run go.uber.org/mock/mockgen -destination=mock_auth_usecase.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/grpc AuthUseCase
 //go:generate go run go.uber.org/mock/mockgen -destination=mock_auth_repository.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/service AuthRepository
-
 
 //go:generate go run go.uber.org/mock/mockgen -destination=mock_account_repository.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/service AccountRepository
 

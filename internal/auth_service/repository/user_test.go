@@ -166,7 +166,7 @@ func TestPostgresRepository_CreateUser_UniqueViolation(t *testing.T) {
 		RETURNING _id, created_at, updated_at
 	`)).
 		WithArgs(user.FirstName, user.LastName, user.Email, user.Login, user.Password, "", "").
-		WillReturnError(&pq.Error{Code: "23505", Constraint: "user_login_key"})
+		WillReturnError(&pq.Error{Code: "23505", Constraint: "user_user_login_key"})
 
 	_, err = repo.CreateUser(context.Background(), user)
 	require.ErrorIs(t, err, serviceerrors.ErrLoginExists)

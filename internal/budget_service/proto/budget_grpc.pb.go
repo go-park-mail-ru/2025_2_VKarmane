@@ -241,5 +241,5 @@ var BudgetService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "internal/budget_service/proto/budget.proto",
+	Metadata: "budget.proto",
 }

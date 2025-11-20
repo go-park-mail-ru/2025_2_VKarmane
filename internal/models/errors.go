@@ -40,6 +40,7 @@ const (
 	ErrCodeInvalidCurrency ErrorCode = "INVALID_CURRENCY"
 	ErrCodeInvalidDate     ErrorCode = "INVALID_DATE"
 	ErrCodeInvalidPeriod   ErrorCode = "INVALID_PERIOD"
+	ErrCodeInvalidData     ErrorCode = "INVALID_DATA"
 
 	ErrCodeInternalError      ErrorCode = "INTERNAL_ERROR"
 	ErrCodeServiceUnavailable ErrorCode = "SERVICE_UNAVAILABLE"

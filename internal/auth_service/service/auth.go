@@ -14,22 +14,12 @@ import (
 )
 
 type Service struct {
-	repo interface {
-		CreateUser(ctx context.Context, user authmodels.User) (authmodels.User, error)
-		GetUserByLogin(ctx context.Context, login string) (authmodels.User, error)
-		GetUserByID(ctx context.Context, id int) (authmodels.User, error)
-		EditUserByID(ctx context.Context, req authmodels.UpdateProfileRequest) (authmodels.User, error)
-	}
+	repo AuthRepository
 	jwtSecret string
 	clock     clock.Clock
 }
 
-func NewService(repo interface {
-	CreateUser(ctx context.Context, user authmodels.User) (authmodels.User, error)
-	GetUserByLogin(ctx context.Context, login string) (authmodels.User, error)
-	GetUserByID(ctx context.Context, id int) (authmodels.User, error)
-	EditUserByID(ctx context.Context, req authmodels.UpdateProfileRequest) (authmodels.User, error)
-}, jwtSecret string, clck clock.Clock) *Service {
+func NewService(repo AuthRepository, jwtSecret string, clck clock.Clock) *Service {
 	return &Service{
 		repo:      repo,
 		jwtSecret: jwtSecret,

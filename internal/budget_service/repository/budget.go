@@ -3,15 +3,9 @@ package budget
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
-	"github.com/lib/pq"
-	// "google.golang.org/protobuf/types/known/timestamppb"
-
-	bdgerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/errors"
 	bdgmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/models"
-	// 	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/budget_service/proto"
 )
 
 type PostgresRepository struct {
@@ -109,18 +103,7 @@ func (r *PostgresRepository) CreateBudget(ctx context.Context, budget bdgmodels.
 	).Scan(&budget.ID, &budget.CreatedAt, &budget.UpdatedAt)
 
 	if err != nil {
-		var pqErr *pq.Error
-		if errors.As(err, &pqErr) {
-			switch pqErr.Code {
-			case UniqueViolation:
-				return bdgmodels.Budget{}, bdgerrors.ErrBudgetExists
-			case NotNullViolation:
-				return bdgmodels.Budget{}, bdgerrors.ErrInavlidData
-			case CheckViolation:
-				return bdgmodels.Budget{}, bdgerrors.ErrInavlidData
-			}
-		}
-		return bdgmodels.Budget{}, fmt.Errorf("failed to create budget: %w", err)
+		return bdgmodels.Budget{}, MapPgError(err)
 	}
 
 	return budget, nil
@@ -162,10 +145,7 @@ func (r *PostgresRepository) UpdateBudget(ctx context.Context, req bdgmodels.Upd
 	)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return bdgmodels.Budget{}, bdgerrors.ErrBudgetNotFound
-		}
-		return bdgmodels.Budget{}, fmt.Errorf("failed to update budget: %w", err)
+		return bdgmodels.Budget{}, MapPgError(err)
 	}
 
 	return b, nil
@@ -195,10 +175,7 @@ func (r *PostgresRepository) DeleteBudget(ctx context.Context, budgetID int) (bd
 	)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return bdgmodels.Budget{}, bdgerrors.ErrBudgetNotFound
-		}
-		return bdgmodels.Budget{}, fmt.Errorf("failed to delete budget: %w", err)
+		return bdgmodels.Budget{}, MapPgError(err)
 	}
 
 	return b, nil

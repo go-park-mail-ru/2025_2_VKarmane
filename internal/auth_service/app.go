@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc"
 
 	config "github.com/go-park-mail-ru/2025_2_VKarmane/cmd/api/app"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/impl"
+	server "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/grpc"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/interceptors"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/proto"
 	repo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service/repository"
@@ -64,7 +64,7 @@ func Run() error {
 	svc := authsvc.NewService(store, config.JWTSecret, clock)
 
 	uc := authusecase.NewAuthUseCase(svc, config.JWTSecret, clock)
-	authService := auth.NewAuthServer(uc)
+	authService := server.NewAuthServer(uc)
 
 	authpb.RegisterAuthServiceServer(srv, authService)
 

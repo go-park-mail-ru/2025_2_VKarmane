@@ -12,25 +12,11 @@ import (
 )
 
 type Service struct {
-	repo interface {
-		GetBudgetsByUser(ctx context.Context, userID int) ([]bdgmodels.Budget, error)
-		// GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
-		// GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) //пока нет микросервисов
-		CreateBudget(ctx context.Context, budget bdgmodels.Budget) (bdgmodels.Budget, error)
-		UpdateBudget(ctx context.Context, req bdgmodels.UpdatedBudgetRequest) (bdgmodels.Budget, error)
-		DeleteBudget(ctx context.Context, budgetID int) (bdgmodels.Budget, error)
-	}
+	repo BudgetRepository
 	clock clock.Clock
 }
 
-func NewService(repo interface {
-	GetBudgetsByUser(ctx context.Context, userID int) ([]bdgmodels.Budget, error)
-	// GetAccountsByUser(ctx context.Context, userID int) ([]models.Account, error)
-	// GetOperationsByAccount(ctx context.Context, accountID int) ([]models.OperationInList, error) //пока нет микросервисов
-	CreateBudget(ctx context.Context, budget bdgmodels.Budget) (bdgmodels.Budget, error)
-	UpdateBudget(ctx context.Context, req bdgmodels.UpdatedBudgetRequest) (bdgmodels.Budget, error)
-	DeleteBudget(ctx context.Context, budgetID int) (bdgmodels.Budget, error)
-}, clck clock.Clock) *Service {
+func NewService(repo BudgetRepository, clck clock.Clock) *Service {
 	return &Service{
 		repo:  repo,
 		clock: clck,
