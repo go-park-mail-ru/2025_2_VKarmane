@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/auth_service"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service"
 )
 
 

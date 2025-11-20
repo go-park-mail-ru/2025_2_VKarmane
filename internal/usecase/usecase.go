@@ -2,10 +2,10 @@ package usecase
 
 import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/balance"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/category"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/image"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/account/usecase"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/category/usecase"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/usecase"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/operations/usecase"
 )
 
 // Repository алиас для service.Repository

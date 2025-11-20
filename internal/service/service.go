@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/storage/image"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/balance"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/category"
-	imageservice "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/image"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/repository"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/account/service"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/category/service"
+	imageservice "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/service"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/operations/service"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 

@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/account"
-	categoryrepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/category"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/operation"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/account/repository"
+	categoryrepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/category/repository"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/operations/repository"
 	_ "github.com/lib/pq"
 )
 
