@@ -2,7 +2,6 @@ package budget
 
 import (
 	"context"
-	"log"
 
 	pkgerrors "github.com/pkg/errors"
 
@@ -26,12 +25,10 @@ func NewBudgetUseCase(budgetService BudgetService) *UseCase {
 }
 
 func (uc *UseCase) GetBudgets(ctx context.Context, userID int) (*bdgpb.ListBudgetsResponse, error) {
-	log_ := logger.FromContext(ctx)
-	log.Println(log_)
+	log := logger.FromContext(ctx)
 	budgetsData, err := uc.budgetSvc.GetBudgets(ctx, userID)
 	if err != nil {
-		log.Println(err)
-		// log_.Error("Failed to get budgets for user", "error", err, "user_id", userID)
+		log.Error("Failed to get budgets for user", "error", err, "user_id", userID)
 		return nil, pkgerrors.Wrap(err, "budget.GetBudgetsForUser")
 	}
 	return budgetsData, nil

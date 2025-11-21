@@ -6,135 +6,168 @@ import (
 	"testing"
 	"time"
 
+	svcerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/errors"
 	authmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/proto"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
+	mock "github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
-
 	"github.com/stretchr/testify/require"
+
 	"go.uber.org/mock/gomock"
 )
 
-func TestUseCase_Register(t *testing.T) {
+func TestService_Register(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockSvc := mocks.NewMockAuthService(ctrl)
+	repo := mock.NewMockAuthRepository(ctrl)
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	s := NewAuthUseCase(repo, "secret", fixedClock)
 
-	fixed := clock.FixedClock{
-		FixedTime: time.Date(2025, 1, 1, 12, 0, 0, 0, time.UTC),
+	req := authmodels.RegisterRequest{
+		Email:    "test@example.com",
+		Login:    "testuser",
+		Password: "password123",
 	}
 
-	uc := NewAuthUseCase(mockSvc, "secret", fixed)
+	createdUser := authmodels.User{
+		ID:        1,
+		Login:     req.Login,
+		Email:     req.Email,
+		Password:  "hashedpassword",
+		FirstName: "User",
+		LastName:  "User",
+		CreatedAt: fixedClock.FixedTime,
+		UpdatedAt: fixedClock.FixedTime,
+	}
 
-	req := authmodels.RegisterRequest{Login: "aaa"}
-	resp := &proto.AuthResponse{Token: "ok"}
+	repo.EXPECT().
+		CreateUser(gomock.Any(), gomock.Any()).
+		Return(createdUser, nil)
 
-	mockSvc.EXPECT().
-		Register(gomock.Any(), req).
-		Return(resp, nil)
-
-	r, err := uc.Register(context.Background(), req)
-	require.NoError(t, err)
-	require.Equal(t, resp, r)
-}
-
-func TestUseCase_Login(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockSvc := mocks.NewMockAuthService(ctrl)
-
-	fixed := clock.FixedClock{FixedTime: time.Now()}
-
-	uc := NewAuthUseCase(mockSvc, "secret", fixed)
-
-	req := authmodels.LoginRequest{Login: "aaa"}
-	resp := &proto.AuthResponse{Token: "token123"}
-
-	mockSvc.EXPECT().
-		Login(gomock.Any(), req).
-		Return(resp, nil)
-
-	r, err := uc.Login(context.Background(), req)
-	require.NoError(t, err)
-	require.Equal(t, resp, r)
-}
-
-func TestUseCase_GetProfile(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockSvc := mocks.NewMockAuthService(ctrl)
-
-	fixed := clock.FixedClock{FixedTime: time.Now()}
-
-	uc := NewAuthUseCase(mockSvc, "secret", fixed)
-
-	resp := &proto.ProfileResponse{Id: 10}
-
-	mockSvc.EXPECT().
-		GetUserByID(gomock.Any(), 10).
-		Return(resp, nil)
-
-	r, err := uc.GetProfile(context.Background(), 10)
-	require.NoError(t, err)
-	require.Equal(t, resp, r)
-}
-
-func TestUseCase_UpdateProfile(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockSvc := mocks.NewMockAuthService(ctrl)
-
-	fixed := clock.FixedClock{FixedTime: time.Now()}
-
-	uc := NewAuthUseCase(mockSvc, "secret", fixed)
-
-	req := authmodels.UpdateProfileRequest{FirstName: "John"}
-	resp := &proto.ProfileResponse{FirstName: "John"}
-
-	mockSvc.EXPECT().
-		EditUserByID(gomock.Any(), req).
-		Return(resp, nil)
-
-	r, err := uc.UpdateProfile(context.Background(), req)
-	require.NoError(t, err)
-	require.Equal(t, resp, r)
-}
-
-func TestUseCase_GetCSRFToken(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	fixedTime := time.Date(2030, 5, 20, 10, 0, 0, 0, time.UTC)
-	fixed := clock.FixedClock{FixedTime: fixedTime}
-
-	mockSvc := mocks.NewMockAuthService(ctrl)
-
-	uc := NewAuthUseCase(mockSvc, "secret", fixed)
-
-	resp, err := uc.GetCSRFToken(context.Background())
+	resp, err := s.Register(context.Background(), req)
 	require.NoError(t, err)
 	require.NotNil(t, resp)
-	require.NotEmpty(t, resp.Token)
+	require.Equal(t, createdUser.ID, int(resp.User.Id))
+	require.Equal(t, createdUser.Login, resp.User.Login)
 }
 
-func TestUseCase_Register_Error(t *testing.T) {
+func TestService_Login_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockSvc := mocks.NewMockAuthService(ctrl)
-	fixed := clock.FixedClock{FixedTime: time.Now()}
+	repo := mock.NewMockAuthRepository(ctrl)
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	s := NewAuthUseCase(repo, "secret", fixedClock)
 
-	uc := NewAuthUseCase(mockSvc, "secret", fixed)
+	hashed, _ := utils.HashPassword("password123")
+	user := authmodels.User{
+		ID:       1,
+		Login:    "testuser",
+		Email:    "test@example.com",
+		Password: hashed,
+	}
 
-	mockSvc.EXPECT().
-		Register(gomock.Any(), gomock.Any()).
-		Return(nil, errors.New("fail"))
+	req := authmodels.LoginRequest{
+		Login:    "testuser",
+		Password: "password123",
+	}
 
-	r, err := uc.Register(context.Background(), authmodels.RegisterRequest{})
-	require.Nil(t, r)
+	repo.EXPECT().GetUserByLogin(gomock.Any(), "testuser").Return(user, nil)
+
+	resp, err := s.Login(context.Background(), req)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, user.ID, int(resp.User.Id))
+	require.Equal(t, user.Login, resp.User.Login)
+}
+
+func TestService_Login_InvalidPassword(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock.NewMockAuthRepository(ctrl)
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	s := NewAuthUseCase(repo, "secret", fixedClock)
+
+	hashed, _ := utils.HashPassword("correctpassword")
+
+	user := authmodels.User{
+		ID:       1,
+		Login:    "testuser",
+		Email:    "test@example.com",
+		Password: hashed, // валидный bcrypt-хеш
+	}
+
+	req := authmodels.LoginRequest{
+		Login:    "testuser",
+		Password: "wrongpassword", 
+	}
+
+	repo.EXPECT().GetUserByLogin(gomock.Any(), "testuser").Return(user, nil)
+
+	_, err := s.Login(context.Background(), req)
 	require.Error(t, err)
+	require.True(t, errors.Is(err, svcerrors.ErrInvalidCredentials))
+}
+
+func TestService_GetUserByID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock.NewMockAuthRepository(ctrl)
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	s := NewAuthUseCase(repo, "secret", fixedClock)
+
+	user := authmodels.User{
+		ID:        1,
+		Login:     "testuser",
+		Email:     "test@example.com",
+		FirstName: "User",
+		LastName:  "User",
+		CreatedAt: fixedClock.FixedTime,
+		UpdatedAt: fixedClock.FixedTime,
+	}
+
+	repo.EXPECT().GetUserByID(gomock.Any(), 1).Return(user, nil)
+
+	resp, err := s.GetProfile(context.Background(), 1)
+	require.NoError(t, err)
+	require.Equal(t, int32(1), resp.Id)
+	require.Equal(t, "testuser", resp.Login)
+}
+
+func TestService_EditUserByID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	repo := mock.NewMockAuthRepository(ctrl)
+	fixedClock := clock.FixedClock{FixedTime: time.Now()}
+	s := NewAuthUseCase(repo, "secret", fixedClock)
+
+	req := authmodels.UpdateProfileRequest{
+		UserID:    1,
+		FirstName: "New",
+		LastName:  "Name",
+		Email:     "new@example.com",
+	}
+
+	updatedUser := authmodels.User{
+		ID:        1,
+		Login:     "testuser",
+		Email:     req.Email,
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		CreatedAt: fixedClock.FixedTime,
+		UpdatedAt: fixedClock.FixedTime,
+	}
+
+	repo.EXPECT().EditUserByID(gomock.Any(), req).Return(updatedUser, nil)
+
+	resp, err := s.UpdateProfile(context.Background(), req)
+	require.NoError(t, err)
+	require.Equal(t, int32(1), resp.Id)
+	require.Equal(t, "New", resp.FirstName)
+	require.Equal(t, "Name", resp.LastName)
+	require.Equal(t, "new@example.com", resp.Email)
 }

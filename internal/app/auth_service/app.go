@@ -14,7 +14,6 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/pkg/interceptors"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/proto"
 	repo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/repository"
-	authsvc "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/service"
 	authusecase "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
@@ -61,9 +60,9 @@ func Run() error {
 		return err
 	}
 	store := repo.NewPostgresRepository(db)
-	svc := authsvc.NewService(store, config.JWTSecret, clock)
 
-	uc := authusecase.NewAuthUseCase(svc, config.JWTSecret, clock)
+
+	uc := authusecase.NewAuthUseCase(store, config.JWTSecret, clock)
 	authService := server.NewAuthServer(uc)
 
 	authpb.RegisterAuthServiceServer(srv, authService)
