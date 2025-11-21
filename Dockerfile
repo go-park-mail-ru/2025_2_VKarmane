@@ -1,44 +1,50 @@
-# Build stage
+# ---------- Build stage ----------
 FROM golang:1.25-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Install git and ca-certificates (needed for go mod download)
 RUN apk add --no-cache git ca-certificates
 
-# Copy go mod files
 COPY go.mod go.sum ./
-
-# Download dependencies
 RUN go mod download
 
-# Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main cmd/api/main.go
 
-# Final stage
+ARG SERVICE_PATH=cmd/api
+ARG BINARY_NAME=app
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o /build/${BINARY_NAME} ./${SERVICE_PATH}
+
+
 FROM alpine:latest
 
-# Install ca-certificates for HTTPS requests
 RUN apk --no-cache add ca-certificates
 
-# Create app directory
-WORKDIR /root/
+WORKDIR /app
 
-# Copy the binary from builder stage
-COPY --from=builder /app/main .
+COPY --from=builder /build/* /app/
 
-# Copy migrations
-COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/migrations /app/migrations
 
-# Create directories for volumes (SSL certificates and logs will be mounted)
-RUN mkdir -p ssl logs
-
-# Expose port
 EXPOSE 8080
 
-# Run the application
-CMD ["./main"]
+CMD ["/app/app"]
+
+
+# docker build \
+#   --build-arg SERVICE_PATH=cmd/api \
+#   --build-arg BINARY_NAME=api \
+#   -t api .
+
+# docker build \
+#   --build-arg SERVICE_PATH=cmd/auth_service \
+#   --build-arg BINARY_NAME=auth_service \
+#   -t auth_service .
+
+# docker build \
+#   --build-arg SERVICE_PATH=cmd/budget_service \
+#   --build-arg BINARY_NAME=budget_service \
+#   -t budget_service .
+
+

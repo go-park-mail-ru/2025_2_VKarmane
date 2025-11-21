@@ -3,13 +3,15 @@ package handlers
 import (
 	"github.com/gorilla/mux"
 
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/auth"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/balance"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/budget"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/category"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/image"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/operation"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/profile"
+	balance "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/account/handlers"
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/proto"
+	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/proto"
+	category "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/category/handlers"
+	image "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/handlers"
+	operation "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/operations/handlers"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/handlers/auth"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/handlers"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/handlers/profile"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 )
@@ -27,12 +29,12 @@ func NewRegistrator(uc *usecase.UseCase, log logger.Logger) *Registrator {
 
 }
 
-func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux.Router, uc *usecase.UseCase, log logger.Logger) {
-	auth.Register(publicRouter, protectedRouter, uc.AuthUC, log)
+func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux.Router, uc *usecase.UseCase, log logger.Logger, authClient authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient) {
+	auth.Register(publicRouter, protectedRouter, log, authClient)
 	balance.Register(protectedRouter, uc.BalanceUC)
-	budget.Register(protectedRouter, uc.BudgetUC)
+	budget.Register(protectedRouter, budgetClient)
 	operation.Register(protectedRouter, uc.OpUC, uc.ImageUC)
 	category.Register(protectedRouter, uc.CategoryUC, uc.ImageUC)
-	profile.Register(protectedRouter, uc.ProfileUC, uc.ImageUC)
+	profile.Register(protectedRouter, uc.ImageUC, authClient)
 	image.Register(protectedRouter, uc.ImageUC)
 }

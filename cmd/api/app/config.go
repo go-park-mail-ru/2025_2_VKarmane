@@ -7,13 +7,17 @@ import (
 )
 
 type Config struct {
-	Port      string
-	Host      string
-	JWTSecret string
-	LogLevel  string
-	Database  DatabaseConfig
-	HTTPS     HTTPSConfig
-	MinIO     MinIOConfig
+	Port              string
+	AuthServicePort   string
+	AuthServiceHost   string
+	BudgetServicePort string
+	BudgetServiceHost string
+	Host              string
+	JWTSecret         string
+	LogLevel          string
+	Database          DatabaseConfig
+	HTTPS             HTTPSConfig
+	MinIO             MinIOConfig
 }
 
 type DatabaseConfig struct {
@@ -42,10 +46,14 @@ type MinIOConfig struct {
 
 func LoadConfig() *Config {
 	config := &Config{
-		Port:      getEnv("PORT", "8080"),
-		Host:      getEnv("HOST", "0.0.0.0"),
-		JWTSecret: getEnv("JWT_SECRET", "your-secret-key"),
-		LogLevel:  getEnv("LOG_LEVEL", "info"),
+		Port:            getEnv("PORT", "8080"),
+		AuthServicePort: getEnv("AUTH_SERVICE_PORT", "8090"),
+		AuthServiceHost: getEnv("AUTH_SERVICE_HOST", "auth_service"),
+		BudgetServicePort: getEnv("BUDGET_SERVICE_PORT", "8100"),
+		BudgetServiceHost: getEnv("BUDGET_SERVICE_HOST", "budget_service"),
+		Host:            getEnv("HOST", "0.0.0.0"),
+		JWTSecret:       getEnv("JWT_SECRET", "your-secret-key"),
+		LogLevel:        getEnv("LOG_LEVEL", "info"),
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
@@ -94,7 +102,7 @@ func (c *Config) GetCORSOrigins() []string {
 	var result []string
 
 	corsHost := getEnv("CORS_HOST", "localhost")
-	corsFrontendPort := getEnv("CORS_FRONTEND_PORT", "3000")
+	corsFrontendPort := getEnv("CORS_FRONTEND_PORT", "8000")
 
 	if corsHost != "" {
 		if corsFrontendPort != "" {
