@@ -3,10 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
-
-	"github.com/lib/pq"
 
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 )
@@ -45,7 +42,7 @@ func (r *PostgresRepository) GetAccountsByUser(ctx context.Context, userID int) 
 
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get accounts by user: %w", err)
+		return nil, MapPgAccountError(err)
 	}
 	defer func() {
 		_ = rows.Close()
@@ -63,7 +60,7 @@ func (r *PostgresRepository) GetAccountsByUser(ctx context.Context, userID int) 
 			&account.UpdatedAt,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan account: %w", err)
+			return nil, MapPgAccountError(err)
 		}
 		accounts = append(accounts, account)
 	}
@@ -90,10 +87,7 @@ func (r *PostgresRepository) GetAccountByID(ctx context.Context, userID, account
 	)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return finmodels.Account{}, ErrAccountNotFound
-		}
-		return finmodels.Account{}, fmt.Errorf("failed to get account by ID: %w", err)
+		return finmodels.Account{}, MapPgAccountError(err)
 	}
 
 	return account, nil
@@ -113,11 +107,11 @@ func (r *PostgresRepository) CreateAccount(ctx context.Context, account finmodel
 	).Scan(&account.ID, &account.CreatedAt, &account.UpdatedAt)
 
 	if err != nil {
-		return finmodels.Account{}, fmt.Errorf("failed to create account: %w", err)
+		return finmodels.Account{}, MapPgAccountError(err)
 	}
 
 	if err := r.CreateUserAccount(ctx, userID, account.ID); err != nil {
-		return finmodels.Account{}, fmt.Errorf("failed to link user to account: %w", err)
+		return finmodels.Account{}, MapPgAccountError(err)
 	}
 
 	return account, nil
@@ -131,16 +125,7 @@ func (r *PostgresRepository) CreateUserAccount(ctx context.Context, userID, acco
 
 	_, err := r.db.ExecContext(ctx, query, accountID, userID)
 	if err != nil {
-		var pqErr *pq.Error
-		if errors.As(err, &pqErr) {
-			switch pqErr.Code {
-			case ForeignKeyViolation:
-				return ErrAccountNotFound
-			default:
-				return fmt.Errorf("failed to create user account: %w", err)
-			}
-		}
-		return fmt.Errorf("failed to create user account: %w", err)
+		return MapPgAccountError(err)
 	}
 	return nil
 }
@@ -171,10 +156,7 @@ func (r *PostgresRepository) UpdateAccount(ctx context.Context, req finmodels.Up
 	)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return finmodels.Account{}, ErrAccountNotFound
-		}
-		return finmodels.Account{}, fmt.Errorf("failed to update account: %w", err)
+		return finmodels.Account{}, MapPgAccountError(err)
 	}
 
 	return acc, nil
@@ -189,7 +171,7 @@ func (r *PostgresRepository) UpdateAccountBalance(ctx context.Context, accountID
 
 	_, err := r.db.ExecContext(ctx, query, newBalance, accountID)
 	if err != nil {
-		return fmt.Errorf("failed to update account balance: %w", err)
+		return MapPgAccountError(err)
 	}
 
 	return nil
@@ -212,13 +194,8 @@ func (r *PostgresRepository) DeleteAccount(ctx context.Context, userID, accID in
 		&acc.UpdatedAt,
 	)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return finmodels.Account{}, ErrAccountNotFound
-		}
-		return finmodels.Account{}, fmt.Errorf("failed to delete account: %w", err)
+		return finmodels.Account{}, MapPgAccountError(err)
 	}
 
 	return acc, nil
 }
-
-var ErrAccountNotFound = errors.New("account not found")

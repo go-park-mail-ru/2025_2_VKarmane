@@ -1,9 +1,7 @@
 package operation
 
 import (
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
 
@@ -12,7 +10,6 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/service/errors"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
@@ -88,7 +85,20 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 	// ops, err := h.opUC.GetAccountOperations(r.Context(), accID)
 	ops, err := h.finClient.GetOperationsByAccount(r.Context(), AccountAndUserIDToProtoID(accID, id))
 	if err != nil {
-		httputils.InternalError(w, r, "Ошибка получения операций")
+		_, ok := status.FromError(err)
+		log := logger.FromContext(r.Context())
+		if !ok {
+			if log != nil {
+				log.Error("grpc GetOperationsByAccount unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to get operations")
+			return
+		}
+
+		if log != nil {
+			log.Error("grpc GetOperationsByAccount error", "error", err)
+		}
+		httputils.InternalError(w, r, "failed to get operations")
 		return
 	}
 
@@ -231,16 +241,35 @@ func (h *Handler) GetOperationByID(w http.ResponseWriter, r *http.Request) {
 
 	op, err := h.finClient.GetOperation(r.Context(), OperationAndUserIDToProtoID(opID, accID, id))
 	if err != nil {
-		if errors.Is(err, serviceerrors.ErrForbidden) {
-			httputils.Error(w, r, "Доступ к операции запрещен", 403)
+		st, ok := status.FromError(err)
+		log := logger.FromContext(r.Context())
+		if !ok {
+			if log != nil {
+				log.Error("grpc GetOperation unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to get operation")
 			return
 		}
-		if errors.Is(err, sql.ErrNoRows) {
-			httputils.Error(w, r, "Операция не найдена", 404)
+		switch st.Code() {
+		case codes.NotFound:
+			if log != nil {
+				log.Error("grpc GetOperation not found error", "error", err)
+			}
+			httputils.ConflictError(w, r, "Операция не найдена", models.ErrCodeTransactionNotFound)
+			return
+		case codes.PermissionDenied:
+			if log != nil {
+				log.Error("grpc GetOperation forbidden", "error", err)
+			}
+			httputils.ConflictError(w, r, "Доступ запрещен", models.ErrCodeForbidden)
+			return
+		default:
+			if log != nil {
+				log.Error("grpc GetOperation error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to get operation")
 			return
 		}
-		httputils.InternalError(w, r, "Ошибка получения операции")
-		return
 	}
 
 	operationResponse := ProtoOperationToResponse(op)
@@ -302,16 +331,35 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 
 	op, err := h.finClient.UpdateOperation(r.Context(), UpdateOperationRequestToProto(req, id, accID, opID))
 	if err != nil {
-		if errors.Is(err, serviceerrors.ErrForbidden) {
-			httputils.Error(w, r, "Доступ к операции запрещен", 403)
+		st, ok := status.FromError(err)
+		log := logger.FromContext(r.Context())
+		if !ok {
+			if log != nil {
+				log.Error("grpc UpdateOperation unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to update operation")
 			return
 		}
-		if errors.Is(err, sql.ErrNoRows) {
-			httputils.Error(w, r, "Операция не найдена", 404)
+		switch st.Code() {
+		case codes.NotFound:
+			if log != nil {
+				log.Error("grpc UpdateOperation not found error", "error", err)
+			}
+			httputils.ConflictError(w, r, "Операция не найдена", models.ErrCodeTransactionNotFound)
+			return
+		case codes.PermissionDenied:
+			if log != nil {
+				log.Error("grpc UpdateOperation forbidden", "error", err)
+			}
+			httputils.ConflictError(w, r, "Доступ запрещен", models.ErrCodeForbidden)
+			return
+		default:
+			if log != nil {
+				log.Error("grpc UpdateOperation error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to update operation")
 			return
 		}
-		httputils.InternalError(w, r, "Ошибка обновления операции")
-		return
 	}
 
 	operationResponse := ProtoOperationToResponse(op)
@@ -354,16 +402,35 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 
 	op, err := h.finClient.DeleteOperation(r.Context(), OperationAndUserIDToProtoID(opID, accID, id))
 	if err != nil {
-		if errors.Is(err, serviceerrors.ErrForbidden) {
-			httputils.Error(w, r, "Доступ к операции запрещен", 403)
+		st, ok := status.FromError(err)
+		log := logger.FromContext(r.Context())
+		if !ok {
+			if log != nil {
+				log.Error("grpc DeleteOperation unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to delete operation")
 			return
 		}
-		if errors.Is(err, sql.ErrNoRows) {
-			httputils.Error(w, r, "Операция не найдена", 404)
+		switch st.Code() {
+		case codes.NotFound:
+			if log != nil {
+				log.Error("grpc DeleteOperation not found error", "error", err)
+			}
+			httputils.ConflictError(w, r, "Операция не найдена", models.ErrCodeTransactionNotFound)
+			return
+		case codes.PermissionDenied:
+			if log != nil {
+				log.Error("grpc DeleteOperation forbidden", "error", err)
+			}
+			httputils.ConflictError(w, r, "Доступ запрещен", models.ErrCodeForbidden)
+			return
+		default:
+			if log != nil {
+				log.Error("grpc DeleteOperation error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to delete operation")
 			return
 		}
-		httputils.InternalError(w, r, "Ошибка удаления операции")
-		return
 	}
 
 	operationResponse := ProtoOperationToResponse(op)

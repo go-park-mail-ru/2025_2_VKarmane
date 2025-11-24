@@ -40,7 +40,7 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 
 	rows, err := r.db.QueryContext(ctx, query, accountID)
 	if err != nil {
-		return nil, MapPgError(err)
+		return nil, MapPgOperationError(err)
 	}
 	defer func() {
 		_ = rows.Close()
@@ -68,7 +68,7 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 			&categoryLogoHashID,
 		)
 		if err != nil {
-			return nil, MapPgError(err)
+			return nil, MapPgOperationError(err)
 		}
 
 		opInList := operationDBToModelInList(opDB, categoryLogoHashID)
@@ -108,7 +108,7 @@ func (r *PostgresRepository) GetOperationByID(ctx context.Context, accID int, op
 	)
 
 	if err != nil {
-		return finmodels.Operation{}, MapPgError(err)
+		return finmodels.Operation{}, MapPgOperationError(err)
 	}
 
 	return operationDBToModel(operation), nil
@@ -154,7 +154,7 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op finmodels.O
 	).Scan(&id)
 
 	if err != nil {
-		return finmodels.Operation{}, MapPgError(err)
+		return finmodels.Operation{}, MapPgOperationError(err)
 	}
 
 	op.ID = id
@@ -249,7 +249,7 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 	)
 
 	if err != nil {
-		return finmodels.Operation{}, MapPgError(err)
+		return finmodels.Operation{}, MapPgOperationError(err)
 	}
 
 	return operationDBToModel(operation), nil
@@ -292,7 +292,7 @@ func (r *PostgresRepository) DeleteOperation(ctx context.Context, accID int, opI
 	)
 
 	if err != nil {
-		return finmodels.Operation{}, MapPgError(err)
+		return finmodels.Operation{}, MapPgOperationError(err)
 	}
 
 	return operationDBToModel(operation), nil

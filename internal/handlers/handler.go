@@ -3,12 +3,12 @@ package handlers
 import (
 	"github.com/gorilla/mux"
 
-	balance "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/account/handlers"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/handlers/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/handlers/profile"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/proto"
 	budget "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/handlers"
 	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/proto"
+	balance "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/handlers/account"
 	category "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/handlers/category"
 	operation "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/handlers/operation"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
@@ -31,7 +31,7 @@ type Handler struct {
 func NewHandler(uc *usecase.UseCase, logger logger.Logger, authClient authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient, finClient finpb.FinanceServiceClient) *Handler {
 	realClock := clock.RealClock{}
 	return &Handler{
-		balanceHandler:  balance.NewHandler(uc.BalanceUC, realClock),
+		balanceHandler:  balance.NewHandler(finClient, realClock),
 		budgetHandler:   budget.NewHandler(realClock, budgetClient),
 		authHandler:     auth.NewHandler(realClock, logger, authClient),
 		opHandler:       operation.NewHandler(finClient, uc.ImageUC, realClock),

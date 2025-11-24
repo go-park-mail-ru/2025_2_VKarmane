@@ -8,7 +8,7 @@ import (
 	"github.com/lib/pq"
 )
 
-func MapPgError(err error) error {
+func MapPgCategoryError(err error) error {
 	if err == nil {
 		return nil
 	}
@@ -25,6 +25,54 @@ func MapPgError(err error) error {
 	switch pqErr.Code {
 	case UniqueViolation:
 		return serviceerrors.ErrCategoryExists
+	case NotNullViolation:
+		return serviceerrors.ErrInvalidData
+	case CheckViolation:
+		return serviceerrors.ErrInvalidData
+	default:
+		return err
+	}
+}
+
+func MapPgOperationError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return serviceerrors.ErrOperationNotFound
+	}
+
+	var pqErr *pq.Error
+	if !errors.As(err, &pqErr) {
+		return err
+	}
+
+	switch pqErr.Code {
+	case NotNullViolation:
+		return serviceerrors.ErrInvalidData
+	case CheckViolation:
+		return serviceerrors.ErrInvalidData
+	default:
+		return err
+	}
+}
+
+func MapPgAccountError(err error) error {
+	if err == nil {
+		return nil
+	}
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return serviceerrors.ErrAccountNotFound
+	}
+
+	var pqErr *pq.Error
+	if !errors.As(err, &pqErr) {
+		return err
+	}
+
+	switch pqErr.Code {
 	case NotNullViolation:
 		return serviceerrors.ErrInvalidData
 	case CheckViolation:

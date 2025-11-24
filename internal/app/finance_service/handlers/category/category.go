@@ -266,7 +266,7 @@ func (h *Handler) GetCategoryByID(w http.ResponseWriter, r *http.Request) {
 			if log != nil {
 				log.Error("grpc CreateCategory unknown error", "error", err)
 			}
-			httputils.InternalError(w, r, "failed to create category")
+			httputils.InternalError(w, r, "failed to get category")
 			return
 		}
 		switch st.Code() {
@@ -381,7 +381,7 @@ func (h *Handler) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 		log := logger.FromContext(r.Context())
 		if !ok {
 			if log != nil {
-				log.Error("grpc CreateCategory unknown error", "error", err)
+				log.Error("grpc UpdateCategory unknown error", "error", err)
 			}
 			httputils.InternalError(w, r, "failed to update category")
 			return

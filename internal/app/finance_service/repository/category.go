@@ -39,7 +39,7 @@ func (r *PostgresRepository) CreateCategory(ctx context.Context, category finmod
 	).Scan(&category.ID, &category.CreatedAt, &category.UpdatedAt)
 
 	if err != nil {
-		return finmodels.Category{}, MapPgError(err)
+		return finmodels.Category{}, MapPgCategoryError(err)
 	}
 
 	return category, nil
@@ -74,7 +74,7 @@ func (r *PostgresRepository) GetCategoriesByUser(ctx context.Context, userID int
 			&categoryDB.UpdatedAt,
 		)
 		if err != nil {
-			return nil, MapPgError(err)
+			return nil, MapPgCategoryError(err)
 		}
 		categories = append(categories, categoryDBToModel(categoryDB))
 	}
@@ -100,7 +100,7 @@ func (r *PostgresRepository) GetCategoriesWithStatsByUser(ctx context.Context, u
 
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
-		return nil, MapPgError(err)
+		return nil, MapPgCategoryError(err)
 	}
 	defer func() {
 		_ = rows.Close()
@@ -121,7 +121,7 @@ func (r *PostgresRepository) GetCategoriesWithStatsByUser(ctx context.Context, u
 			&operationsCount,
 		)
 		if err != nil {
-			return nil, MapPgError(err)
+			return nil, MapPgCategoryError(err)
 		}
 		categories = append(categories, finmodels.CategoryWithStats{
 			Category:        categoryDBToModel(categoryDB),
@@ -151,7 +151,7 @@ func (r *PostgresRepository) GetCategoryByID(ctx context.Context, userID, catego
 	)
 
 	if err != nil {
-		return finmodels.Category{}, MapPgError(err)
+		return finmodels.Category{}, MapPgCategoryError(err)
 	}
 
 	return categoryDBToModel(categoryDB), nil
@@ -178,7 +178,7 @@ func (r *PostgresRepository) UpdateCategory(ctx context.Context, category finmod
 	)
 
 	if err != nil {
-		return MapPgError(err)
+		return MapPgCategoryError(err)
 	}
 
 	rowsAffected, err := res.RowsAffected()
@@ -201,7 +201,7 @@ func (r *PostgresRepository) DeleteCategory(ctx context.Context, userID, categor
 
 	_, err := r.db.ExecContext(ctx, query, categoryID, userID)
 	if err != nil {
-		return MapPgError(err)
+		return MapPgCategoryError(err)
 	}
 
 	return nil
@@ -225,7 +225,7 @@ func (r *PostgresRepository) GetCategoryStats(ctx context.Context, userID, categ
 	var count int
 	err := r.db.QueryRowContext(ctx, query, categoryID, userID).Scan(&count)
 	if err != nil {
-		return 0, MapPgError(err)
+		return 0, MapPgCategoryError(err)
 	}
 
 	return count, nil

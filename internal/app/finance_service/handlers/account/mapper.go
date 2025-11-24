@@ -1,0 +1,104 @@
+package account
+
+import (
+	"time"
+
+	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+)
+
+type AccountAPI struct {
+	ID         int     `json:"id"`
+	Balance    float64 `json:"balance"`
+	Type       string  `json:"type"`
+	CurrencyID int     `json:"currency_id"`
+	CreatedAt  string  `json:"created_at,omitempty"`
+	UpdatedAt  string  `json:"updated_at,omitempty"`
+}
+
+type AccountsAPI struct {
+	UserID   int          `json:"user_id"`
+	Accounts []AccountAPI `json:"accounts"`
+}
+
+func UserIDToProtoID(userID int) *finpb.UserID {
+	return &finpb.UserID{
+		UserId: int32(userID),
+	}
+}
+
+func UserIDAndAccountIDToProtoID(userID, accID int) *finpb.AccountRequest {
+	return &finpb.AccountRequest{
+		UserId:    int32(userID),
+		AccountId: int32(accID),
+	}
+}
+
+func AccountResponseListProtoToApit(resp *finpb.ListAccountsResponse, userID int) AccountsAPI {
+	if resp == nil {
+		return AccountsAPI{
+			UserID:   userID,
+			Accounts: make([]AccountAPI, 0),
+		}
+	}
+
+	accounts := make([]AccountAPI, 0, len(resp.Accounts))
+
+	for _, acc := range resp.Accounts {
+		if acc == nil {
+			continue
+		}
+
+		var createdAt string
+		if acc.CreatedAt != nil {
+			createdAt = acc.CreatedAt.AsTime().Format(time.RFC3339)
+		}
+
+		var updatedAt string
+		if acc.UpdatedAt != nil {
+			updatedAt = acc.UpdatedAt.AsTime().Format(time.RFC3339)
+		}
+
+		accounts = append(accounts, AccountAPI{
+			ID:         int(acc.Id),
+			Balance:    acc.Balance,
+			Type:       acc.Type,
+			CurrencyID: int(acc.CurrencyId),
+			CreatedAt:  createdAt,
+			UpdatedAt:  updatedAt,
+		})
+	}
+
+	return AccountsAPI{
+		UserID:   userID,
+		Accounts: accounts,
+	}
+}
+
+func ProtoAccountToApi(acc *finpb.Account) AccountAPI {
+	return AccountAPI{
+		ID:         int(acc.Id),
+		Balance:    acc.Balance,
+		Type:       acc.Type,
+		CurrencyID: int(acc.CurrencyId),
+		CreatedAt:  acc.CreatedAt.AsTime().Format(time.RFC3339),
+		UpdatedAt:  acc.UpdatedAt.AsTime().Format(time.RFC3339),
+	}
+}
+
+func AccountCreateRequestToProto(userID int, req models.CreateAccountRequest) *finpb.CreateAccountRequest {
+	return &finpb.CreateAccountRequest{
+		UserId:     int32(userID),
+		Balance:    req.Balance,
+		CurrencyId: int32(req.CurrencyID),
+		Type:       string(req.Type),
+	}
+}
+
+func AccountUpdateRequestToProto(userID, accID int, req models.UpdateAccountRequest) *finpb.UpdateAccountRequest {
+	return &finpb.UpdateAccountRequest{
+		UserId:    int32(userID),
+		AccountId: int32(accID),
+		Balance:   req.Balance,
+	}
+}

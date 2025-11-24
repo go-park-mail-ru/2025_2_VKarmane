@@ -31,10 +31,19 @@ func (s *FinanceServerImpl) CreateAccount(ctx context.Context, req *finpb.Create
 	createReq := protoToCreateAccountRequest(req)
 	account, err := s.financeUC.CreateAccount(ctx, createReq)
 	if err != nil {
-		if errors.Is(err, finerrors.ErrAccountNotFound) {
-			return nil, status.Error(codes.NotFound, "account not found")
+		logger := logger.FromContext(ctx)
+		for targetErr, resp := range finerrors.ErrorMap {
+			if errors.Is(err, targetErr) {
+				if logger != nil {
+					logger.Error("Failed to create account", "error", err)
+				}
+				return nil, status.Error(resp.Code, resp.Msg)
+			}
 		}
-		return nil, status.Error(codes.Internal, "internal error")
+		if logger != nil {
+			logger.Error("Failed to create account, internal error", "error", err)
+		}
+		return nil, status.Error(codes.Internal, string(models.ErrCodeInternalError))
 	}
 	return account, nil
 }
@@ -42,10 +51,19 @@ func (s *FinanceServerImpl) CreateAccount(ctx context.Context, req *finpb.Create
 func (s *FinanceServerImpl) GetAccount(ctx context.Context, req *finpb.AccountRequest) (*finpb.Account, error) {
 	account, err := s.financeUC.GetAccountByID(ctx, int(req.UserId), int(req.AccountId))
 	if err != nil {
-		if errors.Is(err, finerrors.ErrAccountNotFound) {
-			return nil, status.Error(codes.NotFound, "account not found")
+		logger := logger.FromContext(ctx)
+		for targetErr, resp := range finerrors.ErrorMap {
+			if errors.Is(err, targetErr) {
+				if logger != nil {
+					logger.Error("Failed to get account", "error", err)
+				}
+				return nil, status.Error(resp.Code, resp.Msg)
+			}
 		}
-		return nil, status.Error(codes.Internal, "internal error")
+		if logger != nil {
+			logger.Error("Failed to get account, internal error", "error", err)
+		}
+		return nil, status.Error(codes.Internal, string(models.ErrCodeInternalError))
 	}
 	return account, nil
 }
@@ -53,7 +71,19 @@ func (s *FinanceServerImpl) GetAccount(ctx context.Context, req *finpb.AccountRe
 func (s *FinanceServerImpl) GetAccountsByUser(ctx context.Context, req *finpb.UserID) (*finpb.ListAccountsResponse, error) {
 	accounts, err := s.financeUC.GetAccountsByUser(ctx, int(req.UserId))
 	if err != nil {
-		return nil, status.Error(codes.Internal, "internal error")
+		logger := logger.FromContext(ctx)
+		for targetErr, resp := range finerrors.ErrorMap {
+			if errors.Is(err, targetErr) {
+				if logger != nil {
+					logger.Error("Failed to get accounts", "error", err)
+				}
+				return nil, status.Error(resp.Code, resp.Msg)
+			}
+		}
+		if logger != nil {
+			logger.Error("Failed to get accounts, internal error", "error", err)
+		}
+		return nil, status.Error(codes.Internal, string(models.ErrCodeInternalError))
 	}
 	return accounts, nil
 }
@@ -62,13 +92,19 @@ func (s *FinanceServerImpl) UpdateAccount(ctx context.Context, req *finpb.Update
 	updateReq := protoToUpdateAccountRequest(req)
 	account, err := s.financeUC.UpdateAccount(ctx, updateReq)
 	if err != nil {
-		if errors.Is(err, finerrors.ErrAccountNotFound) {
-			return nil, status.Error(codes.NotFound, "account not found")
+		logger := logger.FromContext(ctx)
+		for targetErr, resp := range finerrors.ErrorMap {
+			if errors.Is(err, targetErr) {
+				if logger != nil {
+					logger.Error("Failed to update account", "error", err)
+				}
+				return nil, status.Error(resp.Code, resp.Msg)
+			}
 		}
-		if errors.Is(err, finerrors.ErrForbidden) {
-			return nil, status.Error(codes.PermissionDenied, "forbidden")
+		if logger != nil {
+			logger.Error("Failed to update account, internal error", "error", err)
 		}
-		return nil, status.Error(codes.Internal, "internal error")
+		return nil, status.Error(codes.Internal, string(models.ErrCodeInternalError))
 	}
 	return account, nil
 }
@@ -76,13 +112,19 @@ func (s *FinanceServerImpl) UpdateAccount(ctx context.Context, req *finpb.Update
 func (s *FinanceServerImpl) DeleteAccount(ctx context.Context, req *finpb.AccountRequest) (*finpb.Account, error) {
 	account, err := s.financeUC.DeleteAccount(ctx, int(req.UserId), int(req.AccountId))
 	if err != nil {
-		if errors.Is(err, finerrors.ErrAccountNotFound) {
-			return nil, status.Error(codes.NotFound, "account not found")
+		logger := logger.FromContext(ctx)
+		for targetErr, resp := range finerrors.ErrorMap {
+			if errors.Is(err, targetErr) {
+				if logger != nil {
+					logger.Error("Failed to delete account", "error", err)
+				}
+				return nil, status.Error(resp.Code, resp.Msg)
+			}
 		}
-		if errors.Is(err, finerrors.ErrForbidden) {
-			return nil, status.Error(codes.PermissionDenied, "forbidden")
+		if logger != nil {
+			logger.Error("Failed to delete account, internal error", "error", err)
 		}
-		return nil, status.Error(codes.Internal, "internal error")
+		return nil, status.Error(codes.Internal, string(models.ErrCodeInternalError))
 	}
 	return account, nil
 }
