@@ -14,16 +14,17 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	image "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/repository"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/repository"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/proto"
 	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/proto"
+	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -55,8 +56,17 @@ func Run() error {
 	}
 	defer bdgGrpcConn.Close()
 
+	finGrpcConn, err := grpc.NewClient(fmt.Sprintf("%s:%s", config.FinanceServiceHost, config.FinanceServicePort), dialOpts)
+	if err != nil {
+		appLogger.Error("Failed to connect to budget gRPC service", "error", err)
+		log.Fatal(err)
+		return err
+	}
+	defer finGrpcConn.Close()
+
 	authClient := authpb.NewAuthServiceClient(authGrpcConn)
 	bdgClient := bdgpb.NewBudgetServiceClient(bdgGrpcConn)
+	finClient := finpb.NewFinanceServiceClient(finGrpcConn)
 	store, err := repository.NewPostgresStore(config.GetDatabaseDSN())
 	if err != nil {
 		return err
@@ -81,7 +91,7 @@ func Run() error {
 	var repo service.Repository = store
 	serviceInstance := service.NewService(repo, config.JWTSecret, imageStorage)
 	usecaseInstance := usecase.NewUseCase(serviceInstance, repo, config.JWTSecret)
-	handler := handlers.NewHandler(usecaseInstance, appLogger, authClient, bdgClient)
+	handler := handlers.NewHandler(usecaseInstance, appLogger, authClient, bdgClient, finClient)
 
 	r := mux.NewRouter()
 
@@ -106,7 +116,7 @@ func Run() error {
 
 	public := r.PathPrefix("/api/v1").Subrouter()
 	// Временно отключен CSRF для фронтенда
-	public.Use(middleware.CSRFMiddleware(config.JWTSecret))
+	// public.Use(middleware.CSRFMiddleware(config.JWTSecret))
 
 	protected := r.PathPrefix("/api/v1").Subrouter()
 	protected.Use(middleware.MetricsMiddleware)
@@ -114,10 +124,10 @@ func Run() error {
 	protected.Use(middleware.LoggerMiddleware(appLogger))
 	protected.Use(middleware.RequestLoggerMiddleware(appLogger))
 	protected.Use(middleware.SecurityLoggerMiddleware(appLogger))
-	protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
+	// protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
-	handler.Register(public, protected, authClient, bdgClient)
+	handler.Register(public, protected, authClient, bdgClient, finClient)
 
 	// Swagger документация
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)

@@ -43,7 +43,7 @@ services:
     volumes:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - "9090:9090"
+      - "9080:9090"
     networks:
       - vkarmane-network
     restart: unless-stopped
@@ -132,6 +132,32 @@ services:
       - "8100:8100"
     restart: unless-stopped
 
+  
+  finance_service:
+    build:
+      context: .
+      dockerfile: cmd/finance_service/Dockerfile
+    container_name: vkarmane-finance
+    environment:
+      PORT: 8110
+      HOST: 0.0.0.0
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: vkarmane
+      DB_PASSWORD: vkarmane_password
+      DB_NAME: vkarmane
+      DB_SSLMODE: disable
+
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      LOG_LEVEL: debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vkarmane-network
+    ports:
+      - "8110:8110"
+    restart: unless-stopped
 
   app:
     build:
@@ -149,16 +175,18 @@ services:
       HOST: 0.0.0.0
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
       LOG_LEVEL: info
-      HTTPS_ENABLED: "true"
+      HTTPS_ENABLED: "false"
       AUTH_SERVICE_HOST: auth_service
       AUTH_SERVICE_PORT: 8090
       BUDGET_SERVICE_HOST: budget_service
       BUDGET_SERVICE_PORT: 8100
-      HTTPS_CERT_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/fullchain.pem
-      HTTPS_KEY_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
-      CORS_HOST: "vkarmane.duckdns.org"
+      FINANCE_SERVICE_HOST: finance_service
+      FINANCE_SERVICE_PORT: 8110
+      # HTTPS_CERT_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/fullchain.pem
+      # HTTPS_KEY_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
+      CORS_HOST: "vkarmane.duckdns.org,localhost"
       CORS_FRONTEND_PORT: "8000"
-      CORS_ORIGINS: "https://vkarmane.duckdns.org:8080"
+      CORS_ORIGINS: "https://vkarmane.duckdns.org:8080,http://localhost:8070"
       MINIO_ENDPOINT: minio
       MINIO_PORT: "9000"
       MINIO_ACCESS_KEY: minioadmin
@@ -166,9 +194,9 @@ services:
       MINIO_USE_SSL: "false"
       MINIO_BUCKET_NAME: images
     ports:
-      - "8080:8080"
+      - "8070:8080"
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      # - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./logs:/root/logs
     depends_on:
       postgres:
