@@ -177,7 +177,7 @@ func (h *Handler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	accountDTO := ProtoAccountToApi(account)
-	httputils.Success(w, r, accountDTO)
+	httputils.Created(w, r, accountDTO)
 }
 
 func (h *Handler) UpdateAccount(w http.ResponseWriter, r *http.Request) {

@@ -15,7 +15,7 @@ func CategoryWithStatsToAPI(ctg *finpb.CategoryWithStats) models.CategoryWithSta
 	return models.CategoryWithStats{
 		Category: models.Category{
 			ID:           int(ctg.Category.Id),
-			UserID:       int(ctg.Category.Id),
+			UserID:       int(ctg.Category.UserId),
 			Name:         ctg.Category.Name,
 			Description:  ctg.Category.Description,
 			LogoHashedID: ctg.Category.LogoHashedId,
