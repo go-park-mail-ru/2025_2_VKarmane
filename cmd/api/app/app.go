@@ -18,7 +18,6 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 
@@ -67,15 +66,9 @@ func Run() error {
 	authClient := authpb.NewAuthServiceClient(authGrpcConn)
 	bdgClient := bdgpb.NewBudgetServiceClient(bdgGrpcConn)
 	finClient := finpb.NewFinanceServiceClient(finGrpcConn)
-	store, err := repository.NewPostgresStore(config.GetDatabaseDSN())
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := store.Close(); err != nil {
-			appLogger.Error("Failed to close database connection", "error", err)
-		}
-	}()
 
 	imageStorage, err := image.NewMinIOStorage(
 		fmt.Sprintf("%s:%s", config.MinIO.Endpoint, config.MinIO.Port),
@@ -88,9 +81,8 @@ func Run() error {
 		return err
 	}
 
-	var repo service.Repository = store
-	serviceInstance := service.NewService(repo, config.JWTSecret, imageStorage)
-	usecaseInstance := usecase.NewUseCase(serviceInstance, repo, config.JWTSecret)
+	serviceInstance := service.NewService(config.JWTSecret, imageStorage)
+	usecaseInstance := usecase.NewUseCase(serviceInstance, config.JWTSecret)
 	handler := handlers.NewHandler(usecaseInstance, appLogger, authClient, bdgClient, finClient)
 
 	r := mux.NewRouter()

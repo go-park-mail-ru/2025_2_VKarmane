@@ -12,3 +12,6 @@ WHERE operation_date IS NULL;
 -- Делаем поле обязательным
 ALTER TABLE operation 
 ALTER COLUMN operation_date SET NOT NULL;
+
+
+insert into currency (code, currency_name, logo_hashed_id, created_at) values ('usd', 'usd', 'ahds', NOW())
