@@ -11,8 +11,13 @@ route:
 receivers:
   - name: 'telegram'
     telegram_configs:
+<<<<<<< HEAD
       - bot_token: 
         chat_id: 
+=======
+      - bot_token:
+        chat_id:
+>>>>>>> 00a340e39db3ea25b327acc0340e954cef482dda
         message: |
           *Alert:* {{ .CommonLabels.alertname }}
           *Service:* {{ .CommonLabels.service }}
