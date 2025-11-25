@@ -1,0 +1,19 @@
+groups:
+  - name: system_alerts
+    rules:
+      - alert: HTTP5xxErrors
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          description: "High rate of 5xx errors on {{ $labels.instance }}"
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: unknown
+        annotations:
+          description: "Service {{ $labels.job }} on instance {{ $labels.instance }} is DOWN"

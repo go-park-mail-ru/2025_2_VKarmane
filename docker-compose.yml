@@ -42,8 +42,9 @@ services:
     container_name: vkarmane-prometheus
     volumes:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
     ports:
-      - "9080:9090"
+      - "9090:9090"
     networks:
       - vkarmane-network
     restart: unless-stopped
@@ -72,13 +73,28 @@ services:
     networks:
       - vkarmane-network
     restart: unless-stopped
-    pid: "host" 
+    pid: "host"
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
+      - /:/host:ro
 
-
-
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: vkarmane-alertmanager
+    volumes:
+      - ./docker/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "9099:9093"
+    networks:
+      - vkarmane-network
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--cluster.listen-address=:9095"
+    
   auth_service:
     build:
       context: .
@@ -175,18 +191,18 @@ services:
       HOST: 0.0.0.0
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
       LOG_LEVEL: info
-      HTTPS_ENABLED: "false"
+      HTTPS_ENABLED: "true"
       AUTH_SERVICE_HOST: auth_service
       AUTH_SERVICE_PORT: 8090
       BUDGET_SERVICE_HOST: budget_service
       BUDGET_SERVICE_PORT: 8100
       FINANCE_SERVICE_HOST: finance_service
       FINANCE_SERVICE_PORT: 8110
-      # HTTPS_CERT_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/fullchain.pem
-      # HTTPS_KEY_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
-      CORS_HOST: "vkarmane.duckdns.org,localhost"
+      HTTPS_CERT_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/fullchain.pem
+      HTTPS_KEY_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
+      CORS_HOST: "vkarmane.duckdns.org"
       CORS_FRONTEND_PORT: "8000"
-      CORS_ORIGINS: "https://vkarmane.duckdns.org:8080,http://localhost:8070"
+      CORS_ORIGINS: "https://vkarmane.duckdns.org:8080"
       MINIO_ENDPOINT: minio
       MINIO_PORT: "9000"
       MINIO_ACCESS_KEY: minioadmin
@@ -194,9 +210,9 @@ services:
       MINIO_USE_SSL: "false"
       MINIO_BUCKET_NAME: images
     ports:
-      - "8070:8080"
+      - "8080:8080"
     volumes:
-      # - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./logs:/root/logs
     depends_on:
       postgres:
@@ -208,6 +224,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  alertmanager_data:
   grafana_data:
   postgres_data:
   minio_data:
