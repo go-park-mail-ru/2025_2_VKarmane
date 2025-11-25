@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -11,16 +12,21 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
+	image "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/repository"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/repository/storage/image"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/proto"
+	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/proto"
+	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func Run() error {
@@ -31,15 +37,38 @@ func Run() error {
 		appLogger = logger.NewSlogLogger()
 	}
 
-	store, err := repository.NewPostgresStore(config.GetDatabaseDSN())
+	dialOpts := grpc.WithTransportCredentials(insecure.NewCredentials())
+
+	authGrpcConn, err := grpc.NewClient(fmt.Sprintf("%s:%s", config.AuthServiceHost, config.AuthServicePort), dialOpts)
+	if err != nil {
+		appLogger.Error("Failed to connect to auth gRPC service", "error", err)
+		log.Fatal(err)
+		return err
+	}
+	defer authGrpcConn.Close()
+
+	bdgGrpcConn, err := grpc.NewClient(fmt.Sprintf("%s:%s", config.BudgetServiceHost, config.BudgetServicePort), dialOpts)
+	if err != nil {
+		appLogger.Error("Failed to connect to budget gRPC service", "error", err)
+		log.Fatal(err)
+		return err
+	}
+	defer bdgGrpcConn.Close()
+
+	finGrpcConn, err := grpc.NewClient(fmt.Sprintf("%s:%s", config.FinanceServiceHost, config.FinanceServicePort), dialOpts)
+	if err != nil {
+		appLogger.Error("Failed to connect to budget gRPC service", "error", err)
+		log.Fatal(err)
+		return err
+	}
+	defer finGrpcConn.Close()
+
+	authClient := authpb.NewAuthServiceClient(authGrpcConn)
+	bdgClient := bdgpb.NewBudgetServiceClient(bdgGrpcConn)
+	finClient := finpb.NewFinanceServiceClient(finGrpcConn)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := store.Close(); err != nil {
-			appLogger.Error("Failed to close database connection", "error", err)
-		}
-	}()
 
 	imageStorage, err := image.NewMinIOStorage(
 		fmt.Sprintf("%s:%s", config.MinIO.Endpoint, config.MinIO.Port),
@@ -52,10 +81,9 @@ func Run() error {
 		return err
 	}
 
-	var repo service.Repository = store
-	serviceInstance := service.NewService(repo, config.JWTSecret, imageStorage)
-	usecaseInstance := usecase.NewUseCase(serviceInstance, repo, config.JWTSecret)
-	handler := handlers.NewHandler(usecaseInstance, appLogger)
+	serviceInstance := service.NewService(config.JWTSecret, imageStorage)
+	usecaseInstance := usecase.NewUseCase(serviceInstance, config.JWTSecret)
+	handler := handlers.NewHandler(usecaseInstance, appLogger, authClient, bdgClient, finClient)
 
 	r := mux.NewRouter()
 
@@ -63,6 +91,7 @@ func Run() error {
 
 	corsOrigins := config.GetCORSOrigins()
 	appLogger.Info("CORS Configuration", "origins", corsOrigins, "is_production", config.IsProduction())
+	r.Use(middleware.MetricsMiddleware)
 	r.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
 
 	r.Use(middleware.LoggerMiddleware(appLogger))
@@ -82,6 +111,7 @@ func Run() error {
 	public.Use(middleware.CSRFMiddleware(config.JWTSecret))
 
 	protected := r.PathPrefix("/api/v1").Subrouter()
+	protected.Use(middleware.MetricsMiddleware)
 	protected.Use(middleware.CORSMiddleware(corsOrigins, appLogger))
 	protected.Use(middleware.LoggerMiddleware(appLogger))
 	protected.Use(middleware.RequestLoggerMiddleware(appLogger))
@@ -89,7 +119,7 @@ func Run() error {
 	protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
-	handler.Register(public, protected)
+	handler.Register(public, protected, authClient, bdgClient, finClient)
 
 	// Swagger документация
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
@@ -114,6 +144,10 @@ func Run() error {
 		if err != nil && err != http.ErrServerClosed {
 			appLogger.Error("Server failed to start", "error", err)
 		}
+	}()
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":10000", nil)
 	}()
 
 	quit := make(chan os.Signal, 1)

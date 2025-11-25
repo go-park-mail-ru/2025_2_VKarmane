@@ -3,13 +3,16 @@ package handlers
 import (
 	"github.com/gorilla/mux"
 
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/auth"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/balance"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/budget"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/category"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/image"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/operation"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers/profile"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/handlers/auth"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/handlers/profile"
+	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/proto"
+	budget "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/handlers"
+	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/proto"
+	balance "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/handlers/account"
+	category "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/handlers/category"
+	operation "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/handlers/operation"
+	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
+	image "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/handlers"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 )
@@ -27,12 +30,12 @@ func NewRegistrator(uc *usecase.UseCase, log logger.Logger) *Registrator {
 
 }
 
-func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux.Router, uc *usecase.UseCase, log logger.Logger) {
-	auth.Register(publicRouter, protectedRouter, uc.AuthUC, log)
-	balance.Register(protectedRouter, uc.BalanceUC)
-	budget.Register(protectedRouter, uc.BudgetUC)
-	operation.Register(protectedRouter, uc.OpUC, uc.ImageUC)
-	category.Register(protectedRouter, uc.CategoryUC, uc.ImageUC)
-	profile.Register(protectedRouter, uc.ProfileUC, uc.ImageUC)
+func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux.Router, uc *usecase.UseCase, log logger.Logger, authClient authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient, finClient finpb.FinanceServiceClient) {
+	auth.Register(publicRouter, protectedRouter, log, authClient)
+	balance.Register(protectedRouter, finClient)
+	budget.Register(protectedRouter, budgetClient)
+	operation.Register(protectedRouter, finClient, uc.ImageUC)
+	category.Register(protectedRouter, finClient, uc.ImageUC)
+	profile.Register(protectedRouter, uc.ImageUC, authClient)
 	image.Register(protectedRouter, uc.ImageUC)
 }

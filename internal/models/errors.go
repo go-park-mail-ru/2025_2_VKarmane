@@ -14,6 +14,10 @@ const (
 	ErrCodeLoginExists  ErrorCode = "LOGIN_EXISTS"
 	ErrCodeWeakPassword ErrorCode = "WEAK_PASSWORD"
 
+	ErrCodeBudgetExists     ErrorCode = "BUDGET_EXISTS"
+	ErrCodeCategoryExists   ErrorCode = "CATEGORY_EXISTS"
+	ErrCodeCategoryNotFound ErrorCode = "CATEGORY_NOT_FOUND"
+
 	ErrCodeUserNotFound       ErrorCode = "USER_NOT_FOUND"
 	ErrCodeInvalidCredentials ErrorCode = "INVALID_CREDENTIALS"
 	ErrCodeAccountLocked      ErrorCode = "ACCOUNT_LOCKED"
@@ -37,6 +41,7 @@ const (
 	ErrCodeInvalidCurrency ErrorCode = "INVALID_CURRENCY"
 	ErrCodeInvalidDate     ErrorCode = "INVALID_DATE"
 	ErrCodeInvalidPeriod   ErrorCode = "INVALID_PERIOD"
+	ErrCodeInvalidData     ErrorCode = "INVALID_DATA"
 
 	ErrCodeInternalError      ErrorCode = "INTERNAL_ERROR"
 	ErrCodeServiceUnavailable ErrorCode = "SERVICE_UNAVAILABLE"

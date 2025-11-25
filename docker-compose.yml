@@ -37,6 +37,144 @@ services:
     networks:
       - vkarmane-network
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: vkarmane-prometheus
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    ports:
+      - "9090:9090"
+    networks:
+      - vkarmane-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: vkarmane-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "4000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - vkarmane-network
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: vkarmane-node-exporter
+    ports:
+      - "9500:9100"
+    networks:
+      - vkarmane-network
+    restart: unless-stopped
+    pid: "host"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host:ro
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: vkarmane-alertmanager
+    volumes:
+      - ./docker/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "9099:9093"
+    networks:
+      - vkarmane-network
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--cluster.listen-address=:9095"
+    
+  auth_service:
+    build:
+      context: .
+      dockerfile: cmd/auth_service/Dockerfile
+    container_name: vkarmane-auth
+    environment:
+      PORT: 8090
+      HOST: 0.0.0.0
+
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: vkarmane
+      DB_PASSWORD: vkarmane_password
+      DB_NAME: vkarmane
+      DB_SSLMODE: disable
+
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      LOG_LEVEL: debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vkarmane-network
+    ports:
+      - "8090:8090"
+    restart: unless-stopped
+  
+  budget_service:
+    build:
+      context: .
+      dockerfile: cmd/budget_service/Dockerfile
+    container_name: vkarmane-budget
+    environment:
+      PORT: 8100
+      HOST: 0.0.0.0
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: vkarmane
+      DB_PASSWORD: vkarmane_password
+      DB_NAME: vkarmane
+      DB_SSLMODE: disable
+
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      LOG_LEVEL: debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vkarmane-network
+    ports:
+      - "8100:8100"
+    restart: unless-stopped
+
+  
+  finance_service:
+    build:
+      context: .
+      dockerfile: cmd/finance_service/Dockerfile
+    container_name: vkarmane-finance
+    environment:
+      PORT: 8110
+      HOST: 0.0.0.0
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: vkarmane
+      DB_PASSWORD: vkarmane_password
+      DB_NAME: vkarmane
+      DB_SSLMODE: disable
+
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      LOG_LEVEL: debug
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - vkarmane-network
+    ports:
+      - "8110:8110"
+    restart: unless-stopped
+
   app:
     build:
       context: .
@@ -54,10 +192,16 @@ services:
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
       LOG_LEVEL: info
       HTTPS_ENABLED: "true"
+      AUTH_SERVICE_HOST: auth_service
+      AUTH_SERVICE_PORT: 8090
+      BUDGET_SERVICE_HOST: budget_service
+      BUDGET_SERVICE_PORT: 8100
+      FINANCE_SERVICE_HOST: finance_service
+      FINANCE_SERVICE_PORT: 8110
       HTTPS_CERT_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/fullchain.pem
       HTTPS_KEY_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
-      CORS_HOST: "localhost"
-      CORS_FRONTEND_PORT: "3000"
+      CORS_HOST: "vkarmane.duckdns.org"
+      CORS_FRONTEND_PORT: "8000"
       CORS_ORIGINS: "https://vkarmane.duckdns.org:8080"
       MINIO_ENDPOINT: minio
       MINIO_PORT: "9000"
@@ -80,6 +224,8 @@ services:
     restart: unless-stopped
 
 volumes:
+  alertmanager_data:
+  grafana_data:
   postgres_data:
   minio_data:
 

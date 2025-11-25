@@ -9,6 +9,7 @@ coverage.out
 coverage.html
 *.pem
 *.key
+coverage_filtered.out
 .env
 deploy.sh
 ssl/
