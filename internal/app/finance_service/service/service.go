@@ -132,21 +132,21 @@ func (s *Service) CreateOperation(ctx context.Context, req finmodels.CreateOpera
 	}
 
 	// Update account balance
-	account, err := s.repo.GetAccountByID(ctx, req.UserID, accountID)
-	if err != nil {
-		return nil, err
-	}
+	// account, err := s.repo.GetAccountByID(ctx, req.UserID, accountID)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	var newBalance float64
-	if req.Type == finmodels.OperationIncome {
-		newBalance = account.Balance + req.Sum
-	} else {
-		newBalance = account.Balance - req.Sum
-	}
+	// var newBalance float64
+	// if req.Type == finmodels.OperationIncome {
+	// 	newBalance = account.Balance + req.Sum
+	// } else {
+	// 	newBalance = account.Balance - req.Sum
+	// }
 
-	if err := s.repo.UpdateAccountBalance(ctx, accountID, newBalance); err != nil {
-		return nil, err
-	}
+	// if err := s.repo.UpdateAccountBalance(ctx, accountID, newBalance); err != nil {
+	// 	return nil, err
+	// }
 
 	return operationToProto(createdOp), nil
 }

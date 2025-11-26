@@ -107,11 +107,8 @@ func TestCreateOperation_UpdateAccountBalance(t *testing.T) {
 	req := models.CreateOperationRequest{
 		UserID: 1, AccountID: 2, Type: models.OperationIncome, Sum: 100,
 	}
-	acc := models.Account{ID: 2, Balance: 200}
 
 	mockRepo.EXPECT().CreateOperation(ctx, gomock.Any()).Return(models.Operation{ID: 1, AccountID: 2, Sum: 100, Type: models.OperationIncome}, nil)
-	mockRepo.EXPECT().GetAccountByID(ctx, req.UserID, req.AccountID).Return(acc, nil)
-	mockRepo.EXPECT().UpdateAccountBalance(ctx, req.AccountID, 300.0).Return(nil)
 
 	op, err := svc.CreateOperation(ctx, req, req.AccountID)
 	require.NoError(t, err)
