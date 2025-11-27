@@ -2,6 +2,7 @@ package operation
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -85,8 +86,17 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	name := r.URL.Query().Get("title")
+	categoryIDStr := r.URL.Query().Get("category_id")
+    var categoryID *int
+    if categoryIDStr != "" {
+        v, _ := strconv.Atoi(categoryIDStr)
+        categoryID = &v
+    }
+
+
 	// ops, err := h.opUC.GetAccountOperations(r.Context(), accID)
-	ops, err := h.finClient.GetOperationsByAccount(r.Context(), AccountAndUserIDToProtoID(accID, id))
+	ops, err := h.finClient.GetOperationsByAccount(r.Context(), ProtoGetOperationsRequst(id, accID, categoryID, name))
 	if err != nil {
 		_, ok := status.FromError(err)
 		log := logger.FromContext(r.Context())
@@ -105,8 +115,8 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Преобразуем операции в OperationResponse
-	var operationsResponse []models.OperationInListResponse
+
+	 operationsResponse := make([]models.OperationInListResponse, 1)
 	if ops != nil {
 		for _, op := range ops.Operations {
 			operationsResponse = append(operationsResponse, MapOperationInListToResponse(op))
@@ -239,6 +249,8 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 	ctgDTO := category.CategoryWithStatsToAPI(ctg)
 
 	transactionSearch := OperationResponseToSearch(operationResponse, ctgDTO, ctgLogo)
+	transactionSearch.Action = models.WRITE
+
 	data, _ := json.Marshal(transactionSearch)
 	if err = h.kafkaProducer.WriteMessages(r.Context(), kafka.Message{Value: data}); err != nil {
 		httputils.InternalError(w, r, "Failed to create opeartion")
@@ -341,6 +353,7 @@ func (h *Handler) GetOperationByID(w http.ResponseWriter, r *http.Request) {
 // @Router /operations/account/{acc_id}/operation/{op_id} [put]
 func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 	id, ok := h.getUserID(r)
+	log := logger.FromContext(r.Context())
 	if !ok {
 		httputils.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
 		return
@@ -378,7 +391,6 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 	op, err := h.finClient.UpdateOperation(r.Context(), UpdateOperationRequestToProto(req, id, accID, opID))
 	if err != nil {
 		st, ok := status.FromError(err)
-		log := logger.FromContext(r.Context())
 		if !ok {
 			if log != nil {
 				log.Error("grpc UpdateOperation unknown error", "error", err)
@@ -409,6 +421,53 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	operationResponse := ProtoOperationToResponse(op)
+	log.Info(fmt.Sprintf("%d",operationResponse.CategoryID))
+	ctg, err := h.finClient.GetCategory(r.Context(), category.UserAndCtegoryIDToProto(id, operationResponse.CategoryID))
+	if err != nil {
+		st, ok := status.FromError(err)
+		if !ok {
+			if log != nil {
+				log.Error("grpc CreateCategory unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed update operation")
+			return
+		}
+		switch st.Code() {
+		case codes.NotFound:
+			if log != nil {
+				log.Error("grpc GetCategory invalid arg", "error", err)
+			}
+			httputils.Error(w, r, "failed to update operation", http.StatusBadRequest)
+			return
+		default:
+			if log != nil {
+				log.Error("grpc GetCategory error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to update operation")
+			return
+		}
+
+	}
+
+	ctgLogo, err := h.imageUC.GetImageURL(r.Context(), ctg.Category.LogoHashedId)
+	if err != nil {
+		httputils.InternalError(w, r, "Ошибка получения операций")
+		return
+	}
+	ctgDTO := category.CategoryWithStatsToAPI(ctg)
+
+	transactionSearch := OperationResponseToSearch(operationResponse, ctgDTO, ctgLogo)
+	transactionSearch.Action = models.UPDATE
+
+	data, _ := json.Marshal(transactionSearch)
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafka.Message{Value: data}); err != nil {
+		httputils.InternalError(w, r, "Failed to update opeartion")
+		if log != nil {
+			log.Error("kafka GetCategory unknown error", "error", err)
+		}
+		return
+	}
+
 	httputils.Success(w, r, operationResponse)
 }
 
@@ -429,6 +488,7 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 // @Router /operations/account/{acc_id}/operation/{op_id} [delete]
 func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 	id, ok := h.getUserID(r)
+	log := logger.FromContext(r.Context())
 	if !ok {
 		httputils.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
 		return
@@ -449,7 +509,6 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 	op, err := h.finClient.DeleteOperation(r.Context(), OperationAndUserIDToProtoID(opID, accID, id))
 	if err != nil {
 		st, ok := status.FromError(err)
-		log := logger.FromContext(r.Context())
 		if !ok {
 			if log != nil {
 				log.Error("grpc DeleteOperation unknown error", "error", err)
@@ -480,5 +539,16 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	operationResponse := ProtoOperationToResponse(op)
+	transactionSearch := OperationResponseToSearchDelete(operationResponse)
+	transactionSearch.Action = models.DELETE
+
+	data, _ := json.Marshal(transactionSearch)
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafka.Message{Value: data}); err != nil {
+		httputils.InternalError(w, r, "Failed to delete opeartion")
+		if log != nil {
+			log.Error("kafka GetCategory unknown error", "error", err)
+		}
+		return
+	}
 	httputils.Success(w, r, operationResponse)
 }

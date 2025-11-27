@@ -5,11 +5,16 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/elastic/go-elasticsearch/v8"
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 )
 
 type PostgresRepository struct {
 	db *sql.DB
+}
+
+type ESRepository struct {
+	es *elasticsearch.Client
 }
 
 func NewDBConnection(dsn string) (*sql.DB, error) {
@@ -23,6 +28,24 @@ func NewDBConnection(dsn string) (*sql.DB, error) {
 	}
 
 	return db, nil
+}
+
+func NewESConnection(host, port string) (*elasticsearch.Client, error) {
+	es, err := elasticsearch.NewClient(elasticsearch.Config{
+		Addresses: []string{
+			fmt.Sprintf("http://%s:%s", host, port),
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to open ElasticSearch: %w", err)
+	}
+	return es, nil
+}
+
+func NewESRepository(es *elasticsearch.Client) *ESRepository {
+	return &ESRepository{
+		es: es,
+	}
 }
 
 func NewPostgresRepository(db *sql.DB) *PostgresRepository {

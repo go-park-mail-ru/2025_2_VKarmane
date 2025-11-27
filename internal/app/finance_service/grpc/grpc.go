@@ -171,10 +171,11 @@ func (s *FinanceServerImpl) GetOperation(ctx context.Context, req *finpb.Operati
 	return operation, nil
 }
 
-func (s *FinanceServerImpl) GetOperationsByAccount(ctx context.Context, req *finpb.AccountRequest) (*finpb.ListOperationsResponse, error) {
-	operations, err := s.financeUC.GetOperationsByAccount(ctx, int(req.AccountId))
+func (s *FinanceServerImpl) GetOperationsByAccount(ctx context.Context, req *finpb.OperationsByAccountAndFiltersRequest) (*finpb.ListOperationsResponse, error) {
+	logger := logger.FromContext(ctx)
+	logger.Info(req.Name, req.CategoryId)
+	operations, err := s.financeUC.GetOperationsByAccount(ctx, int(req.AccountId), int(req.CategoryId), req.Name)
 	if err != nil {
-		logger := logger.FromContext(ctx)
 		for targetErr, resp := range finerrors.ErrorMap {
 			if errors.Is(err, targetErr) {
 				if logger != nil {

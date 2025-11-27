@@ -2,6 +2,12 @@ package models
 
 import "time"
 
+const (
+	WRITE  string = "create"
+	DELETE string = "delete"
+	UPDATE string = "update"
+)
+
 type TransactionSearch struct {
 	ID                   int       `json:"id"`
 	AccountID            int       `json:"account_id"`
@@ -9,6 +15,7 @@ type TransactionSearch struct {
 	CategoryName         string    `json:"category_name"`
 	Type                 string    `json:"type"`
 	Description          string    `json:"description"`
+	Status               string    `json:"status"`
 	Name                 string    `json:"name"`
 	CategoryLogoHashedID string    `json:"category_logo_hashed_id"`
 	CategoryLogo         string    `json:"category_logo"`
@@ -16,4 +23,5 @@ type TransactionSearch struct {
 	CurrencyID           int       `json:"curerncy"`
 	CreatedAt            time.Time `json:"created_at"`
 	Date                 time.Time `json:"date"`
+	Action               string    `json:"action"`
 }

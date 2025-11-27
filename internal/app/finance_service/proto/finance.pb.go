@@ -1394,6 +1394,82 @@ func (x *ListCategoriesWithStatsResponse) GetCategories() []*CategoryWithStats {
 	return nil
 }
 
+type OperationsByAccountAndFiltersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int32                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	AccountId     int32                  `protobuf:"varint,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	OperationId   int32                  `protobuf:"varint,3,opt,name=operation_id,json=operationId,proto3" json:"operation_id,omitempty"`
+	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	CategoryId    int32                  `protobuf:"varint,5,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OperationsByAccountAndFiltersRequest) Reset() {
+	*x = OperationsByAccountAndFiltersRequest{}
+	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OperationsByAccountAndFiltersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OperationsByAccountAndFiltersRequest) ProtoMessage() {}
+
+func (x *OperationsByAccountAndFiltersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OperationsByAccountAndFiltersRequest.ProtoReflect.Descriptor instead.
+func (*OperationsByAccountAndFiltersRequest) Descriptor() ([]byte, []int) {
+	return file_internal_app_finance_service_proto_finance_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *OperationsByAccountAndFiltersRequest) GetUserId() int32 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *OperationsByAccountAndFiltersRequest) GetAccountId() int32 {
+	if x != nil {
+		return x.AccountId
+	}
+	return 0
+}
+
+func (x *OperationsByAccountAndFiltersRequest) GetOperationId() int32 {
+	if x != nil {
+		return x.OperationId
+	}
+	return 0
+}
+
+func (x *OperationsByAccountAndFiltersRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *OperationsByAccountAndFiltersRequest) GetCategoryId() int32 {
+	if x != nil {
+		return x.CategoryId
+	}
+	return 0
+}
+
 var File_internal_app_finance_service_proto_finance_proto protoreflect.FileDescriptor
 
 const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
@@ -1546,7 +1622,15 @@ const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
 	"\x1fListCategoriesWithStatsResponse\x12:\n" +
 	"\n" +
 	"categories\x18\x01 \x03(\v2\x1a.finance.CategoryWithStatsR\n" +
-	"categories2\xe5\b\n" +
+	"categories\"\xb6\x01\n" +
+	"$OperationsByAccountAndFiltersRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x05R\x06userId\x12\x1d\n" +
+	"\n" +
+	"account_id\x18\x02 \x01(\x05R\taccountId\x12!\n" +
+	"\foperation_id\x18\x03 \x01(\x05R\voperationId\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12\x1f\n" +
+	"\vcategory_id\x18\x05 \x01(\x05R\n" +
+	"categoryId2\xfb\b\n" +
 	"\x0eFinanceService\x12@\n" +
 	"\rCreateAccount\x12\x1d.finance.CreateAccountRequest\x1a\x10.finance.Account\x127\n" +
 	"\n" +
@@ -1555,8 +1639,8 @@ const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
 	"\rUpdateAccount\x12\x1d.finance.UpdateAccountRequest\x1a\x10.finance.Account\x12:\n" +
 	"\rDeleteAccount\x12\x17.finance.AccountRequest\x1a\x10.finance.Account\x12F\n" +
 	"\x0fCreateOperation\x12\x1f.finance.CreateOperationRequest\x1a\x12.finance.Operation\x12=\n" +
-	"\fGetOperation\x12\x19.finance.OperationRequest\x1a\x12.finance.Operation\x12R\n" +
-	"\x16GetOperationsByAccount\x12\x17.finance.AccountRequest\x1a\x1f.finance.ListOperationsResponse\x12F\n" +
+	"\fGetOperation\x12\x19.finance.OperationRequest\x1a\x12.finance.Operation\x12h\n" +
+	"\x16GetOperationsByAccount\x12-.finance.OperationsByAccountAndFiltersRequest\x1a\x1f.finance.ListOperationsResponse\x12F\n" +
 	"\x0fUpdateOperation\x12\x1f.finance.UpdateOperationRequest\x1a\x12.finance.Operation\x12@\n" +
 	"\x0fDeleteOperation\x12\x19.finance.OperationRequest\x1a\x12.finance.Operation\x12C\n" +
 	"\x0eCreateCategory\x12\x1e.finance.CreateCategoryRequest\x1a\x11.finance.Category\x12C\n" +
@@ -1578,42 +1662,43 @@ func file_internal_app_finance_service_proto_finance_proto_rawDescGZIP() []byte 
 	return file_internal_app_finance_service_proto_finance_proto_rawDescData
 }
 
-var file_internal_app_finance_service_proto_finance_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_internal_app_finance_service_proto_finance_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_internal_app_finance_service_proto_finance_proto_goTypes = []any{
-	(*Account)(nil),                         // 0: finance.Account
-	(*CreateAccountRequest)(nil),            // 1: finance.CreateAccountRequest
-	(*UpdateAccountRequest)(nil),            // 2: finance.UpdateAccountRequest
-	(*AccountRequest)(nil),                  // 3: finance.AccountRequest
-	(*UserID)(nil),                          // 4: finance.UserID
-	(*ListAccountsResponse)(nil),            // 5: finance.ListAccountsResponse
-	(*Operation)(nil),                       // 6: finance.Operation
-	(*OperationInList)(nil),                 // 7: finance.OperationInList
-	(*CreateOperationRequest)(nil),          // 8: finance.CreateOperationRequest
-	(*UpdateOperationRequest)(nil),          // 9: finance.UpdateOperationRequest
-	(*OperationRequest)(nil),                // 10: finance.OperationRequest
-	(*ListOperationsResponse)(nil),          // 11: finance.ListOperationsResponse
-	(*Category)(nil),                        // 12: finance.Category
-	(*CreateCategoryRequest)(nil),           // 13: finance.CreateCategoryRequest
-	(*UpdateCategoryRequest)(nil),           // 14: finance.UpdateCategoryRequest
-	(*CategoryRequest)(nil),                 // 15: finance.CategoryRequest
-	(*ListCategoriesResponse)(nil),          // 16: finance.ListCategoriesResponse
-	(*CategoryWithStats)(nil),               // 17: finance.CategoryWithStats
-	(*ListCategoriesWithStatsResponse)(nil), // 18: finance.ListCategoriesWithStatsResponse
-	(*timestamppb.Timestamp)(nil),           // 19: google.protobuf.Timestamp
+	(*Account)(nil),                              // 0: finance.Account
+	(*CreateAccountRequest)(nil),                 // 1: finance.CreateAccountRequest
+	(*UpdateAccountRequest)(nil),                 // 2: finance.UpdateAccountRequest
+	(*AccountRequest)(nil),                       // 3: finance.AccountRequest
+	(*UserID)(nil),                               // 4: finance.UserID
+	(*ListAccountsResponse)(nil),                 // 5: finance.ListAccountsResponse
+	(*Operation)(nil),                            // 6: finance.Operation
+	(*OperationInList)(nil),                      // 7: finance.OperationInList
+	(*CreateOperationRequest)(nil),               // 8: finance.CreateOperationRequest
+	(*UpdateOperationRequest)(nil),               // 9: finance.UpdateOperationRequest
+	(*OperationRequest)(nil),                     // 10: finance.OperationRequest
+	(*ListOperationsResponse)(nil),               // 11: finance.ListOperationsResponse
+	(*Category)(nil),                             // 12: finance.Category
+	(*CreateCategoryRequest)(nil),                // 13: finance.CreateCategoryRequest
+	(*UpdateCategoryRequest)(nil),                // 14: finance.UpdateCategoryRequest
+	(*CategoryRequest)(nil),                      // 15: finance.CategoryRequest
+	(*ListCategoriesResponse)(nil),               // 16: finance.ListCategoriesResponse
+	(*CategoryWithStats)(nil),                    // 17: finance.CategoryWithStats
+	(*ListCategoriesWithStatsResponse)(nil),      // 18: finance.ListCategoriesWithStatsResponse
+	(*OperationsByAccountAndFiltersRequest)(nil), // 19: finance.OperationsByAccountAndFiltersRequest
+	(*timestamppb.Timestamp)(nil),                // 20: google.protobuf.Timestamp
 }
 var file_internal_app_finance_service_proto_finance_proto_depIdxs = []int32{
-	19, // 0: finance.Account.created_at:type_name -> google.protobuf.Timestamp
-	19, // 1: finance.Account.updated_at:type_name -> google.protobuf.Timestamp
+	20, // 0: finance.Account.created_at:type_name -> google.protobuf.Timestamp
+	20, // 1: finance.Account.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 2: finance.ListAccountsResponse.accounts:type_name -> finance.Account
-	19, // 3: finance.Operation.created_at:type_name -> google.protobuf.Timestamp
-	19, // 4: finance.Operation.date:type_name -> google.protobuf.Timestamp
-	19, // 5: finance.OperationInList.created_at:type_name -> google.protobuf.Timestamp
-	19, // 6: finance.OperationInList.date:type_name -> google.protobuf.Timestamp
-	19, // 7: finance.CreateOperationRequest.date:type_name -> google.protobuf.Timestamp
-	19, // 8: finance.UpdateOperationRequest.created_at:type_name -> google.protobuf.Timestamp
+	20, // 3: finance.Operation.created_at:type_name -> google.protobuf.Timestamp
+	20, // 4: finance.Operation.date:type_name -> google.protobuf.Timestamp
+	20, // 5: finance.OperationInList.created_at:type_name -> google.protobuf.Timestamp
+	20, // 6: finance.OperationInList.date:type_name -> google.protobuf.Timestamp
+	20, // 7: finance.CreateOperationRequest.date:type_name -> google.protobuf.Timestamp
+	20, // 8: finance.UpdateOperationRequest.created_at:type_name -> google.protobuf.Timestamp
 	7,  // 9: finance.ListOperationsResponse.operations:type_name -> finance.OperationInList
-	19, // 10: finance.Category.created_at:type_name -> google.protobuf.Timestamp
-	19, // 11: finance.Category.updated_at:type_name -> google.protobuf.Timestamp
+	20, // 10: finance.Category.created_at:type_name -> google.protobuf.Timestamp
+	20, // 11: finance.Category.updated_at:type_name -> google.protobuf.Timestamp
 	12, // 12: finance.ListCategoriesResponse.categories:type_name -> finance.Category
 	12, // 13: finance.CategoryWithStats.category:type_name -> finance.Category
 	17, // 14: finance.ListCategoriesWithStatsResponse.categories:type_name -> finance.CategoryWithStats
@@ -1624,7 +1709,7 @@ var file_internal_app_finance_service_proto_finance_proto_depIdxs = []int32{
 	3,  // 19: finance.FinanceService.DeleteAccount:input_type -> finance.AccountRequest
 	8,  // 20: finance.FinanceService.CreateOperation:input_type -> finance.CreateOperationRequest
 	10, // 21: finance.FinanceService.GetOperation:input_type -> finance.OperationRequest
-	3,  // 22: finance.FinanceService.GetOperationsByAccount:input_type -> finance.AccountRequest
+	19, // 22: finance.FinanceService.GetOperationsByAccount:input_type -> finance.OperationsByAccountAndFiltersRequest
 	9,  // 23: finance.FinanceService.UpdateOperation:input_type -> finance.UpdateOperationRequest
 	10, // 24: finance.FinanceService.DeleteOperation:input_type -> finance.OperationRequest
 	13, // 25: finance.FinanceService.CreateCategory:input_type -> finance.CreateCategoryRequest
@@ -1670,7 +1755,7 @@ func file_internal_app_finance_service_proto_finance_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_internal_app_finance_service_proto_finance_proto_rawDesc), len(file_internal_app_finance_service_proto_finance_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   19,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

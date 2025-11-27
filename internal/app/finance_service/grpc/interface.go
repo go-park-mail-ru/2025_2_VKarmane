@@ -16,7 +16,7 @@ type FinanceUseCase interface {
 	DeleteAccount(ctx context.Context, userID, accountID int) (*finpb.Account, error)
 
 	// Operation methods
-	GetOperationsByAccount(ctx context.Context, accountID int) (*finpb.ListOperationsResponse, error)
+	GetOperationsByAccount(ctx context.Context, accountID, categoryID int, opName string) (*finpb.ListOperationsResponse, error)
 	GetOperationByID(ctx context.Context, accID, opID int) (*finpb.Operation, error)
 	CreateOperation(ctx context.Context, req finmodels.CreateOperationRequest, accountID int) (*finpb.Operation, error)
 	UpdateOperation(ctx context.Context, req finmodels.UpdateOperationRequest) (*finpb.Operation, error)

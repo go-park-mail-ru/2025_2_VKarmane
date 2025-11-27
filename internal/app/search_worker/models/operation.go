@@ -10,10 +10,12 @@ type Transaction struct {
 	Type                 string    `json:"type"`
 	Description          string    `json:"description"`
 	Name                 string    `json:"name"`
+	Status               string    `json:"status"`
 	CategoryLogoHashedID string    `json:"category_logo_hashed_id"`
 	CategoryLogo         string    `json:"category_logo"`
 	Sum                  float64   `json:"sum"`
 	CurrencyID           int       `json:"curerncy"`
 	CreatedAt            time.Time `json:"created_at"`
 	Date                 time.Time `json:"date"`
+	Action               string    `json:"action"`
 }

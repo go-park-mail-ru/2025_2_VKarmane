@@ -8,7 +8,6 @@ package proto
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -51,7 +50,7 @@ type FinanceServiceClient interface {
 	// Operation methods
 	CreateOperation(ctx context.Context, in *CreateOperationRequest, opts ...grpc.CallOption) (*Operation, error)
 	GetOperation(ctx context.Context, in *OperationRequest, opts ...grpc.CallOption) (*Operation, error)
-	GetOperationsByAccount(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*ListOperationsResponse, error)
+	GetOperationsByAccount(ctx context.Context, in *OperationsByAccountAndFiltersRequest, opts ...grpc.CallOption) (*ListOperationsResponse, error)
 	UpdateOperation(ctx context.Context, in *UpdateOperationRequest, opts ...grpc.CallOption) (*Operation, error)
 	DeleteOperation(ctx context.Context, in *OperationRequest, opts ...grpc.CallOption) (*Operation, error)
 	// Category methods
@@ -141,7 +140,7 @@ func (c *financeServiceClient) GetOperation(ctx context.Context, in *OperationRe
 	return out, nil
 }
 
-func (c *financeServiceClient) GetOperationsByAccount(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*ListOperationsResponse, error) {
+func (c *financeServiceClient) GetOperationsByAccount(ctx context.Context, in *OperationsByAccountAndFiltersRequest, opts ...grpc.CallOption) (*ListOperationsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListOperationsResponse)
 	err := c.cc.Invoke(ctx, FinanceService_GetOperationsByAccount_FullMethodName, in, out, cOpts...)
@@ -244,7 +243,7 @@ type FinanceServiceServer interface {
 	// Operation methods
 	CreateOperation(context.Context, *CreateOperationRequest) (*Operation, error)
 	GetOperation(context.Context, *OperationRequest) (*Operation, error)
-	GetOperationsByAccount(context.Context, *AccountRequest) (*ListOperationsResponse, error)
+	GetOperationsByAccount(context.Context, *OperationsByAccountAndFiltersRequest) (*ListOperationsResponse, error)
 	UpdateOperation(context.Context, *UpdateOperationRequest) (*Operation, error)
 	DeleteOperation(context.Context, *OperationRequest) (*Operation, error)
 	// Category methods
@@ -285,7 +284,7 @@ func (UnimplementedFinanceServiceServer) CreateOperation(context.Context, *Creat
 func (UnimplementedFinanceServiceServer) GetOperation(context.Context, *OperationRequest) (*Operation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOperation not implemented")
 }
-func (UnimplementedFinanceServiceServer) GetOperationsByAccount(context.Context, *AccountRequest) (*ListOperationsResponse, error) {
+func (UnimplementedFinanceServiceServer) GetOperationsByAccount(context.Context, *OperationsByAccountAndFiltersRequest) (*ListOperationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOperationsByAccount not implemented")
 }
 func (UnimplementedFinanceServiceServer) UpdateOperation(context.Context, *UpdateOperationRequest) (*Operation, error) {
@@ -460,7 +459,7 @@ func _FinanceService_GetOperation_Handler(srv interface{}, ctx context.Context, 
 }
 
 func _FinanceService_GetOperationsByAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AccountRequest)
+	in := new(OperationsByAccountAndFiltersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -472,7 +471,7 @@ func _FinanceService_GetOperationsByAccount_Handler(srv interface{}, ctx context
 		FullMethod: FinanceService_GetOperationsByAccount_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FinanceServiceServer).GetOperationsByAccount(ctx, req.(*AccountRequest))
+		return srv.(FinanceServiceServer).GetOperationsByAccount(ctx, req.(*OperationsByAccountAndFiltersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

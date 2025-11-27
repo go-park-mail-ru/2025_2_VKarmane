@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 
 	pkgerrors "github.com/pkg/errors"
 
@@ -82,14 +83,51 @@ func (uc *UseCase) DeleteAccount(ctx context.Context, userID, accountID int) (*f
 }
 
 // Operation methods
-func (uc *UseCase) GetOperationsByAccount(ctx context.Context, accountID int) (*finpb.ListOperationsResponse, error) {
+func (uc *UseCase) GetOperationsByAccount(ctx context.Context, accountID, categoryID int, opName string) (*finpb.ListOperationsResponse, error) {
 	log := logger.FromContext(ctx)
-	operations, err := uc.financeService.GetOperationsByAccount(ctx, accountID)
+	// operations, err := uc.financeService.GetOperationsByAccount(ctx, accountID, categoryID, opName)
+	// if err != nil {
+	// 	if log != nil {
+	// 		log.Error("Failed to get operations for account", "error", err, "account_id", accountID)
+	// 	}
+	// 	return nil, pkgerrors.Wrap(err, "finance.GetOperationsByAccount")
+	// }
+	// return operations, nil
+	boolQuery := map[string]interface{}{
+		"must": []interface{}{
+			map[string]interface{}{"term": map[string]interface{}{"account_id": accountID}},
+		},
+		"must_not": []interface{}{
+			map[string]interface{}{"term": map[string]interface{}{"status": "reverted"}},
+		},
+	}
+
+	if categoryID != 0 {
+		boolQuery["filter"] = []interface{}{
+			map[string]interface{}{"term": map[string]interface{}{"category_id": categoryID}},
+		}
+	}
+
+	if opName != "" {
+		boolQuery["should"] = []interface{}{
+			map[string]interface{}{"match": map[string]interface{}{"name": opName}},
+		}
+		boolQuery["minimum_should_match"] = 1
+	}
+
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": boolQuery,
+		},
+	}
+
+	body, _ := json.Marshal(query)
+	operations, err := uc.financeService.GetOperationsByAccount(ctx, body)
 	if err != nil {
 		if log != nil {
-			log.Error("Failed to get operations for account", "error", err, "account_id", accountID)
+			log.Error("Failed to get operation by ID", "error", err, "account_id", accountID)
 		}
-		return nil, pkgerrors.Wrap(err, "finance.GetOperationsByAccount")
+		return nil, pkgerrors.Wrap(err, "finance.GetOperationByID")
 	}
 	return operations, nil
 }

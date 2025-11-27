@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
@@ -178,15 +177,11 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 	query := `
 		WITH updated_operation AS (
 			UPDATE operation 
-			SET category_id = CASE 
-			        WHEN $1::bigint IS NULL THEN category_id
-			        WHEN $1::bigint = -1 THEN NULL
-			        ELSE $1::bigint
-			    END,
-			    operation_name = COALESCE($2, operation_name),
-			    operation_description = COALESCE($3, operation_description),
-			    sum = COALESCE($4, sum)
-			WHERE _id = $5 AND (account_from_id = $6 OR account_to_id = $6) AND operation_status != 'reverted'
+			SET 
+			    operation_name = COALESCE($1, operation_name),
+			    operation_description = COALESCE($2, operation_description),
+			    sum = COALESCE($3, sum)
+			WHERE _id = $4 AND (account_from_id = $5 OR account_to_id = $5) AND operation_status != 'reverted'
 			RETURNING _id, account_from_id, account_to_id, category_id, currency_id, 
 			          operation_status, operation_type, operation_name, operation_description, 
 			          receipt_url, sum, created_at, operation_date
@@ -198,15 +193,6 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 		FROM updated_operation o
 		LEFT JOIN category c ON o.category_id = c._id
 	`
-
-	var categoryID sql.NullInt64
-	if req.CategoryID != nil {
-		if *req.CategoryID > 0 {
-			categoryID = sql.NullInt64{Int64: int64(*req.CategoryID), Valid: true}
-		} else {
-			categoryID = sql.NullInt64{Int64: -1, Valid: true}
-		}
-	}
 
 	var name *string
 	if req.Name != nil {
@@ -225,7 +211,6 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 
 	var operation OperationDB
 	err := r.db.QueryRowContext(ctx, query,
-		categoryID,
 		name,
 		description,
 		sum,

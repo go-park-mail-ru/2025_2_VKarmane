@@ -136,6 +136,7 @@ func OperationResponseToSearch(op models.OperationResponse, ctg models.CategoryW
 		CurrencyID:           op.CurrencyID,
 		Description:          op.Description,
 		Type:                 op.Status,
+		Status:               op.Status,
 		Name:                 op.Name,
 		CategoryLogo:         logo,
 		CategoryLogoHashedID: ctg.LogoHashedID,
@@ -143,5 +144,26 @@ func OperationResponseToSearch(op models.OperationResponse, ctg models.CategoryW
 		Sum:                  op.Sum,
 		CreatedAt:            op.CreatedAt,
 		Date:                 op.Date,
+	}
+}
+
+func OperationResponseToSearchDelete(op models.OperationResponse) models.TransactionSearch {
+	return models.TransactionSearch{
+		ID: op.ID,
+	}
+}
+
+func ProtoGetOperationsRequst(userID int, accID int, ctgID *int, opName string) *finpb.OperationsByAccountAndFiltersRequest {
+	var categoryID int
+	if ctgID == nil {
+		categoryID = 0
+	} else {
+		categoryID = *ctgID
+	}
+	return &finpb.OperationsByAccountAndFiltersRequest{
+		UserId:     int32(userID),
+		AccountId:  int32(accID),
+		CategoryId: int32(categoryID),
+		Name:       opName,
 	}
 }

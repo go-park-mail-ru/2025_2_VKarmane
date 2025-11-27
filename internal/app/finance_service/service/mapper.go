@@ -3,6 +3,7 @@ package service
 import (
 	"time"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -189,4 +190,30 @@ func protoToUpdateCategoryRequest(req *finpb.UpdateCategoryRequest) finmodels.Up
 		Description:  description,
 		LogoHashedID: logoHashedID,
 	}
+}
+
+func convertToOperation(src models.ESHitSource) *finpb.OperationInList {
+	return &finpb.OperationInList{
+		Id:                   src.ID,
+		AccountId:            src.AccountID,
+		CategoryId:           src.CategoryID,
+		CategoryName:         src.CategoryName,
+		Type:                 src.Type,
+		Description:          src.Description,
+		Name:                 src.Name,
+		CategoryLogoHashedId: src.CategoryLogoHashedId,
+		CategoryLogo:         src.CategoryLogo,
+		Sum:                  src.Sum,
+		CurrencyId:           src.CurrencyId,
+		CreatedAt:            parseTime(src.CreatedAt),
+		Date:                 parseTime(src.Date),
+	}
+}
+
+func parseTime(s string) *timestamppb.Timestamp {
+	t, err := time.Parse(time.RFC3339Nano, s)
+	if err != nil {
+		return nil
+	}
+	return timestamppb.New(t)
 }

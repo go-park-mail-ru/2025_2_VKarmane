@@ -1,8 +1,14 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 
+	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
@@ -10,12 +16,14 @@ import (
 
 type Service struct {
 	repo  FinanceRepository
+	es    *elasticsearch.Client
 	clock clock.Clock
 }
 
-func NewService(repo FinanceRepository, clck clock.Clock) *Service {
+func NewService(repo FinanceRepository, es *elasticsearch.Client, clck clock.Clock) *Service {
 	return &Service{
 		repo:  repo,
+		es:    es,
 		clock: clck,
 	}
 }
@@ -79,20 +87,37 @@ func (s *Service) DeleteAccount(ctx context.Context, userID, accountID int) (*fi
 }
 
 // Operation methods
-func (s *Service) GetOperationsByAccount(ctx context.Context, accountID int) (*finpb.ListOperationsResponse, error) {
-	operations, err := s.repo.GetOperationsByAccount(ctx, accountID)
+func (s *Service) GetOperationsByAccount(ctx context.Context, req []byte) (*finpb.ListOperationsResponse, error) {
+	res, err := s.es.Search(
+			s.es.Search.WithContext(context.Background()),
+			s.es.Search.WithIndex("transactions"),
+			s.es.Search.WithBody(bytes.NewReader(req)),
+			s.es.Search.WithTrackTotalHits(true),
+		)
 	if err != nil {
 		return nil, err
 	}
 
-	protoOps := make([]*finpb.OperationInList, 0, len(operations))
-	for _, op := range operations {
-		protoOps = append(protoOps, operationInListToProto(op))
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
 	}
 
-	return &finpb.ListOperationsResponse{
-		Operations: protoOps,
-	}, nil
+	var esResp models.ElasticsearchResponse
+	if err := json.Unmarshal(body, &esResp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal ES: %w", err)
+	}
+
+	result := &finpb.ListOperationsResponse{}
+
+	for _, hit := range esResp.Hits.Hits {
+		op := convertToOperation(hit.Source)
+		result.Operations = append(result.Operations, op)
+	}
+
+	return result, nil
 }
 
 func (s *Service) GetOperationByID(ctx context.Context, accID, opID int) (*finpb.Operation, error) {

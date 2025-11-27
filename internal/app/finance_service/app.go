@@ -61,7 +61,13 @@ func Run() error {
 		return err
 	}
 	store := finrepo.NewPostgresRepository(db)
-	svc := finsvc.NewService(store, clock)
+
+	es, err := finrepo.NewESConnection(config.ElasticSearch.Host, config.ElasticSearch.Port)
+	if err != nil {
+		appLogger.Error("FinanceService failed to connect to ES", "error", err)
+		return err
+	}
+	svc := finsvc.NewService(store, es, clock)
 
 	uc := finusecase.NewFinanceUseCase(svc)
 	financeService := fin.NewFinanceServer(uc)
