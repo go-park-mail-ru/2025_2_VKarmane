@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/gorilla/mux"
+	"github.com/segmentio/kafka-go"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/handlers/auth"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/handlers/profile"
@@ -28,13 +29,13 @@ type Handler struct {
 	registrator     *Registrator
 }
 
-func NewHandler(uc *usecase.UseCase, logger logger.Logger, authClient authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient, finClient finpb.FinanceServiceClient) *Handler {
+func NewHandler(uc *usecase.UseCase, logger logger.Logger, authClient authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient, finClient finpb.FinanceServiceClient, kafkaProducer *kafka.Writer) *Handler {
 	realClock := clock.RealClock{}
 	return &Handler{
 		balanceHandler:  balance.NewHandler(finClient, realClock),
 		budgetHandler:   budget.NewHandler(realClock, budgetClient),
 		authHandler:     auth.NewHandler(realClock, logger, authClient),
-		opHandler:       operation.NewHandler(finClient, uc.ImageUC, realClock),
+		opHandler:       operation.NewHandler(finClient, uc.ImageUC, kafkaProducer, realClock),
 		categoryHandler: category.NewHandler(finClient, uc.ImageUC),
 		profileHandler:  profile.NewHandler(uc.ImageUC, authClient),
 		logger:          logger,
@@ -42,6 +43,6 @@ func NewHandler(uc *usecase.UseCase, logger logger.Logger, authClient authpb.Aut
 	}
 }
 
-func (h *Handler) Register(publicRouter *mux.Router, protectedRouter *mux.Router, authCleint authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient, finClient finpb.FinanceServiceClient) {
-	h.registrator.RegisterAll(publicRouter, protectedRouter, h.registrator.uc, h.logger, authCleint, budgetClient, finClient)
+func (h *Handler) Register(publicRouter *mux.Router, protectedRouter *mux.Router, authCleint authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient, finClient finpb.FinanceServiceClient, kafkaProducer *kafka.Writer) {
+	h.registrator.RegisterAll(publicRouter, protectedRouter, h.registrator.uc, h.logger, authCleint, budgetClient, finClient, kafkaProducer)
 }

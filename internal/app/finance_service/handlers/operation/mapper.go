@@ -5,6 +5,7 @@ import (
 
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -124,5 +125,23 @@ func UpdateOperationRequestToProto(req models.UpdateOperationRequest, userID, ac
 		Name:        req.Name,
 		Sum:         req.Sum,
 		CreatedAt:   date,
+	}
+}
+
+func OperationResponseToSearch(op models.OperationResponse, ctg models.CategoryWithStats, logo string) models.TransactionSearch {
+	return models.TransactionSearch{
+		ID:                   op.ID,
+		AccountID:            op.AccountID,
+		CategoryID:           op.CategoryID,
+		CurrencyID:           op.CurrencyID,
+		Description:          op.Description,
+		Type:                 op.Status,
+		Name:                 op.Name,
+		CategoryLogo:         logo,
+		CategoryLogoHashedID: ctg.LogoHashedID,
+		CategoryName:         op.CategoryName,
+		Sum:                  op.Sum,
+		CreatedAt:            op.CreatedAt,
+		Date:                 op.Date,
 	}
 }

@@ -44,7 +44,7 @@ services:
       - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./docker/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
     ports:
-      - "9090:9090"
+      - "9080:9090"
     networks:
       - vkarmane-network
     restart: unless-stopped
@@ -94,6 +94,84 @@ services:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
       - "--storage.path=/alertmanager"
       - "--cluster.listen-address=:9095"
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+    networks:
+      - vkarmane-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    environment:
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vkarmane-network
+
+  elasticsearch:
+    image: elasticsearch:8.7.1
+    networks:
+      - vkarmane-network
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+
+  kibana:
+    image: kibana:8.7.1
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - vkarmane-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    ports:
+      - "8085:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "local"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9092"
+    networks:
+      - vkarmane-network
+
+  search_worker:
+    build:
+      context: .
+      dockerfile: cmd/search_worker/Dockerfile
+    environment:
+      PORT: 8081
+      HOST: 0.0.0.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - vkarmane-network
     
   auth_service:
     build:
@@ -191,15 +269,15 @@ services:
       HOST: 0.0.0.0
       JWT_SECRET: your-super-secret-jwt-key-change-in-production
       LOG_LEVEL: info
-      HTTPS_ENABLED: "true"
+      HTTPS_ENABLED: "false"
       AUTH_SERVICE_HOST: auth_service
       AUTH_SERVICE_PORT: 8090
       BUDGET_SERVICE_HOST: budget_service
       BUDGET_SERVICE_PORT: 8100
       FINANCE_SERVICE_HOST: finance_service
       FINANCE_SERVICE_PORT: 8110
-      HTTPS_CERT_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/fullchain.pem
-      HTTPS_KEY_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
+      # HTTPS_CERT_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/fullchain.pem
+      # HTTPS_KEY_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
       CORS_HOST: "vkarmane.duckdns.org"
       CORS_FRONTEND_PORT: "8000"
       CORS_ORIGINS: "https://vkarmane.duckdns.org:8080"
@@ -210,9 +288,9 @@ services:
       MINIO_USE_SSL: "false"
       MINIO_BUCKET_NAME: images
     ports:
-      - "8080:8080"
+      - "8070:8080"
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      # - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./logs:/root/logs
     depends_on:
       postgres:
@@ -226,6 +304,7 @@ services:
 volumes:
   alertmanager_data:
   grafana_data:
+  kafka_data:
   postgres_data:
   minio_data:
 

@@ -13,7 +13,7 @@
 | **Backend Developer** | [Рассказов Никита](t.me/spectr516) | [@frosnikny](https://github.com/frosnikny) |
 | **Backend Developer** | [Рыбин Владислав](t.me/demiurgerv) | [@DemiurgeRV](https://github.com/DemiurgeRV) |
 | **Frontend Developer** | [Ровда Владимир](t.me/Rovda_V) | [@Arbit02](https://github.com/Arbit02) |
-| **Frontend Developer** | [Иванов Николай](t.me/Watermelon_003) | [@Imperialmelon](https://github.com/Imperialmelon) |
+| **Fullstack Developer** | [Иванов Николай](t.me/Watermelon_003) | [@Imperialmelon](https://github.com/Imperialmelon) |
 
 ## Менторы
 

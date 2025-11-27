@@ -4,15 +4,16 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/segmentio/kafka-go"
 
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	image "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
-func Register(r *mux.Router, finClient finpb.FinanceServiceClient, imageUC image.ImageUseCase) {
+func Register(r *mux.Router, finClient finpb.FinanceServiceClient, imageUC image.ImageUseCase, kafkaProducer *kafka.Writer) {
 	realClock := clock.RealClock{}
-	handler := NewHandler(finClient, imageUC, realClock)
+	handler := NewHandler(finClient, imageUC, kafkaProducer, realClock)
 
 	// Старый формат
 	r.HandleFunc("/operations/account/{acc_id}", handler.GetAccountOperations).Methods(http.MethodGet)

@@ -14,12 +14,15 @@ type Config struct {
 	BudgetServiceHost  string
 	FinanceServicePort string
 	FinanceServiceHost string
+	KafkaProducerHost  string
+	KafkaProducerPort  string
 	Host               string
 	JWTSecret          string
 	LogLevel           string
 	Database           DatabaseConfig
 	HTTPS              HTTPSConfig
 	MinIO              MinIOConfig
+	ElasticSearch      ElasticSearchConfig
 }
 
 type DatabaseConfig struct {
@@ -46,21 +49,28 @@ type MinIOConfig struct {
 	BucketName string
 }
 
+type ElasticSearchConfig struct {
+	Host string
+	Port string
+}
+
 func LoadConfig() *Config {
 	config := &Config{
-		Port:               getEnv("PORT", "8080"),
+		Port:               getEnv("PORT", "8070"),
 		AuthServicePort:    getEnv("AUTH_SERVICE_PORT", "8090"),
 		AuthServiceHost:    getEnv("AUTH_SERVICE_HOST", "auth_service"),
 		BudgetServicePort:  getEnv("BUDGET_SERVICE_PORT", "8100"),
 		BudgetServiceHost:  getEnv("BUDGET_SERVICE_HOST", "budget_service"),
 		FinanceServicePort: getEnv("FINANCE_SERVICE_PORT", "8110"),
 		FinanceServiceHost: getEnv("FINANCE_SERVICE_HOST", "finance_service"),
+		KafkaProducerHost:  getEnv("KAFKA_PRODUCER_HOST", "kafka"),
+		KafkaProducerPort:  getEnv("KAFKA_PRODUCER_PORT", "9092"),
 		Host:               getEnv("HOST", "0.0.0.0"),
 		JWTSecret:          getEnv("JWT_SECRET", "your-secret-key"),
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
-			Port:     getEnv("DB_PORT", "5432"),
+			Port:     getEnv("DB_PORT", "5433"),
 			User:     getEnv("DB_USER", "vkarmane"),
 			Password: getEnv("DB_PASSWORD", "vkarmane_password"),
 			DBName:   getEnv("DB_NAME", "vkarmane"),
@@ -78,6 +88,10 @@ func LoadConfig() *Config {
 			SecretKey:  getEnv("MINIO_SECRET_KEY", "minioadmin123"),
 			UseSSL:     getEnv("MINIO_USE_SSL", "false") == "true",
 			BucketName: getEnv("MINIO_BUCKET_NAME", "images"),
+		},
+		ElasticSearch: ElasticSearchConfig{
+			Port: getEnv("ELASTIC_SEARCH_PORT", "9200"),
+			Host: getEnv("ELASTIC_SEARCH_HOST", "elasticsearch"),
 		},
 	}
 

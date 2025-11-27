@@ -40,7 +40,8 @@ func Run() error {
 			grpc_prometheus.UnaryServerInterceptor,
 			interceptors.LoggerInterceptor(appLogger),
 		),
-	)
+	) 
+
 
 	grpc_prometheus.Register(srv)
 	grpc_prometheus.EnableHandlingTimeHistogram()

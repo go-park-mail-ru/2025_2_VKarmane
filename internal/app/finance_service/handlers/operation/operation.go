@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/handlers/category"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	image "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
@@ -13,6 +14,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
+	"github.com/segmentio/kafka-go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -20,13 +22,14 @@ import (
 )
 
 type Handler struct {
-	finClient finpb.FinanceServiceClient
-	imageUC   image.ImageUseCase
-	clock     clock.Clock
+	finClient     finpb.FinanceServiceClient
+	imageUC       image.ImageUseCase
+	kafkaProducer *kafka.Writer
+	clock         clock.Clock
 }
 
-func NewHandler(finClient finpb.FinanceServiceClient, imageUC image.ImageUseCase, clck clock.Clock) *Handler {
-	return &Handler{finClient: finClient, imageUC: imageUC, clock: clck}
+func NewHandler(finClient finpb.FinanceServiceClient, imageUC image.ImageUseCase, kafkaProducer *kafka.Writer, clck clock.Clock) *Handler {
+	return &Handler{finClient: finClient, imageUC: imageUC, kafkaProducer: kafkaProducer, clock: clck}
 }
 
 func (h *Handler) getUserID(r *http.Request) (int, bool) {
@@ -143,6 +146,7 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
 // @Router /operations/account/{acc_id} [post]
 func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
+	log := logger.FromContext(r.Context())
 	id, ok := h.getUserID(r)
 	if !ok {
 		httputils.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
@@ -171,7 +175,6 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 	op, err := h.finClient.CreateOperation(r.Context(), CreateOperationRequestToProto(req, id, accID))
 	if err != nil {
 		st, ok := status.FromError(err)
-		log := logger.FromContext(r.Context())
 		if !ok {
 			if log != nil {
 				log.Error("grpc CreateOperation unknown error", "error", err)
@@ -202,6 +205,49 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	operationResponse := ProtoOperationToResponse(op)
+	ctg, err := h.finClient.GetCategory(r.Context(), category.UserAndCtegoryIDToProto(id, operationResponse.CategoryID))
+	if err != nil {
+		st, ok := status.FromError(err)
+		if !ok {
+			if log != nil {
+				log.Error("grpc CreateCategory unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to get category")
+			return
+		}
+		switch st.Code() {
+		case codes.NotFound:
+			if log != nil {
+				log.Error("grpc GetCategory invalid arg", "error", err)
+			}
+			httputils.Error(w, r, "failed to get category", http.StatusBadRequest)
+			return
+		default:
+			if log != nil {
+				log.Error("grpc GetCategory error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to get category")
+			return
+		}
+
+	}
+	ctgLogo, err := h.imageUC.GetImageURL(r.Context(), ctg.Category.LogoHashedId)
+	if err != nil {
+		httputils.InternalError(w, r, "Ошибка получения операций")
+		return
+	}
+	ctgDTO := category.CategoryWithStatsToAPI(ctg)
+
+	transactionSearch := OperationResponseToSearch(operationResponse, ctgDTO, ctgLogo)
+	data, _ := json.Marshal(transactionSearch)
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafka.Message{Value: data}); err != nil {
+		httputils.InternalError(w, r, "Failed to create opeartion")
+		if log != nil {
+			log.Error("kafka CreateCategory unknown error", "error", err)
+		}
+		return
+	}
+
 	httputils.Created(w, r, operationResponse)
 }
 

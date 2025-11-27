@@ -51,6 +51,7 @@ type OperationInList struct {
 	Date                 time.Time // Дата операции (может отличаться от created_at)
 }
 
+
 type UpdateOperationRequest struct {
 	CategoryID  *int       `json:"category_id,omitempty"`
 	Name        *string    `json:"name,omitempty" validate:"omitempty,max=50"`
@@ -121,3 +122,4 @@ type OperationInListResponse struct {
 	CreatedAt        time.Time `json:"created_at"`
 	Date             time.Time `json:"date"` // Дата операции
 }
+

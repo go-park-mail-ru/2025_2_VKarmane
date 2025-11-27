@@ -13,6 +13,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/segmentio/kafka-go"
 
 	image "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/repository"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers"
@@ -66,8 +67,13 @@ func Run() error {
 	authClient := authpb.NewAuthServiceClient(authGrpcConn)
 	bdgClient := bdgpb.NewBudgetServiceClient(bdgGrpcConn)
 	finClient := finpb.NewFinanceServiceClient(finGrpcConn)
-	if err != nil {
-		return err
+
+	kafkaWriter := &kafka.Writer{
+    Addr:         kafka.TCP(fmt.Sprintf("%s:%s", config.KafkaProducerHost, config.KafkaProducerPort)),
+    Topic:        "transactions",
+    Balancer:     &kafka.LeastBytes{},
+    RequiredAcks: kafka.RequireAll,
+    Async:        false,
 	}
 
 	imageStorage, err := image.NewMinIOStorage(
@@ -83,7 +89,7 @@ func Run() error {
 
 	serviceInstance := service.NewService(config.JWTSecret, imageStorage)
 	usecaseInstance := usecase.NewUseCase(serviceInstance, config.JWTSecret)
-	handler := handlers.NewHandler(usecaseInstance, appLogger, authClient, bdgClient, finClient)
+	handler := handlers.NewHandler(usecaseInstance, appLogger, authClient, bdgClient, finClient, kafkaWriter)
 
 	r := mux.NewRouter()
 
@@ -119,7 +125,7 @@ func Run() error {
 	protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
-	handler.Register(public, protected, authClient, bdgClient, finClient)
+	handler.Register(public, protected, authClient, bdgClient, finClient, kafkaWriter)
 
 	// Swagger документация
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
