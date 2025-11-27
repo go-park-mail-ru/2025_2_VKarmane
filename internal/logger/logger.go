@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"io"
 	"log/slog"
 	"os"
 )
@@ -34,6 +35,7 @@ type Logger interface {
 
 type SlogLogger struct {
 	logger *slog.Logger
+	closer io.Closer
 }
 
 func NewSlogLogger() Logger {
@@ -74,6 +76,7 @@ func NewSlogLoggerWithFile(filename string, level slog.Level) (Logger, error) {
 
 	return &SlogLogger{
 		logger: slog.New(handler),
+		closer: file,
 	}, nil
 }
 
@@ -94,6 +97,7 @@ func NewSlogLoggerWithFileAndConsole(filename string, level slog.Level) (Logger,
 
 	return &SlogLogger{
 		logger: slog.New(handler),
+		closer: file,
 	}, nil
 }
 
@@ -127,6 +131,13 @@ func (l *SlogLogger) WarnContext(ctx context.Context, msg string, args ...any) {
 
 func (l *SlogLogger) ErrorContext(ctx context.Context, msg string, args ...any) {
 	l.logger.ErrorContext(ctx, msg, args...)
+}
+
+func (l *SlogLogger) Close() error {
+	if l.closer != nil {
+		return l.closer.Close()
+	}
+	return nil
 }
 
 type MultiWriter struct {

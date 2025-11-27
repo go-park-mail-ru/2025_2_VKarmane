@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
@@ -164,6 +165,119 @@ func TestUpdateCategory(t *testing.T) {
 	res, err := uc.UpdateCategory(ctx, category)
 	require.NoError(t, err)
 	require.Equal(t, expected, res)
+}
+
+func TestGetAccountsByUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockSvc := mocks.NewMockFinanceService(ctrl)
+	uc := NewFinanceUseCase(mockSvc)
+
+	ctx := context.Background()
+	expected := &finpb.ListAccountsResponse{}
+
+	mockSvc.EXPECT().GetAccountsByUser(ctx, 1).Return(expected, nil)
+
+	res, err := uc.GetAccountsByUser(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, expected, res)
+}
+
+func TestCreateAccount(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockSvc := mocks.NewMockFinanceService(ctrl)
+	uc := NewFinanceUseCase(mockSvc)
+
+	ctx := context.Background()
+	req := models.CreateAccountRequest{UserID: 1}
+	expected := &finpb.Account{}
+
+	mockSvc.EXPECT().CreateAccount(ctx, req).Return(expected, nil)
+
+	res, err := uc.CreateAccount(ctx, req)
+	require.NoError(t, err)
+	require.Equal(t, expected, res)
+}
+
+func TestDeleteAccount(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockSvc := mocks.NewMockFinanceService(ctrl)
+	uc := NewFinanceUseCase(mockSvc)
+
+	ctx := context.Background()
+	expected := &finpb.Account{}
+
+	mockSvc.EXPECT().DeleteAccount(ctx, 1, 2).Return(expected, nil)
+
+	res, err := uc.DeleteAccount(ctx, 1, 2)
+	require.NoError(t, err)
+	require.Equal(t, expected, res)
+}
+
+func TestCreateOperation(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockSvc := mocks.NewMockFinanceService(ctrl)
+	uc := NewFinanceUseCase(mockSvc)
+
+	ctx := context.Background()
+	req := models.CreateOperationRequest{UserID: 1}
+	expected := &finpb.Operation{}
+
+	mockSvc.EXPECT().CreateOperation(ctx, req, 2).Return(expected, nil)
+
+	res, err := uc.CreateOperation(ctx, req, 2)
+	require.NoError(t, err)
+	require.Equal(t, expected, res)
+}
+
+func TestDeleteOperation(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockSvc := mocks.NewMockFinanceService(ctrl)
+	uc := NewFinanceUseCase(mockSvc)
+
+	ctx := context.Background()
+	expected := &finpb.Operation{}
+
+	mockSvc.EXPECT().DeleteOperation(ctx, 2, 3).Return(expected, nil)
+
+	res, err := uc.DeleteOperation(ctx, 2, 3)
+	require.NoError(t, err)
+	require.Equal(t, expected, res)
+}
+
+func TestCreateCategory(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockSvc := mocks.NewMockFinanceService(ctrl)
+	uc := NewFinanceUseCase(mockSvc)
+
+	ctx := context.Background()
+	req := models.CreateCategoryRequest{UserID: 1}
+	expected := &finpb.Category{}
+
+	mockSvc.EXPECT().CreateCategory(ctx, req).Return(expected, nil)
+
+	res, err := uc.CreateCategory(ctx, req)
+	require.NoError(t, err)
+	require.Equal(t, expected, res)
+}
+
+func TestDeleteCategoryError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockSvc := mocks.NewMockFinanceService(ctrl)
+	uc := NewFinanceUseCase(mockSvc)
+
+	ctx := context.Background()
+	mockSvc.EXPECT().DeleteCategory(ctx, 1, 2).Return(errors.New("boom"))
+
+	err := uc.DeleteCategory(ctx, 1, 2)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "finance.DeleteCategory")
 }
 
 func ptrFloat64(v float64) *float64 { return &v }

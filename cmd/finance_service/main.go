@@ -12,3 +12,6 @@ func main() {
 		log.Fatal(fmt.Sprintf("FinanceService failed to run: %v", err))
 	}
 }
+
+
+

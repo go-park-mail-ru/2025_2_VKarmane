@@ -14,3 +14,6 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/finance_service /app/finance_service
 CMD ["/app/finance_service"]
+
+
+
