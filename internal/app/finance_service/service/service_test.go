@@ -19,7 +19,7 @@ func TestGetAccountByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
-	svc := NewService(mockRepo, fixedClock)
+	svc := NewService(mockRepo, nil, fixedClock)
 
 	ctx := context.Background()
 	userID, accountID := 1, 2
@@ -40,7 +40,7 @@ func TestCreateAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
-	svc := NewService(mockRepo, fixedClock)
+	svc := NewService(mockRepo, nil, fixedClock)
 
 	ctx := context.Background()
 	req := models.CreateAccountRequest{UserID: 1, Balance: 50, Type: "cash", CurrencyID: 2}
@@ -61,7 +61,7 @@ func TestUpdateAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
-	svc := NewService(mockRepo, fixedClock)
+	svc := NewService(mockRepo, nil, fixedClock)
 
 	ctx := context.Background()
 	req := models.UpdateAccountRequest{UserID: 1, AccountID: 2, Balance: 200}
@@ -81,7 +81,7 @@ func TestDeleteAccount(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
-	svc := NewService(mockRepo, fixedClock)
+	svc := NewService(mockRepo, nil, fixedClock)
 
 	ctx := context.Background()
 	userID, accountID := 1, 2
@@ -101,7 +101,7 @@ func TestCreateOperation_UpdateAccountBalance(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
-	svc := NewService(mockRepo, fixedClock)
+	svc := NewService(mockRepo, nil, fixedClock)
 
 	ctx := context.Background()
 	req := models.CreateOperationRequest{
@@ -123,7 +123,7 @@ func TestUpdateOperation(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
-	svc := NewService(mockRepo, fixedClock)
+	svc := NewService(mockRepo, nil, fixedClock)
 
 	ctx := context.Background()
 	req := models.UpdateOperationRequest{UserID: 1, AccountID: 2, OperationID: 3}
@@ -143,7 +143,7 @@ func TestCreateCategory_DefaultLogo(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
-	svc := NewService(mockRepo, fixedClock)
+	svc := NewService(mockRepo, nil, fixedClock)
 
 	ctx := context.Background()
 	req := models.CreateCategoryRequest{UserID: 1, Name: "food"}
@@ -165,7 +165,7 @@ func TestUpdateCategory(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
-	svc := NewService(mockRepo, fixedClock)
+	svc := NewService(mockRepo, nil, fixedClock)
 
 	ctx := context.Background()
 	category := models.Category{ID: 1, UserID: 2, Name: "transport"}
@@ -185,7 +185,7 @@ func TestDeleteCategory(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
-	svc := NewService(mockRepo, fixedClock)
+	svc := NewService(mockRepo, nil, fixedClock)
 
 	ctx := context.Background()
 	userID, categoryID := 1, 2
@@ -202,7 +202,7 @@ func TestGetCategoriesWithStatsByUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
-	svc := NewService(mockRepo, fixedClock)
+	svc := NewService(mockRepo, nil, fixedClock)
 
 	ctx := context.Background()
 	userID := 1

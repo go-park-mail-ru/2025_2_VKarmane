@@ -2,9 +2,12 @@ package operation
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/handlers/category"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
@@ -14,22 +17,18 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
+	kafkautils "github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/kafka"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
-	"github.com/segmentio/kafka-go"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
-	"github.com/gorilla/mux"
 )
 
 type Handler struct {
 	finClient     finpb.FinanceServiceClient
 	imageUC       image.ImageUseCase
-	kafkaProducer *kafka.Writer
+	kafkaProducer kafkautils.KafkaProducer
 	clock         clock.Clock
 }
 
-func NewHandler(finClient finpb.FinanceServiceClient, imageUC image.ImageUseCase, kafkaProducer *kafka.Writer, clck clock.Clock) *Handler {
+func NewHandler(finClient finpb.FinanceServiceClient, imageUC image.ImageUseCase, kafkaProducer kafkautils.KafkaProducer, clck clock.Clock) *Handler {
 	return &Handler{finClient: finClient, imageUC: imageUC, kafkaProducer: kafkaProducer, clock: clck}
 }
 
@@ -88,12 +87,11 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 
 	name := r.URL.Query().Get("title")
 	categoryIDStr := r.URL.Query().Get("category_id")
-    var categoryID *int
-    if categoryIDStr != "" {
-        v, _ := strconv.Atoi(categoryIDStr)
-        categoryID = &v
-    }
-
+	var categoryID *int
+	if categoryIDStr != "" {
+		v, _ := strconv.Atoi(categoryIDStr)
+		categoryID = &v
+	}
 
 	// ops, err := h.opUC.GetAccountOperations(r.Context(), accID)
 	ops, err := h.finClient.GetOperationsByAccount(r.Context(), ProtoGetOperationsRequst(id, accID, categoryID, name))
@@ -115,8 +113,7 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-	 operationsResponse := make([]models.OperationInListResponse, 1)
+	operationsResponse := []models.OperationInListResponse{}
 	if ops != nil {
 		for _, op := range ops.Operations {
 			operationsResponse = append(operationsResponse, MapOperationInListToResponse(op))
@@ -252,7 +249,7 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 	transactionSearch.Action = models.WRITE
 
 	data, _ := json.Marshal(transactionSearch)
-	if err = h.kafkaProducer.WriteMessages(r.Context(), kafka.Message{Value: data}); err != nil {
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Value: data}); err != nil {
 		httputils.InternalError(w, r, "Failed to create opeartion")
 		if log != nil {
 			log.Error("kafka CreateCategory unknown error", "error", err)
@@ -421,7 +418,6 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	operationResponse := ProtoOperationToResponse(op)
-	log.Info(fmt.Sprintf("%d",operationResponse.CategoryID))
 	ctg, err := h.finClient.GetCategory(r.Context(), category.UserAndCtegoryIDToProto(id, operationResponse.CategoryID))
 	if err != nil {
 		st, ok := status.FromError(err)
@@ -460,7 +456,7 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 	transactionSearch.Action = models.UPDATE
 
 	data, _ := json.Marshal(transactionSearch)
-	if err = h.kafkaProducer.WriteMessages(r.Context(), kafka.Message{Value: data}); err != nil {
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Value: data}); err != nil {
 		httputils.InternalError(w, r, "Failed to update opeartion")
 		if log != nil {
 			log.Error("kafka GetCategory unknown error", "error", err)
@@ -543,7 +539,7 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 	transactionSearch.Action = models.DELETE
 
 	data, _ := json.Marshal(transactionSearch)
-	if err = h.kafkaProducer.WriteMessages(r.Context(), kafka.Message{Value: data}); err != nil {
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Value: data}); err != nil {
 		httputils.InternalError(w, r, "Failed to delete opeartion")
 		if log != nil {
 			log.Error("kafka GetCategory unknown error", "error", err)

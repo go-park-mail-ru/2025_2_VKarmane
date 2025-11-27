@@ -4,14 +4,14 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/segmentio/kafka-go"
 
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	image "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
+	kafkautils "github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/kafka"
 )
 
-func Register(r *mux.Router, finClient finpb.FinanceServiceClient, imageUC image.ImageUseCase, kafkaProducer *kafka.Writer) {
+func Register(r *mux.Router, finClient finpb.FinanceServiceClient, imageUC image.ImageUseCase, kafkaProducer kafkautils.KafkaProducer) {
 	realClock := clock.RealClock{}
 	handler := NewHandler(finClient, imageUC, kafkaProducer, realClock)
 

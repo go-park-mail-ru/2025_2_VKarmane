@@ -27,7 +27,7 @@ func TestGetAccountOperations_Success(t *testing.T) {
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
 	mockImgUC := mocks.NewMockImageUseCase(ctrl)
 
-	handler := NewHandler(mockFin, mockImgUC, clock.RealClock{})
+	handler := NewHandler(mockFin, mockImgUC, nil, clock.RealClock{})
 
 	// Мокируем gRPC ответ
 	opsResp := &finpb.ListOperationsResponse{
@@ -65,15 +65,10 @@ func TestCreateOperation_Success(t *testing.T) {
 
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
 	mockImgUC := mocks.NewMockImageUseCase(ctrl)
+	mockKafka := mocks.NewMockKafkaProducer(ctrl)
 
-	handler := NewHandler(mockFin, mockImgUC, clock.RealClock{})
+	handler := NewHandler(mockFin, mockImgUC, mockKafka, clock.RealClock{})
 
-	reqBody := models.CreateOperationRequest{
-		AccountID: 1,
-		Type:      models.OperationExpense,
-		Name:      "Test",
-		Sum:       100,
-	}
 
 	opResp := &finpb.Operation{
 		Id:        1,
@@ -90,6 +85,34 @@ func TestCreateOperation_Success(t *testing.T) {
 		CreateOperation(gomock.Any(), gomock.Any()).
 		Return(opResp, nil)
 
+
+	categoryResp := &finpb.CategoryWithStats{
+		Category: &finpb.Category{
+			Id:          1,
+			LogoHashedId: "img-123",
+		},
+	}
+
+	mockFin.EXPECT().
+		GetCategory(gomock.Any(), gomock.Any()).
+		Return(categoryResp, nil)
+
+
+	mockImgUC.EXPECT().
+		GetImageURL(gomock.Any(), "img-123").
+		Return("https://example.com/img-123", nil)
+
+
+	mockKafka.EXPECT().
+		WriteMessages(gomock.Any(), gomock.Any()).
+		Return(nil)
+
+	reqBody := models.CreateOperationRequest{
+		AccountID: 1,
+		Type:      models.OperationExpense,
+		Name:      "Test",
+		Sum:       100,
+	}
 	bodyBytes, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPost, "/operations/account/1", bytes.NewBuffer(bodyBytes))
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1"})
@@ -101,6 +124,7 @@ func TestCreateOperation_Success(t *testing.T) {
 	require.Equal(t, http.StatusCreated, rr.Code)
 }
 
+
 func TestGetOperationByID_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -108,7 +132,7 @@ func TestGetOperationByID_Success(t *testing.T) {
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
 	mockImgUC := mocks.NewMockImageUseCase(ctrl)
 
-	handler := NewHandler(mockFin, mockImgUC, clock.RealClock{})
+	handler := NewHandler(mockFin, mockImgUC,nil, clock.RealClock{})
 
 	opResp := &finpb.Operation{
 		Id:        1,
@@ -139,8 +163,9 @@ func TestUpdateOperation_Success(t *testing.T) {
 
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
 	mockImgUC := mocks.NewMockImageUseCase(ctrl)
+	mockKafka := mocks.NewMockKafkaProducer(ctrl)
 
-	handler := NewHandler(mockFin, mockImgUC, clock.RealClock{})
+	handler := NewHandler(mockFin, mockImgUC, mockKafka, clock.RealClock{})
 
 	updateReq := models.UpdateOperationRequest{
 		Name: ptrString("Updated"),
@@ -160,6 +185,24 @@ func TestUpdateOperation_Success(t *testing.T) {
 		UpdateOperation(gomock.Any(), gomock.Any()).
 		Return(opResp, nil)
 
+	categoryResp := &finpb.CategoryWithStats{
+		Category: &finpb.Category{
+			Id:           1,
+			LogoHashedId: "img-123",
+		},
+	}
+	mockFin.EXPECT().
+		GetCategory(gomock.Any(), gomock.Any()).
+		Return(categoryResp, nil)
+
+	mockImgUC.EXPECT().
+		GetImageURL(gomock.Any(), "img-123").
+		Return("https://example.com/img-123", nil)
+
+	mockKafka.EXPECT().
+		WriteMessages(gomock.Any(), gomock.Any()).
+		Return(nil)
+
 	body, _ := json.Marshal(updateReq)
 	req := httptest.NewRequest(http.MethodPut, "/operations/account/1/operation/1", bytes.NewBuffer(body))
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
@@ -171,14 +214,16 @@ func TestUpdateOperation_Success(t *testing.T) {
 	require.Equal(t, http.StatusOK, rr.Code)
 }
 
+
 func TestDeleteOperation_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
 	mockImgUC := mocks.NewMockImageUseCase(ctrl)
+	mockKafka := mocks.NewMockKafkaProducer(ctrl)
 
-	handler := NewHandler(mockFin, mockImgUC, clock.RealClock{})
+	handler := NewHandler(mockFin, mockImgUC, mockKafka, clock.RealClock{})
 
 	opResp := &finpb.Operation{
 		Id:        1,
@@ -192,6 +237,10 @@ func TestDeleteOperation_Success(t *testing.T) {
 		DeleteOperation(gomock.Any(), gomock.Any()).
 		Return(opResp, nil)
 
+	mockKafka.EXPECT().
+		WriteMessages(gomock.Any(), gomock.Any()).
+		Return(nil)
+
 	req := httptest.NewRequest(http.MethodDelete, "/operations/account/1/operation/1", nil)
 	req = mux.SetURLVars(req, map[string]string{"acc_id": "1", "op_id": "1"})
 	req = req.WithContext(context.WithValue(req.Context(), middleware.UserIDKey, 1))
@@ -201,6 +250,7 @@ func TestDeleteOperation_Success(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rr.Code)
 }
+
 
 // утилиты
 func ptrString(s string) *string    { return &s }

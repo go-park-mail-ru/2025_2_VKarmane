@@ -36,5 +36,6 @@ package mocks
 //go:generate go run go.uber.org/mock/mockgen -destination=mock_operation_usecase.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/operations/handlers OperationUseCase
 
 //go:generate go run go.uber.org/mock/mockgen -destination=mock_clock.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock Clock
+//go:generate go run go.uber.org/mock/mockgen -destination=mock_kafka.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/kafka 
 //go:generate go run go.uber.org/mock/mockgen -destination=mock_logger.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger Logger
 //go:generate go run go.uber.org/mock/mockgen -destination=mock_image_storage.go -package=mocks github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/repository ImageStorage

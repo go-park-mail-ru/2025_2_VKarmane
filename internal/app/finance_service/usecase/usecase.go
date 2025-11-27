@@ -94,26 +94,45 @@ func (uc *UseCase) GetOperationsByAccount(ctx context.Context, accountID, catego
 	// }
 	// return operations, nil
 	boolQuery := map[string]interface{}{
-		"must": []interface{}{
-			map[string]interface{}{"term": map[string]interface{}{"account_id": accountID}},
-		},
-		"must_not": []interface{}{
-			map[string]interface{}{"term": map[string]interface{}{"status": "reverted"}},
-		},
-	}
+        "must": []interface{}{
+            map[string]interface{}{
+                "term": map[string]interface{}{
+                    "account_id": accountID,
+                },
+            },
+        },
+        "must_not": []interface{}{
+            map[string]interface{}{
+                "term": map[string]interface{}{
+                    "status": "reverted",
+                },
+            },
+        },
+    }
 
-	if categoryID != 0 {
-		boolQuery["filter"] = []interface{}{
-			map[string]interface{}{"term": map[string]interface{}{"category_id": categoryID}},
-		}
-	}
 
-	if opName != "" {
-		boolQuery["should"] = []interface{}{
-			map[string]interface{}{"match": map[string]interface{}{"name": opName}},
-		}
-		boolQuery["minimum_should_match"] = 1
-	}
+    if categoryID != 0 {
+        boolQuery["filter"] = []interface{}{
+            map[string]interface{}{
+                "term": map[string]interface{}{
+                    "category_id": categoryID,
+                },
+            },
+        }
+    }
+
+    if opName != "" {
+        boolQuery["should"] = []interface{}{
+            map[string]interface{}{
+                "wildcard": map[string]interface{}{
+                    "name": map[string]interface{}{
+                        "value": "*" + opName + "*",
+                    },
+                },
+            },
+        }
+        boolQuery["minimum_should_match"] = 1
+    }
 
 	query := map[string]interface{}{
 		"query": map[string]interface{}{

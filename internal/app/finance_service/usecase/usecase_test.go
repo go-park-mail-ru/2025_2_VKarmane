@@ -53,11 +53,16 @@ func TestGetOperationsByAccount(t *testing.T) {
 
 	ctx := context.Background()
 	accountID := 1
+	ctgID :=2
+	opName := "name"
+	
 	expected := &finpb.ListOperationsResponse{}
 
-	mockSvc.EXPECT().GetOperationsByAccount(ctx, accountID).Return(expected, nil)
+	mockSvc.EXPECT().
+    GetOperationsByAccount(ctx, gomock.Any()).
+    Return(expected, nil)
 
-	res, err := uc.GetOperationsByAccount(ctx, accountID)
+	res, err := uc.GetOperationsByAccount(ctx, accountID, ctgID, opName)
 	require.NoError(t, err)
 	require.Equal(t, expected, res)
 }

@@ -189,9 +189,9 @@ func TestUpdateOperation_Success(t *testing.T) {
 	)
 
 	mock.ExpectQuery("WITH updated_operation").
-		WithArgs(sqlmock.AnyArg(), &name, nil, &sum, 5, 1).
-		WillReturnRows(rows)
-
+    WithArgs(&name, nil, &sum, 5, 1).
+    WillReturnRows(rows)
+	
 	op, err := repo.UpdateOperation(context.Background(), req, 1, 5)
 	require.NoError(t, err)
 	require.Equal(t, sum, op.Sum)

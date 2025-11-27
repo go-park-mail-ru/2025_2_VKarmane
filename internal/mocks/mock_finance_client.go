@@ -283,7 +283,7 @@ func (mr *MockFinanceServiceClientMockRecorder) GetOperation(ctx, in any, opts .
 }
 
 // GetOperationsByAccount mocks base method.
-func (m *MockFinanceServiceClient) GetOperationsByAccount(ctx context.Context, in *proto.AccountRequest, opts ...grpc.CallOption) (*proto.ListOperationsResponse, error) {
+func (m *MockFinanceServiceClient) GetOperationsByAccount(ctx context.Context, in *proto.OperationsByAccountAndFiltersRequest, opts ...grpc.CallOption) (*proto.ListOperationsResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, in}
 	for _, a := range opts {
