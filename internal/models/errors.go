@@ -36,6 +36,7 @@ const (
 	ErrCodeBudgetNotFound      ErrorCode = "BUDGET_NOT_FOUND"
 	ErrCodeAccountNotFound     ErrorCode = "ACCOUNT_NOT_FOUND"
 	ErrCodeTransactionNotFound ErrorCode = "OPERATION_NOT_FOUND"
+	ErrCodeNegaticeBalance     ErrorCode = "NEGATIVE_BALANCE"
 
 	ErrCodeInvalidAmount   ErrorCode = "INVALID_AMOUNT"
 	ErrCodeInvalidCurrency ErrorCode = "INVALID_CURRENCY"

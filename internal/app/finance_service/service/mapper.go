@@ -3,7 +3,6 @@ package service
 import (
 	"time"
 
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -59,7 +58,7 @@ func CategoryWithStatsToProto(category finmodels.Category, operationsCount int) 
 	}
 }
 
-func convertToOperation(src models.ESHitSource) *finpb.OperationInList {
+func convertToOperation(src finmodels.ESHitSource) *finpb.OperationInList {
 	return &finpb.OperationInList{
 		Id:                   src.ID,
 		AccountId:            src.AccountID,

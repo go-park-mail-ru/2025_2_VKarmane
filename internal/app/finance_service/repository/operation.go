@@ -114,30 +114,45 @@ func (r *PostgresRepository) GetOperationByID(ctx context.Context, accID int, op
 }
 
 func (r *PostgresRepository) CreateOperation(ctx context.Context, op finmodels.Operation) (finmodels.Operation, error) {
-	query := `
-		INSERT INTO operation (account_from_id, account_to_id, category_id, currency_id, 
-		                      operation_status, operation_type, operation_name, operation_description, 
-		                      receipt_url, sum, created_at, operation_date)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-		RETURNING _id
-	`
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return finmodels.Operation{}, err
+	}
+	defer tx.Rollback()
+
+	_,err = tx.ExecContext(ctx, `
+        UPDATE account
+        SET balance = balance - $1, updated_at = NOW()
+        WHERE _id = $2
+        RETURNING balance
+    `, op.Sum, op.AccountID)
+
+	if err != nil {
+		return finmodels.Operation{}, MapPgAccountError(err)
+	}
 
 	var categoryID interface{}
 	if op.CategoryID > 0 {
 		categoryID = op.CategoryID
-	} else {
-		categoryID = nil
 	}
 
 	var currencyID interface{}
 	if op.CurrencyID > 0 {
 		currencyID = op.CurrencyID
-	} else {
-		currencyID = nil
 	}
 
+	query := `
+		INSERT INTO operation (
+		    account_from_id, account_to_id, category_id, currency_id, 
+		    operation_status, operation_type, operation_name, operation_description, 
+		    receipt_url, sum, created_at, operation_date
+		)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+		RETURNING _id
+	`
+
 	var id int
-	err := r.db.QueryRowContext(ctx, query,
+	err = tx.QueryRowContext(ctx, query,
 		op.AccountID,
 		nil,
 		categoryID,
@@ -158,13 +173,17 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op finmodels.O
 
 	op.ID = id
 
+	if err := tx.Commit(); err != nil {
+		return finmodels.Operation{}, MapPgOperationError(err)
+	}
+
 	if op.CategoryID > 0 {
-		var categoryName string
-		err = r.db.QueryRowContext(ctx, "SELECT category_name FROM category WHERE _id = $1", op.CategoryID).Scan(&categoryName)
-		if err != nil {
+		_ = r.db.QueryRowContext(ctx,
+			"SELECT category_name FROM category WHERE _id = $1",
+			op.CategoryID,
+		).Scan(&op.CategoryName)
+		if op.CategoryName == "" {
 			op.CategoryName = "Без категории"
-		} else {
-			op.CategoryName = categoryName
 		}
 	} else {
 		op.CategoryName = "Без категории"
@@ -172,6 +191,7 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op finmodels.O
 
 	return op, nil
 }
+
 
 func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.UpdateOperationRequest, accID int, opID int) (finmodels.Operation, error) {
 	query := `

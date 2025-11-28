@@ -15,4 +15,5 @@ var ErrorMap = map[error]struct {
 	ErrAccountNotFound:   {Code: codes.NotFound, Msg: string(models.ErrCodeAccountNotFound)},
 	ErrForbidden:         {Code: codes.PermissionDenied, Msg: string(models.ErrCodeForbidden)},
 	ErrInvalidData:       {Code: codes.InvalidArgument, Msg: string(models.ErrCodeInvalidData)},
+	ErrNegativeBalance:   {Code: codes.FailedPrecondition, Msg: string(models.ErrCodeNegaticeBalance)},
 }

@@ -196,6 +196,12 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 			}
 			httputils.ConflictError(w, r, "Счет не найден", models.ErrCodeAccountNotFound)
 			return
+		case codes.FailedPrecondition:
+			if log != nil {
+				log.Error("grpc CreateOperation exists error", "error", err)
+			}
+			httputils.Error(w, r, "Баланс счета не может быть отрицательным", http.StatusBadRequest)
+			return
 		case codes.PermissionDenied:
 			if log != nil {
 				log.Error("grpc CreateOperation exists error", "error", err)

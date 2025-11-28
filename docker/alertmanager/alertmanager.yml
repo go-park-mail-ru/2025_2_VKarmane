@@ -11,7 +11,7 @@ route:
 receivers:
   - name: 'telegram'
     telegram_configs:
-      - bot_token: 
+      - bot_token:
         chat_id: 
         message: |
           *Alert:* {{ .CommonLabels.alertname }}

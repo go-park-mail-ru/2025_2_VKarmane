@@ -8,7 +8,6 @@ import (
 	"io"
 
 	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
@@ -105,7 +104,7 @@ func (s *Service) GetOperationsByAccount(ctx context.Context, req []byte) (*finp
 		return nil, err
 	}
 
-	var esResp models.ElasticsearchResponse
+	var esResp finmodels.ElasticsearchResponse
 	if err := json.Unmarshal(body, &esResp); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal ES: %w", err)
 	}

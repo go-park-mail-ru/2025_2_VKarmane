@@ -56,7 +56,7 @@ type ElasticSearchConfig struct {
 
 func LoadConfig() *Config {
 	config := &Config{
-		Port:               getEnv("PORT", "8070"),
+		Port:               getEnv("PORT", "8080"),
 		AuthServicePort:    getEnv("AUTH_SERVICE_PORT", "8090"),
 		AuthServiceHost:    getEnv("AUTH_SERVICE_HOST", "auth_service"),
 		BudgetServicePort:  getEnv("BUDGET_SERVICE_PORT", "8100"),
@@ -70,7 +70,7 @@ func LoadConfig() *Config {
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
-			Port:     getEnv("DB_PORT", "5433"),
+			Port:     getEnv("DB_PORT", "5432"),
 			User:     getEnv("DB_USER", "vkarmane"),
 			Password: getEnv("DB_PASSWORD", "vkarmane_password"),
 			DBName:   getEnv("DB_NAME", "vkarmane"),
@@ -86,7 +86,7 @@ func LoadConfig() *Config {
 			Port:       getEnv("MINIO_PORT", "9000"),
 			AccessKey:  getEnv("MINIO_ACCESS_KEY", "minioadmin"),
 			SecretKey:  getEnv("MINIO_SECRET_KEY", "minioadmin123"),
-			UseSSL:     getEnv("MINIO_USE_SSL", "false") == "true",
+			UseSSL:     getEnv("MINIO_USE_SSL", "true") == "true",
 			BucketName: getEnv("MINIO_BUCKET_NAME", "images"),
 		},
 		ElasticSearch: ElasticSearchConfig{

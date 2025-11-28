@@ -9,4 +9,5 @@ var (
 	ErrCategoryExists    = errors.New("category already exists")
 	ErrForbidden         = errors.New("forbidden")
 	ErrInvalidData       = errors.New("invalid data")
+	ErrNegativeBalance   = errors.New("negative balance")
 )
