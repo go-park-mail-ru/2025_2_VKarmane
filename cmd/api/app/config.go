@@ -48,7 +48,7 @@ type MinIOConfig struct {
 
 func LoadConfig() *Config {
 	config := &Config{
-		Port:               getEnv("PORT", "8080"),
+		Port:               getEnv("PORT", "8070"),
 		AuthServicePort:    getEnv("AUTH_SERVICE_PORT", "8090"),
 		AuthServiceHost:    getEnv("AUTH_SERVICE_HOST", "auth_service"),
 		BudgetServicePort:  getEnv("BUDGET_SERVICE_PORT", "8100"),
@@ -60,7 +60,7 @@ func LoadConfig() *Config {
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
-			Port:     getEnv("DB_PORT", "5432"),
+			Port:     getEnv("DB_PORT", "5433"),
 			User:     getEnv("DB_USER", "vkarmane"),
 			Password: getEnv("DB_PASSWORD", "vkarmane_password"),
 			DBName:   getEnv("DB_NAME", "vkarmane"),

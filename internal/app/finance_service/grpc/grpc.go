@@ -171,8 +171,8 @@ func (s *FinanceServerImpl) GetOperation(ctx context.Context, req *finpb.Operati
 	return operation, nil
 }
 
-func (s *FinanceServerImpl) GetOperationsByAccount(ctx context.Context, req *finpb.AccountRequest) (*finpb.ListOperationsResponse, error) {
-	operations, err := s.financeUC.GetOperationsByAccount(ctx, int(req.AccountId))
+func (s *FinanceServerImpl) GetOperationsByAccount(ctx context.Context, req *finpb.SearchOperationsRequest) (*finpb.ListOperationsResponse, error) {
+	operations, err := s.financeUC.GetOperationsByAccount(ctx, MapProtoToParams(req))
 	if err != nil {
 		logger := logger.FromContext(ctx)
 		for targetErr, resp := range finerrors.ErrorMap {

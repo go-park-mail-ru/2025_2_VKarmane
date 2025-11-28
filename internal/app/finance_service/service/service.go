@@ -79,8 +79,8 @@ func (s *Service) DeleteAccount(ctx context.Context, userID, accountID int) (*fi
 }
 
 // Operation methods
-func (s *Service) GetOperationsByAccount(ctx context.Context, accountID int) (*finpb.ListOperationsResponse, error) {
-	operations, err := s.repo.GetOperationsByAccount(ctx, accountID)
+func (s *Service) GetOperationsByAccount(ctx context.Context, req finmodels.SearchOperationsParams) (*finpb.ListOperationsResponse, error) {
+	operations, err := s.repo.GetOperationsByAccount(ctx, req)
 	if err != nil {
 		return nil, err
 	}

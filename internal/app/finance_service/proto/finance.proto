@@ -48,6 +48,18 @@ message ListAccountsResponse {
     repeated Account accounts = 1;
 }
 
+message SearchOperationsRequest {
+    int32 user_id = 1;
+    int32 account_id = 2;
+    int32 category_id = 3;
+    string operation_type = 4;
+    string account_type = 5;
+    string name = 6;
+    google.protobuf.Timestamp created_at = 7;
+
+}
+
+
 message Operation {
     int32 id = 1;
     int32 account_id = 2;
@@ -167,7 +179,7 @@ service FinanceService {
     // Operation methods
     rpc CreateOperation(CreateOperationRequest) returns (Operation);
     rpc GetOperation(OperationRequest) returns (Operation);
-    rpc GetOperationsByAccount(AccountRequest) returns (ListOperationsResponse);
+    rpc GetOperationsByAccount(SearchOperationsRequest) returns (ListOperationsResponse);
     rpc UpdateOperation(UpdateOperationRequest) returns (Operation);
     rpc DeleteOperation(OperationRequest) returns (Operation);
     

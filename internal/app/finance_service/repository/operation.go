@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"log"
+	"strconv"
 	"time"
 
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
@@ -25,26 +27,67 @@ type OperationDB struct {
 	Date          time.Time
 }
 
-func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, accountID int) ([]finmodels.OperationInList, error) {
-	query := `
-		SELECT o._id, o.account_from_id, o.account_to_id, o.category_id, o.currency_id, 
-		       o.operation_status, o.operation_type, o.operation_name, o.operation_description, 
-		       o.receipt_url, o.sum, o.created_at, o.operation_date,
-		       COALESCE(c.category_name, 'Без категории') as category_name,
-			   COALESCE(c.logo_hashed_id, '') AS logo_hashed_idc
-		FROM operation o
-		LEFT JOIN category c ON o.category_id = c._id
-		WHERE (o.account_from_id = $1 OR o.account_to_id = $1) AND o.operation_status != 'reverted'
-		ORDER BY o.created_at DESC
-	`
+func (r *PostgresRepository) GetOperationsByAccount(
+	ctx context.Context,
+	req finmodels.SearchOperationsParams,
+) ([]finmodels.OperationInList, error) {
 
-	rows, err := r.db.QueryContext(ctx, query, accountID)
+	baseQuery := `
+        SELECT o._id, o.account_from_id, o.account_to_id, o.category_id, o.currency_id, 
+               o.operation_status, o.operation_type, o.operation_name, o.operation_description, 
+               o.receipt_url, o.sum, o.created_at, o.operation_date,
+               COALESCE(c.category_name, 'Без категории') as category_name,
+               COALESCE(c.logo_hashed_id, '') AS logo_hashed_idc
+        FROM operation o
+        LEFT JOIN category c ON o.category_id = c._id
+        LEFT JOIN account a ON o.account_from_id = a._id
+        WHERE (o.account_from_id = $1 OR o.account_to_id = $1)
+          AND o.operation_status != 'reverted'
+    `
+
+	log.Println(req.AccountID)
+
+	args := []interface{}{req.AccountID}
+	argPos := 2
+
+	if req.CategoryID != nil {
+		baseQuery += ` AND o.category_id = $` + strconv.Itoa(argPos)
+		args = append(args, *req.CategoryID)
+		argPos++
+	}
+
+	if req.OperationType != nil && *req.OperationType != "" {
+		baseQuery += ` AND o.operation_type = $` + strconv.Itoa(argPos)
+		args = append(args, *req.OperationType)
+		argPos++
+	}
+
+	if req.AccountType != nil && *req.AccountType != "" {
+		baseQuery += ` AND a.account_type = $` + strconv.Itoa(argPos)
+		args = append(args, *req.AccountType)
+		argPos++
+	}
+
+	if req.Name != nil && *req.Name != "" {
+		baseQuery += ` AND o.operation_name_tsv @@ plainto_tsquery('russian', $` + strconv.Itoa(argPos) + `)`
+		args = append(args, *req.Name)
+		argPos++
+	}
+
+	if req.CreatedAt != nil {
+		baseQuery += ` AND o.created_at >= $` + strconv.Itoa(argPos)
+		args = append(args, *req.CreatedAt)
+		argPos++
+	}
+
+	baseQuery += ` ORDER BY o.created_at DESC`
+	log.Println(baseQuery)
+
+	rows, err := r.db.QueryContext(ctx, baseQuery, args...)
 	if err != nil {
 		return nil, MapPgOperationError(err)
 	}
-	defer func() {
-		_ = rows.Close()
-	}()
+	defer rows.Close()
 
 	var operations []finmodels.OperationInList
 	for rows.Next() {
@@ -74,6 +117,7 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 		opInList := operationDBToModelInList(opDB, categoryLogoHashID)
 		operations = append(operations, opInList)
 	}
+	log.Println(operations)
 
 	return operations, nil
 }

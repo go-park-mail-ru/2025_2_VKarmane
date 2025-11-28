@@ -16,7 +16,7 @@ type FinanceRepository interface {
 	UpdateAccountBalance(ctx context.Context, accountID int, newBalance float64) error
 
 	// Operation methods
-	GetOperationsByAccount(ctx context.Context, accountID int) ([]finmodels.OperationInList, error)
+	GetOperationsByAccount(ctx context.Context, req finmodels.SearchOperationsParams) ([]finmodels.OperationInList, error)
 	GetOperationByID(ctx context.Context, accID int, opID int) (finmodels.Operation, error)
 	CreateOperation(ctx context.Context, op finmodels.Operation) (finmodels.Operation, error)
 	UpdateOperation(ctx context.Context, req finmodels.UpdateOperationRequest, accID int, opID int) (finmodels.Operation, error)

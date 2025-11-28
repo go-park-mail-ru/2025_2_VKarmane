@@ -69,3 +69,13 @@ type UpdateOperationRequest struct {
 	Sum         *float64
 	CreatedAt   *time.Time
 }
+
+type SearchOperationsParams struct {
+	UserID        int
+	AccountID     int
+	CategoryID    *int32
+	OperationType *string
+	AccountType   *string
+	Name          *string
+	CreatedAt     *time.Time
+}

@@ -82,8 +82,9 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// ops, err := h.opUC.GetAccountOperations(r.Context(), accID)
-	ops, err := h.finClient.GetOperationsByAccount(r.Context(), AccountAndUserIDToProtoID(accID, id))
+	q := r.URL.Query()
+
+	ops, err := h.finClient.GetOperationsByAccount(r.Context(), MapSearchOperationsRequest(q, id, accID))
 	if err != nil {
 		_, ok := status.FromError(err)
 		log := logger.FromContext(r.Context())

@@ -122,3 +122,32 @@ func protoToUpdateCategoryRequest(req *finpb.UpdateCategoryRequest) finmodels.Up
 		LogoHashedID: logoHashedID,
 	}
 }
+
+func MapProtoToParams(pbReq *finpb.SearchOperationsRequest) finmodels.SearchOperationsParams {
+	params := finmodels.SearchOperationsParams{}
+	params.AccountID = int(pbReq.AccountId)
+	params.UserID = int(pbReq.UserId)
+
+	if pbReq.CategoryId != 0 {
+		params.CategoryID = &pbReq.CategoryId
+	}
+
+	if pbReq.OperationType != "" {
+		params.OperationType = &pbReq.OperationType
+	}
+
+	if pbReq.AccountType != "" {
+		params.AccountType = &pbReq.AccountType
+	}
+
+	if pbReq.Name != "" {
+		params.Name = &pbReq.Name
+	}
+
+	if pbReq.CreatedAt != nil {
+		t := pbReq.CreatedAt.AsTime()
+		params.CreatedAt = &t
+	}
+
+	return params
+}

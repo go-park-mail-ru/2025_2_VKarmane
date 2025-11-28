@@ -1,6 +1,8 @@
 package operation
 
 import (
+	"net/url"
+	"strconv"
 	"time"
 
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
@@ -125,4 +127,36 @@ func UpdateOperationRequestToProto(req models.UpdateOperationRequest, userID, ac
 		Sum:         req.Sum,
 		CreatedAt:   date,
 	}
+}
+
+func MapSearchOperationsRequest(q url.Values, userID, accID int) *finpb.SearchOperationsRequest {
+	req := &finpb.SearchOperationsRequest{}
+
+	req.AccountId = int32(accID)
+	req.UserId = int32(userID)
+
+	if s := q.Get("category_id"); s != "" {
+		if v, err := strconv.Atoi(s); err == nil {
+			req.CategoryId = int32(v)
+		}
+	}
+
+	if s := q.Get("operation_type"); s != "" {
+		req.OperationType = s
+	}
+
+	if s := q.Get("account_type"); s != "" {
+		req.AccountType = s
+	}
+
+	if s := q.Get("title"); s != "" {
+		req.Name = s
+	}
+	if s := q.Get("date_from"); s != "" {
+		if t, err := time.Parse("2006-01-02", s); err == nil {
+			req.CreatedAt = timestamppb.New(t)
+		}
+	}
+
+	return req
 }
