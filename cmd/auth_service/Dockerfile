@@ -6,7 +6,11 @@ RUN apk add --no-cache git ca-certificates
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY . .
+COPY cmd/ ./cmd/
+COPY internal/ ./internal/
+COPY pkg/ ./pkg/
+COPY migrations/ ./migrations/
+COPY docker/ ./docker/
 
 RUN go build -o auth_service ./cmd/auth_service
 
