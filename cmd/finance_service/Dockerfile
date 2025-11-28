@@ -6,11 +6,7 @@ RUN apk add --no-cache git ca-certificates
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY cmd/ ./cmd/
-COPY internal/ ./internal/
-COPY pkg/ ./pkg/
-COPY migrations/ ./migrations/
-COPY docker/ ./docker/
+COPY . .
 
 RUN go build -o finance_service ./cmd/finance_service
 
