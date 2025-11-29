@@ -72,3 +72,12 @@ func CategoryUpdateRequestToProto(userID, ctgID int, req models.UpdateCategoryRe
 		LogoHashedId: req.LogoHashedID,
 	}
 }
+
+func CategoryToUpdateSearch(ctg *models.Category) models.UpdateCategoryInOperationSearch {
+	return models.UpdateCategoryInOperationSearch{
+		CategoryID:           ctg.ID,
+		CategoryName:         ctg.Name,
+		CategoryLogo:         ctg.LogoURL,
+		CategoryLogoHashedID: ctg.LogoHashedID,
+	}
+}

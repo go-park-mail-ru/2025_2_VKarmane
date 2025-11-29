@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -173,8 +174,15 @@ func (s *FinanceServerImpl) GetOperation(ctx context.Context, req *finpb.Operati
 
 func (s *FinanceServerImpl) GetOperationsByAccount(ctx context.Context, req *finpb.OperationsByAccountAndFiltersRequest) (*finpb.ListOperationsResponse, error) {
 	logger := logger.FromContext(ctx)
-	logger.Info(req.Name, req.CategoryId)
-	operations, err := s.financeUC.GetOperationsByAccount(ctx, int(req.AccountId), int(req.CategoryId), req.Name)
+
+	var date string
+	if req.Date != nil {
+		date = req.Date.AsTime().Format(time.RFC3339Nano)
+	} else {
+		date = ""
+	}
+
+	operations, err := s.financeUC.GetOperationsByAccount(ctx, int(req.AccountId), int(req.CategoryId), req.Name, req.OperationType, req.AccountType, date)
 	if err != nil {
 		for targetErr, resp := range finerrors.ErrorMap {
 			if errors.Is(err, targetErr) {

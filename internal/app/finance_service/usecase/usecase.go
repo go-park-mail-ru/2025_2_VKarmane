@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"encoding/json"
+	"log"
+	"time"
 
 	pkgerrors "github.com/pkg/errors"
 
@@ -83,57 +85,112 @@ func (uc *UseCase) DeleteAccount(ctx context.Context, userID, accountID int) (*f
 }
 
 // Operation methods
-func (uc *UseCase) GetOperationsByAccount(ctx context.Context, accountID, categoryID int, opName string) (*finpb.ListOperationsResponse, error) {
+func (uc *UseCase) GetOperationsByAccount(
+	ctx context.Context,
+	accountID, categoryID int,
+	opName, opType, accType, date string,
+) (*finpb.ListOperationsResponse, error) {
+
+	log.Printf("opName: %q opType: %q accType: %q date: %q",
+		opName, opType, accType, date,
+	)
 	log := logger.FromContext(ctx)
-	// operations, err := uc.financeService.GetOperationsByAccount(ctx, accountID, categoryID, opName)
-	// if err != nil {
-	// 	if log != nil {
-	// 		log.Error("Failed to get operations for account", "error", err, "account_id", accountID)
-	// 	}
-	// 	return nil, pkgerrors.Wrap(err, "finance.GetOperationsByAccount")
-	// }
-	// return operations, nil
+
 	boolQuery := map[string]interface{}{
-        "must": []interface{}{
-            map[string]interface{}{
-                "term": map[string]interface{}{
-                    "account_id": accountID,
-                },
-            },
-        },
-        "must_not": []interface{}{
-            map[string]interface{}{
-                "term": map[string]interface{}{
-                    "status": "reverted",
-                },
-            },
-        },
-    }
+		"must": []interface{}{
+			map[string]interface{}{
+				"term": map[string]interface{}{
+					"account_id": accountID,
+				},
+			},
+		},
+		"must_not": []interface{}{
+			map[string]interface{}{
+				"term": map[string]interface{}{
+					"status": "reverted",
+				},
+			},
+		},
+	}
 
+	// category_id
+	if categoryID != 0 {
+		boolQuery["filter"] = []interface{}{
+			map[string]interface{}{
+				"term": map[string]interface{}{
+					"category_id": categoryID,
+				},
+			},
+		}
+	}
 
-    if categoryID != 0 {
-        boolQuery["filter"] = []interface{}{
-            map[string]interface{}{
-                "term": map[string]interface{}{
-                    "category_id": categoryID,
-                },
-            },
-        }
-    }
+	// name LIKE %name%
+	if opName != "" {
+		boolQuery["should"] = []interface{}{
+			map[string]interface{}{
+				"wildcard": map[string]interface{}{
+					"name": map[string]interface{}{
+						"value": "*" + opName + "*",
+					},
+				},
+			},
+		}
+		boolQuery["minimum_should_match"] = 1
+	}
 
-    if opName != "" {
-        boolQuery["should"] = []interface{}{
-            map[string]interface{}{
-                "wildcard": map[string]interface{}{
-                    "name": map[string]interface{}{
-                        "value": "*" + opName + "*",
-                    },
-                },
-            },
-        }
-        boolQuery["minimum_should_match"] = 1
-    }
+	// operation_type
+	if opType != "" {
+		if boolQuery["filter"] == nil {
+			boolQuery["filter"] = []interface{}{}
+		}
+		boolQuery["filter"] = append(boolQuery["filter"].([]interface{}),
+			map[string]interface{}{
+				"term": map[string]interface{}{
+					"type": opType,
+				},
+			},
+		)
+	}
 
+	// account_type
+	if accType != "" {
+		if boolQuery["filter"] == nil {
+			boolQuery["filter"] = []interface{}{}
+		}
+		boolQuery["filter"] = append(boolQuery["filter"].([]interface{}),
+			map[string]interface{}{
+				"term": map[string]interface{}{
+					"account_type": accType,
+				},
+			},
+		)
+	}
+
+	// DATE FILTER BY DAY
+	if date != "" {
+		t, err := time.Parse(time.RFC3339Nano, date)
+		if err == nil {
+			start := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+			end := time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 999999999, t.Location())
+
+			rangeFilter := map[string]interface{}{
+				"range": map[string]interface{}{
+					"date": map[string]interface{}{
+						"gte": start.Format(time.RFC3339Nano),
+						"lte": end.Format(time.RFC3339Nano),
+					},
+				},
+			}
+
+			if boolQuery["filter"] == nil {
+				boolQuery["filter"] = []interface{}{rangeFilter}
+			} else {
+				boolQuery["filter"] = append(boolQuery["filter"].([]interface{}), rangeFilter)
+			}
+		}
+	}
+
+	// Build full query
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": boolQuery,
@@ -144,10 +201,11 @@ func (uc *UseCase) GetOperationsByAccount(ctx context.Context, accountID, catego
 	operations, err := uc.financeService.GetOperationsByAccount(ctx, body)
 	if err != nil {
 		if log != nil {
-			log.Error("Failed to get operation by ID", "error", err, "account_id", accountID)
+			log.Error("Failed to get operations", "error", err, "account_id", accountID)
 		}
-		return nil, pkgerrors.Wrap(err, "finance.GetOperationByID")
+		return nil, pkgerrors.Wrap(err, "finance.GetOperationsByAccount")
 	}
+
 	return operations, nil
 }
 

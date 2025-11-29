@@ -85,16 +85,10 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	name := r.URL.Query().Get("title")
-	categoryIDStr := r.URL.Query().Get("category_id")
-	var categoryID *int
-	if categoryIDStr != "" {
-		v, _ := strconv.Atoi(categoryIDStr)
-		categoryID = &v
-	}
+	urlQueries := r.URL.Query()
 
 	// ops, err := h.opUC.GetAccountOperations(r.Context(), accID)
-	ops, err := h.finClient.GetOperationsByAccount(r.Context(), ProtoGetOperationsRequst(id, accID, categoryID, name))
+	ops, err := h.finClient.GetOperationsByAccount(r.Context(), ProtoGetOperationsRequest(id, accID, urlQueries))
 	if err != nil {
 		_, ok := status.FromError(err)
 		log := logger.FromContext(r.Context())
@@ -255,7 +249,7 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 	transactionSearch.Action = models.WRITE
 
 	data, _ := json.Marshal(transactionSearch)
-	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Value: data}); err != nil {
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: "transaction"}); err != nil {
 		httputils.InternalError(w, r, "Failed to create opeartion")
 		if log != nil {
 			log.Error("kafka CreateCategory unknown error", "error", err)
@@ -462,7 +456,7 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 	transactionSearch.Action = models.UPDATE
 
 	data, _ := json.Marshal(transactionSearch)
-	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Value: data}); err != nil {
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: "transaction"}); err != nil {
 		httputils.InternalError(w, r, "Failed to update opeartion")
 		if log != nil {
 			log.Error("kafka GetCategory unknown error", "error", err)
@@ -545,7 +539,7 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 	transactionSearch.Action = models.DELETE
 
 	data, _ := json.Marshal(transactionSearch)
-	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Value: data}); err != nil {
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: "transaction"}); err != nil {
 		httputils.InternalError(w, r, "Failed to delete opeartion")
 		if log != nil {
 			log.Error("kafka GetCategory unknown error", "error", err)

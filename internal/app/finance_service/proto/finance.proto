@@ -60,8 +60,9 @@ message Operation {
     string name = 9;
     double sum = 10;
     int32 currency_id = 11;
-    google.protobuf.Timestamp created_at = 12;
-    google.protobuf.Timestamp date = 13;
+    string account_type = 12;
+    google.protobuf.Timestamp created_at = 13;
+    google.protobuf.Timestamp date = 14;
 }
 
 message OperationInList {
@@ -76,8 +77,9 @@ message OperationInList {
     string category_logo = 9;
     double sum = 10;
     int32 currency_id = 11;
-    google.protobuf.Timestamp created_at = 12;
-    google.protobuf.Timestamp date = 13;
+    string account_type = 12;
+    google.protobuf.Timestamp created_at = 13;
+    google.protobuf.Timestamp date = 14;
 }
 
 message CreateOperationRequest {
@@ -162,6 +164,9 @@ message OperationsByAccountAndFiltersRequest {
     int32 operation_id = 3;
     string name = 4;
     int32 category_id = 5;
+    string operation_type = 6;
+    string account_type = 7;
+    google.protobuf.Timestamp date = 8;
 }
 
 service FinanceService {

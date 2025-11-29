@@ -16,6 +16,7 @@ type Transaction struct {
 	Sum                  float64   `json:"sum"`
 	CurrencyID           int       `json:"curerncy"`
 	CreatedAt            time.Time `json:"created_at"`
+	AccountType          string    `json:"account_type"`
 	Date                 time.Time `json:"date"`
 	Action               string    `json:"action"`
 }

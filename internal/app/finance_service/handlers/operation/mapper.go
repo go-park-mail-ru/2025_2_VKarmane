@@ -1,6 +1,8 @@
 package operation
 
 import (
+	"net/url"
+	"strconv"
 	"time"
 
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
@@ -38,6 +40,7 @@ func MapOperationInListToResponse(op *finpb.OperationInList) models.OperationInL
 		CategoryLogo:     op.CategoryLogo,
 		CategoryHashedID: op.CategoryLogoHashedId,
 		Sum:              op.Sum,
+		AccountType:      op.AccountType,
 		CurrencyID:       int(op.CurrencyId),
 		CreatedAt:        createdAt,
 		Date:             date,
@@ -89,6 +92,7 @@ func ProtoOperationToResponse(op *finpb.Operation) models.OperationResponse {
 		Status:       string(op.Status),
 		Description:  op.Description,
 		ReceiptURL:   op.ReceiptUrl,
+		AccountType:  op.AccountType,
 		Name:         op.Name,
 		Sum:          op.Sum,
 		CurrencyID:   int(op.CurrencyId),
@@ -135,11 +139,12 @@ func OperationResponseToSearch(op models.OperationResponse, ctg models.CategoryW
 		CategoryID:           op.CategoryID,
 		CurrencyID:           op.CurrencyID,
 		Description:          op.Description,
-		Type:                 op.Status,
+		Type:                 op.Type,
 		Status:               op.Status,
 		Name:                 op.Name,
 		CategoryLogo:         logo,
 		CategoryLogoHashedID: ctg.LogoHashedID,
+		AccountType:          op.AccountType,
 		CategoryName:         op.CategoryName,
 		Sum:                  op.Sum,
 		CreatedAt:            op.CreatedAt,
@@ -153,17 +158,44 @@ func OperationResponseToSearchDelete(op models.OperationResponse) models.Transac
 	}
 }
 
-func ProtoGetOperationsRequst(userID int, accID int, ctgID *int, opName string) *finpb.OperationsByAccountAndFiltersRequest {
-	var categoryID int
-	if ctgID == nil {
-		categoryID = 0
-	} else {
-		categoryID = *ctgID
+func ProtoGetOperationsRequest(
+	userID int,
+	accID int,
+	values url.Values,
+) *finpb.OperationsByAccountAndFiltersRequest {
+
+	name := values.Get("title")
+
+	var categoryID int32
+	if categoryIDStr := values.Get("category_id"); categoryIDStr != "" {
+		if v, err := strconv.Atoi(categoryIDStr); err == nil {
+			categoryID = int32(v)
+		}
 	}
+
+	accountType := values.Get("account_type")
+
+	operationType := values.Get("operation")
+
+    var ts *timestamppb.Timestamp
+    if dateStr := values.Get("date"); dateStr != "" {
+        var t time.Time
+        var err error
+
+        t, err = time.Parse("2006-01-02", dateStr)
+
+        if err == nil {
+            ts = timestamppb.New(t)
+        }
+	}
+
 	return &finpb.OperationsByAccountAndFiltersRequest{
-		UserId:     int32(userID),
-		AccountId:  int32(accID),
-		CategoryId: int32(categoryID),
-		Name:       opName,
+		UserId:        int32(userID),
+		AccountId:     int32(accID),
+		CategoryId:    categoryID,
+		Name:          name,
+		OperationType: operationType,
+		AccountType:   accountType,
+		Date:          ts,
 	}
 }

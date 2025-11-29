@@ -387,8 +387,9 @@ type Operation struct {
 	Name          string                 `protobuf:"bytes,9,opt,name=name,proto3" json:"name,omitempty"`
 	Sum           float64                `protobuf:"fixed64,10,opt,name=sum,proto3" json:"sum,omitempty"`
 	CurrencyId    int32                  `protobuf:"varint,11,opt,name=currency_id,json=currencyId,proto3" json:"currency_id,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	Date          *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=date,proto3" json:"date,omitempty"`
+	AccountType   string                 `protobuf:"bytes,12,opt,name=account_type,json=accountType,proto3" json:"account_type,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Date          *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=date,proto3" json:"date,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -500,6 +501,13 @@ func (x *Operation) GetCurrencyId() int32 {
 	return 0
 }
 
+func (x *Operation) GetAccountType() string {
+	if x != nil {
+		return x.AccountType
+	}
+	return ""
+}
+
 func (x *Operation) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedAt
@@ -527,8 +535,9 @@ type OperationInList struct {
 	CategoryLogo         string                 `protobuf:"bytes,9,opt,name=category_logo,json=categoryLogo,proto3" json:"category_logo,omitempty"`
 	Sum                  float64                `protobuf:"fixed64,10,opt,name=sum,proto3" json:"sum,omitempty"`
 	CurrencyId           int32                  `protobuf:"varint,11,opt,name=currency_id,json=currencyId,proto3" json:"currency_id,omitempty"`
-	CreatedAt            *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	Date                 *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=date,proto3" json:"date,omitempty"`
+	AccountType          string                 `protobuf:"bytes,12,opt,name=account_type,json=accountType,proto3" json:"account_type,omitempty"`
+	CreatedAt            *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Date                 *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=date,proto3" json:"date,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -638,6 +647,13 @@ func (x *OperationInList) GetCurrencyId() int32 {
 		return x.CurrencyId
 	}
 	return 0
+}
+
+func (x *OperationInList) GetAccountType() string {
+	if x != nil {
+		return x.AccountType
+	}
+	return ""
 }
 
 func (x *OperationInList) GetCreatedAt() *timestamppb.Timestamp {
@@ -1401,6 +1417,9 @@ type OperationsByAccountAndFiltersRequest struct {
 	OperationId   int32                  `protobuf:"varint,3,opt,name=operation_id,json=operationId,proto3" json:"operation_id,omitempty"`
 	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
 	CategoryId    int32                  `protobuf:"varint,5,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
+	OperationType string                 `protobuf:"bytes,6,opt,name=operation_type,json=operationType,proto3" json:"operation_type,omitempty"`
+	AccountType   string                 `protobuf:"bytes,7,opt,name=account_type,json=accountType,proto3" json:"account_type,omitempty"`
+	Date          *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=date,proto3" json:"date,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1470,6 +1489,27 @@ func (x *OperationsByAccountAndFiltersRequest) GetCategoryId() int32 {
 	return 0
 }
 
+func (x *OperationsByAccountAndFiltersRequest) GetOperationType() string {
+	if x != nil {
+		return x.OperationType
+	}
+	return ""
+}
+
+func (x *OperationsByAccountAndFiltersRequest) GetAccountType() string {
+	if x != nil {
+		return x.AccountType
+	}
+	return ""
+}
+
+func (x *OperationsByAccountAndFiltersRequest) GetDate() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Date
+	}
+	return nil
+}
+
 var File_internal_app_finance_service_proto_finance_proto protoreflect.FileDescriptor
 
 const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
@@ -1503,7 +1543,7 @@ const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
 	"\x06UserID\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x05R\x06userId\"D\n" +
 	"\x14ListAccountsResponse\x12,\n" +
-	"\baccounts\x18\x01 \x03(\v2\x10.finance.AccountR\baccounts\"\xa1\x03\n" +
+	"\baccounts\x18\x01 \x03(\v2\x10.finance.AccountR\baccounts\"\xc4\x03\n" +
 	"\tOperation\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x1d\n" +
 	"\n" +
@@ -1520,10 +1560,11 @@ const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
 	"\x03sum\x18\n" +
 	" \x01(\x01R\x03sum\x12\x1f\n" +
 	"\vcurrency_id\x18\v \x01(\x05R\n" +
-	"currencyId\x129\n" +
+	"currencyId\x12!\n" +
+	"\faccount_type\x18\f \x01(\tR\vaccountType\x129\n" +
 	"\n" +
-	"created_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12.\n" +
-	"\x04date\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\x04date\"\xca\x03\n" +
+	"created_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12.\n" +
+	"\x04date\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\x04date\"\xed\x03\n" +
 	"\x0fOperationInList\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x1d\n" +
 	"\n" +
@@ -1539,10 +1580,11 @@ const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
 	"\x03sum\x18\n" +
 	" \x01(\x01R\x03sum\x12\x1f\n" +
 	"\vcurrency_id\x18\v \x01(\x05R\n" +
-	"currencyId\x129\n" +
+	"currencyId\x12!\n" +
+	"\faccount_type\x18\f \x01(\tR\vaccountType\x129\n" +
 	"\n" +
-	"created_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12.\n" +
-	"\x04date\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\x04date\"\xa0\x02\n" +
+	"created_at\x18\r \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12.\n" +
+	"\x04date\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\x04date\"\xa0\x02\n" +
 	"\x16CreateOperationRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x05R\x06userId\x12\x1d\n" +
 	"\n" +
@@ -1622,7 +1664,7 @@ const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
 	"\x1fListCategoriesWithStatsResponse\x12:\n" +
 	"\n" +
 	"categories\x18\x01 \x03(\v2\x1a.finance.CategoryWithStatsR\n" +
-	"categories\"\xb6\x01\n" +
+	"categories\"\xb0\x02\n" +
 	"$OperationsByAccountAndFiltersRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x05R\x06userId\x12\x1d\n" +
 	"\n" +
@@ -1630,7 +1672,10 @@ const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
 	"\foperation_id\x18\x03 \x01(\x05R\voperationId\x12\x12\n" +
 	"\x04name\x18\x04 \x01(\tR\x04name\x12\x1f\n" +
 	"\vcategory_id\x18\x05 \x01(\x05R\n" +
-	"categoryId2\xfb\b\n" +
+	"categoryId\x12%\n" +
+	"\x0eoperation_type\x18\x06 \x01(\tR\roperationType\x12!\n" +
+	"\faccount_type\x18\a \x01(\tR\vaccountType\x12.\n" +
+	"\x04date\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\x04date2\xfb\b\n" +
 	"\x0eFinanceService\x12@\n" +
 	"\rCreateAccount\x12\x1d.finance.CreateAccountRequest\x1a\x10.finance.Account\x127\n" +
 	"\n" +
@@ -1702,43 +1747,44 @@ var file_internal_app_finance_service_proto_finance_proto_depIdxs = []int32{
 	12, // 12: finance.ListCategoriesResponse.categories:type_name -> finance.Category
 	12, // 13: finance.CategoryWithStats.category:type_name -> finance.Category
 	17, // 14: finance.ListCategoriesWithStatsResponse.categories:type_name -> finance.CategoryWithStats
-	1,  // 15: finance.FinanceService.CreateAccount:input_type -> finance.CreateAccountRequest
-	3,  // 16: finance.FinanceService.GetAccount:input_type -> finance.AccountRequest
-	4,  // 17: finance.FinanceService.GetAccountsByUser:input_type -> finance.UserID
-	2,  // 18: finance.FinanceService.UpdateAccount:input_type -> finance.UpdateAccountRequest
-	3,  // 19: finance.FinanceService.DeleteAccount:input_type -> finance.AccountRequest
-	8,  // 20: finance.FinanceService.CreateOperation:input_type -> finance.CreateOperationRequest
-	10, // 21: finance.FinanceService.GetOperation:input_type -> finance.OperationRequest
-	19, // 22: finance.FinanceService.GetOperationsByAccount:input_type -> finance.OperationsByAccountAndFiltersRequest
-	9,  // 23: finance.FinanceService.UpdateOperation:input_type -> finance.UpdateOperationRequest
-	10, // 24: finance.FinanceService.DeleteOperation:input_type -> finance.OperationRequest
-	13, // 25: finance.FinanceService.CreateCategory:input_type -> finance.CreateCategoryRequest
-	15, // 26: finance.FinanceService.GetCategory:input_type -> finance.CategoryRequest
-	4,  // 27: finance.FinanceService.GetCategoriesByUser:input_type -> finance.UserID
-	4,  // 28: finance.FinanceService.GetCategoriesWithStatsByUser:input_type -> finance.UserID
-	14, // 29: finance.FinanceService.UpdateCategory:input_type -> finance.UpdateCategoryRequest
-	15, // 30: finance.FinanceService.DeleteCategory:input_type -> finance.CategoryRequest
-	0,  // 31: finance.FinanceService.CreateAccount:output_type -> finance.Account
-	0,  // 32: finance.FinanceService.GetAccount:output_type -> finance.Account
-	5,  // 33: finance.FinanceService.GetAccountsByUser:output_type -> finance.ListAccountsResponse
-	0,  // 34: finance.FinanceService.UpdateAccount:output_type -> finance.Account
-	0,  // 35: finance.FinanceService.DeleteAccount:output_type -> finance.Account
-	6,  // 36: finance.FinanceService.CreateOperation:output_type -> finance.Operation
-	6,  // 37: finance.FinanceService.GetOperation:output_type -> finance.Operation
-	11, // 38: finance.FinanceService.GetOperationsByAccount:output_type -> finance.ListOperationsResponse
-	6,  // 39: finance.FinanceService.UpdateOperation:output_type -> finance.Operation
-	6,  // 40: finance.FinanceService.DeleteOperation:output_type -> finance.Operation
-	12, // 41: finance.FinanceService.CreateCategory:output_type -> finance.Category
-	17, // 42: finance.FinanceService.GetCategory:output_type -> finance.CategoryWithStats
-	16, // 43: finance.FinanceService.GetCategoriesByUser:output_type -> finance.ListCategoriesResponse
-	18, // 44: finance.FinanceService.GetCategoriesWithStatsByUser:output_type -> finance.ListCategoriesWithStatsResponse
-	12, // 45: finance.FinanceService.UpdateCategory:output_type -> finance.Category
-	12, // 46: finance.FinanceService.DeleteCategory:output_type -> finance.Category
-	31, // [31:47] is the sub-list for method output_type
-	15, // [15:31] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	20, // 15: finance.OperationsByAccountAndFiltersRequest.date:type_name -> google.protobuf.Timestamp
+	1,  // 16: finance.FinanceService.CreateAccount:input_type -> finance.CreateAccountRequest
+	3,  // 17: finance.FinanceService.GetAccount:input_type -> finance.AccountRequest
+	4,  // 18: finance.FinanceService.GetAccountsByUser:input_type -> finance.UserID
+	2,  // 19: finance.FinanceService.UpdateAccount:input_type -> finance.UpdateAccountRequest
+	3,  // 20: finance.FinanceService.DeleteAccount:input_type -> finance.AccountRequest
+	8,  // 21: finance.FinanceService.CreateOperation:input_type -> finance.CreateOperationRequest
+	10, // 22: finance.FinanceService.GetOperation:input_type -> finance.OperationRequest
+	19, // 23: finance.FinanceService.GetOperationsByAccount:input_type -> finance.OperationsByAccountAndFiltersRequest
+	9,  // 24: finance.FinanceService.UpdateOperation:input_type -> finance.UpdateOperationRequest
+	10, // 25: finance.FinanceService.DeleteOperation:input_type -> finance.OperationRequest
+	13, // 26: finance.FinanceService.CreateCategory:input_type -> finance.CreateCategoryRequest
+	15, // 27: finance.FinanceService.GetCategory:input_type -> finance.CategoryRequest
+	4,  // 28: finance.FinanceService.GetCategoriesByUser:input_type -> finance.UserID
+	4,  // 29: finance.FinanceService.GetCategoriesWithStatsByUser:input_type -> finance.UserID
+	14, // 30: finance.FinanceService.UpdateCategory:input_type -> finance.UpdateCategoryRequest
+	15, // 31: finance.FinanceService.DeleteCategory:input_type -> finance.CategoryRequest
+	0,  // 32: finance.FinanceService.CreateAccount:output_type -> finance.Account
+	0,  // 33: finance.FinanceService.GetAccount:output_type -> finance.Account
+	5,  // 34: finance.FinanceService.GetAccountsByUser:output_type -> finance.ListAccountsResponse
+	0,  // 35: finance.FinanceService.UpdateAccount:output_type -> finance.Account
+	0,  // 36: finance.FinanceService.DeleteAccount:output_type -> finance.Account
+	6,  // 37: finance.FinanceService.CreateOperation:output_type -> finance.Operation
+	6,  // 38: finance.FinanceService.GetOperation:output_type -> finance.Operation
+	11, // 39: finance.FinanceService.GetOperationsByAccount:output_type -> finance.ListOperationsResponse
+	6,  // 40: finance.FinanceService.UpdateOperation:output_type -> finance.Operation
+	6,  // 41: finance.FinanceService.DeleteOperation:output_type -> finance.Operation
+	12, // 42: finance.FinanceService.CreateCategory:output_type -> finance.Category
+	17, // 43: finance.FinanceService.GetCategory:output_type -> finance.CategoryWithStats
+	16, // 44: finance.FinanceService.GetCategoriesByUser:output_type -> finance.ListCategoriesResponse
+	18, // 45: finance.FinanceService.GetCategoriesWithStatsByUser:output_type -> finance.ListCategoriesWithStatsResponse
+	12, // 46: finance.FinanceService.UpdateCategory:output_type -> finance.Category
+	12, // 47: finance.FinanceService.DeleteCategory:output_type -> finance.Category
+	32, // [32:48] is the sub-list for method output_type
+	16, // [16:32] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_internal_app_finance_service_proto_finance_proto_init() }

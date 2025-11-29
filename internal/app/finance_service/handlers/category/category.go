@@ -2,6 +2,7 @@ package category
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -17,18 +18,21 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
+	kafkautils "github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/kafka"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 )
 
 type Handler struct {
-	finClient finpb.FinanceServiceClient
-	imageUC   image.ImageUseCase
+	finClient     finpb.FinanceServiceClient
+	imageUC       image.ImageUseCase
+	kafkaProducer kafkautils.KafkaProducer
 }
 
-func NewHandler(finClient finpb.FinanceServiceClient, imageUC image.ImageUseCase) *Handler {
+func NewHandler(finClient finpb.FinanceServiceClient, imageUC image.ImageUseCase, kafkaProducer kafkautils.KafkaProducer) *Handler {
 	return &Handler{
-		finClient: finClient,
-		imageUC:   imageUC,
+		finClient:     finClient,
+		imageUC:       imageUC,
+		kafkaProducer: kafkaProducer,
 	}
 }
 
@@ -311,6 +315,7 @@ func (h *Handler) GetCategoryByID(w http.ResponseWriter, r *http.Request) {
 // @Router /categories/{id} [put]
 func (h *Handler) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	userID, ok := h.getUserID(r)
+	log := logger.FromContext(r.Context())
 	if !ok {
 		httputils.UnauthorizedError(w, r, "User not authenticated", models.ErrCodeUnauthorized)
 		return
@@ -378,7 +383,6 @@ func (h *Handler) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	category, err := h.finClient.UpdateCategory(r.Context(), CategoryUpdateRequestToProto(userID, categoryID, req))
 	if err != nil {
 		st, ok := status.FromError(err)
-		log := logger.FromContext(r.Context())
 		if !ok {
 			if log != nil {
 				log.Error("grpc UpdateCategory unknown error", "error", err)
@@ -417,6 +421,18 @@ func (h *Handler) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	categoryDTO := ProtoCategoryToApi(category)
 
 	h.enrichCategoryWithLogoURL(r.Context(), categoryDTO)
+
+	categoryUpdateSearch := CategoryToUpdateSearch(categoryDTO)
+	categoryUpdateSearch.Action = models.UPDATE
+
+	data, _ := json.Marshal(categoryUpdateSearch)
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: "categories"}); err != nil {
+		httputils.InternalError(w, r, "Failed to update category in operations")
+		if log != nil {
+			log.Error("kafka UpdateCategory unknown error", "error", err)
+		}
+		return
+	}
 
 	httputils.Success(w, r, categoryDTO)
 }

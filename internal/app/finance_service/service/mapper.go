@@ -31,12 +31,12 @@ func operationToProto(operation finmodels.Operation) *finpb.Operation {
 		ReceiptUrl:   operation.ReceiptURL,
 		Name:         operation.Name,
 		Sum:          operation.Sum,
+		AccountType:  string(operation.AccountType),
 		CurrencyId:   int32(operation.CurrencyID),
 		CreatedAt:    timestamppb.New(operation.CreatedAt),
 		Date:         timestamppb.New(operation.Date),
 	}
 }
-
 
 func CategoryToProto(category finmodels.Category) *finpb.Category {
 	return &finpb.Category{
@@ -71,6 +71,7 @@ func convertToOperation(src finmodels.ESHitSource) *finpb.OperationInList {
 		CategoryLogo:         src.CategoryLogo,
 		Sum:                  src.Sum,
 		CurrencyId:           src.CurrencyId,
+		AccountType:          src.AccountType,
 		CreatedAt:            parseTime(src.CreatedAt),
 		Date:                 parseTime(src.Date),
 	}

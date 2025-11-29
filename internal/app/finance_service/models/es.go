@@ -11,6 +11,7 @@ type ESHitSource struct {
 	CategoryLogoHashedId string  `json:"category_logo_hashed_id"`
 	CategoryLogo         string  `json:"category_logo"`
 	Sum                  float64 `json:"sum"`
+	AccountType          string  `json:"account_type"`
 	CurrencyId           int32   `json:"curerncy"`
 	CreatedAt            string  `json:"created_at"`
 	Date                 string  `json:"date"`

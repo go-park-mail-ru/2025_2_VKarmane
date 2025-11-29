@@ -36,7 +36,7 @@ func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux
 	balance.Register(protectedRouter, finClient)
 	budget.Register(protectedRouter, budgetClient)
 	operation.Register(protectedRouter, finClient, uc.ImageUC, kafkaProducer)
-	category.Register(protectedRouter, finClient, uc.ImageUC)
+	category.Register(protectedRouter, finClient, uc.ImageUC, kafkaProducer)
 	profile.Register(protectedRouter, uc.ImageUC, authClient)
 	image.Register(protectedRouter, uc.ImageUC)
 }

@@ -36,7 +36,7 @@ func NewHandler(uc *usecase.UseCase, logger logger.Logger, authClient authpb.Aut
 		budgetHandler:   budget.NewHandler(realClock, budgetClient),
 		authHandler:     auth.NewHandler(realClock, logger, authClient),
 		opHandler:       operation.NewHandler(finClient, uc.ImageUC, kafkaProducer, realClock),
-		categoryHandler: category.NewHandler(finClient, uc.ImageUC),
+		categoryHandler: category.NewHandler(finClient, uc.ImageUC, kafkaProducer),
 		profileHandler:  profile.NewHandler(uc.ImageUC, authClient),
 		logger:          logger,
 		registrator:     NewRegistrator(uc, logger),

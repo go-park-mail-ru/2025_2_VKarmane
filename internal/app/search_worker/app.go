@@ -40,23 +40,45 @@ func Run() error {
 			continue
 		}
 
-		var tx models.Transaction
-		if err := json.Unmarshal(m.Value, &tx); err != nil {
+		var wrapper models.KafkaMessageWrapper
+		if err := json.Unmarshal(m.Value, &wrapper); err != nil {
 			log.Fatal("JSON unmarshal error:", err)
 			continue
 		}
 
-		switch tx.Action {
-		case "create", "update":
-			if err := handlers.CreateOrUpdateTransaction(es, tx); err != nil {
-				log.Fatal("Elasticsearch index error:", err)
+		switch wrapper.Type {
+		case models.TRANSACTIONS:
+			var tx models.Transaction
+			if err := json.Unmarshal(wrapper.Payload, &tx); err != nil {
+				log.Fatal("JSON unmarshal error:", err)
+				continue
 			}
-		case "delete":
-			if err := handlers.DeleteTransaction(es, tx); err != nil {
-				log.Fatal("Elasticsearch delete error:", err)
+			switch tx.Action {
+			case "create", "update":
+				if err := handlers.CreateOrUpdateTransaction(es, tx); err != nil {
+					log.Fatal("Elasticsearch index error:", err)
+				}
+			case "delete":
+				if err := handlers.DeleteTransaction(es, tx); err != nil {
+					log.Fatal("Elasticsearch delete error:", err)
+				}
+			default:
+				log.Fatal("Unknown action:", tx.Action)
 			}
-		default:
-			log.Fatal("Unknown action:", tx.Action)
+		case models.CATEGORIES:
+			var ctg models.Category
+			if err := json.Unmarshal(wrapper.Payload, &ctg); err != nil {
+				log.Fatal("JSON unmarshal error:", err)
+				continue
+			}
+			switch ctg.Action {
+			case "update":
+				if err := handlers.UpdateCategoryInTransaction(es, ctg); err != nil {
+					log.Fatal("Elasticsearch index error:", err)
+				}
+			default:
+				log.Fatal("Unknown action:", ctg.Action)
+			}
 		}
 	}
 

@@ -7,5 +7,6 @@ type KafkaProducer interface {
 }
 
 type KafkaMessage struct {
-	Value []byte
+	Type    string
+	Payload []byte
 }

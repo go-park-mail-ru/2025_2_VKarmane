@@ -2,12 +2,18 @@ package kafka
 
 import (
 	"context"
+	"encoding/json"
 
 	kafka "github.com/segmentio/kafka-go"
 )
 
 type KafkaWriterWrapper struct {
 	writer *kafka.Writer
+}
+
+type KafkaMessageWrapper struct {
+	Type    string          `json:"type"`
+	Payload json.RawMessage `json:"payload"`
 }
 
 func NewKafkaWriterWrapper(w *kafka.Writer) *KafkaWriterWrapper {
@@ -17,7 +23,13 @@ func NewKafkaWriterWrapper(w *kafka.Writer) *KafkaWriterWrapper {
 func (k *KafkaWriterWrapper) WriteMessages(ctx context.Context, msgs ...KafkaMessage) error {
 	kafkaMsgs := make([]kafka.Message, len(msgs))
 	for i, m := range msgs {
-		kafkaMsgs[i] = kafka.Message{Value: m.Value}
+		wrapper := KafkaMessageWrapper{
+			Type:    m.Type,
+			Payload: m.Payload,
+		}
+
+		data, _ := json.Marshal(wrapper)
+		kafkaMsgs[i] = kafka.Message{Value: data}
 	}
 	return k.writer.WriteMessages(ctx, kafkaMsgs...)
 }

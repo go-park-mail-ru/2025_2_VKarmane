@@ -16,6 +16,7 @@ type OperationDB struct {
 	CurrencyID    *int
 	Status        finmodels.OperationStatus
 	Type          finmodels.OperationType
+	AccountType   finmodels.AccountType
 	Name          string
 	Description   string
 	ReceiptURL    string
@@ -30,9 +31,11 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 		       o.operation_status, o.operation_type, o.operation_name, o.operation_description, 
 		       o.receipt_url, o.sum, o.created_at, o.operation_date,
 		       COALESCE(c.category_name, 'Без категории') as category_name,
-			   COALESCE(c.logo_hashed_id, '') AS logo_hashed_idc
+			   COALESCE(c.logo_hashed_id, '') AS logo_hashed_idc,
+			   a.account_type
 		FROM operation o
 		LEFT JOIN category c ON o.category_id = c._id
+		JOIN account a ON a._id = o.account_from_id
 		WHERE (o.account_from_id = $1 OR o.account_to_id = $1) AND o.operation_status != 'reverted'
 		ORDER BY o.created_at DESC
 	`
@@ -65,6 +68,7 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 			&opDB.Date,
 			&opDB.CategoryName,
 			&categoryLogoHashID,
+			&opDB.AccountType,
 		)
 		if err != nil {
 			return nil, MapPgOperationError(err)
@@ -120,7 +124,7 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op finmodels.O
 	}
 	defer tx.Rollback()
 
-	_,err = tx.ExecContext(ctx, `
+	_, err = tx.ExecContext(ctx, `
         UPDATE account
         SET balance = balance - $1, updated_at = NOW()
         WHERE _id = $2
@@ -188,10 +192,15 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op finmodels.O
 	} else {
 		op.CategoryName = "Без категории"
 	}
+	var accountType string
+	_ = r.db.QueryRowContext(ctx,
+		"SELECT account_type from account where _id = $1",
+		op.AccountID,
+	).Scan(&accountType)
+	op.AccountType = finmodels.AccountType(accountType)
 
 	return op, nil
 }
-
 
 func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.UpdateOperationRequest, accID int, opID int) (finmodels.Operation, error) {
 	query := `
@@ -367,6 +376,7 @@ func operationDBToModelInList(opDB OperationDB, categoryLogoHash string) finmode
 		CategoryLogoHashedID: categoryLogoHash,
 		Sum:                  opDB.Sum,
 		CurrencyID:           currencyID,
+		AccountType:          string(opDB.AccountType),
 		CreatedAt:            opDB.CreatedAt,
 		Date:                 opDB.Date,
 	}

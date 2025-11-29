@@ -20,8 +20,17 @@ type TransactionSearch struct {
 	CategoryLogoHashedID string    `json:"category_logo_hashed_id"`
 	CategoryLogo         string    `json:"category_logo"`
 	Sum                  float64   `json:"sum"`
+	AccountType          string    `json:"account_type"`
 	CurrencyID           int       `json:"curerncy"`
 	CreatedAt            time.Time `json:"created_at"`
 	Date                 time.Time `json:"date"`
 	Action               string    `json:"action"`
+}
+
+type UpdateCategoryInOperationSearch struct {
+	CategoryID           int    `json:"category_id"`
+	CategoryName         string `json:"category_name"`
+	CategoryLogoHashedID string `json:"category_logo_hashed_id"`
+	CategoryLogo         string `json:"category_logo"`
+	Action               string `json:"action"`
 }
