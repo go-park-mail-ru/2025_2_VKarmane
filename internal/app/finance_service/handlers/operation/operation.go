@@ -461,7 +461,7 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 		if log != nil {
 			log.Error("kafka GetCategory unknown error", "error", err)
 		}
-		return
+		return 
 	}
 
 	httputils.Success(w, r, operationResponse)

@@ -2,45 +2,55 @@
 .git
 .gitignore
 
+# Documentation
+README.md
+API_DOCUMENTATION.md
+DEVELOPMENT.md
+
 # IDE
 .vscode
 .idea
+*.swp
+*.swo
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# Logs and temp
+# Logs
 logs/
 *.log
-tmp/
-*.tmp
 
-# Build and binaries
+# Build artifacts
 bin/
 *.exe
+*.exe~
 *.dll
 *.so
 *.dylib
+
+# Test binary, built with `go test -c`
 *.test
+
+# Output of the go coverage tool
 *.out
 
-# Vendor
+# Dependency directories
 vendor/
 
-# Go workspace
+# Go workspace file
 go.work
 
-# Environment
+# Environment files
 .env
-.env.*
-*.env
+.env.local
+.env.production
 
-# Certificates
-*.pem
-*.key
-*.crt
-
-
-# Docker internal
+# Docker
+Dockerfile
+docker-compose.yml
 .dockerignore
+
+# Other
+coverage.out
+cookies.txt
