@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	serviceerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/errors"
@@ -158,9 +159,11 @@ func (r *PostgresRepository) GetCategoryByID(ctx context.Context, userID, catego
 }
 
 func (r *PostgresRepository) UpdateCategory(ctx context.Context, category finmodels.Category) error {
+
+	log.Printf("hash %s", category.LogoHashedID)
 	query := `
 		UPDATE category 
-		SET category_name = $1, category_description = $2, logo_hashed_id = $3, updated_at = NOW()
+		SET category_name = COALESCE($1,category_name), category_description = COALESCE($2,category_description), logo_hashed_id = COALESCE($3,logo_hashed_id), updated_at = NOW()
 		WHERE _id = $4 AND user_id = $5
 	`
 
@@ -169,10 +172,19 @@ func (r *PostgresRepository) UpdateCategory(ctx context.Context, category finmod
 		description = &category.Description
 	}
 
+	var logoHash *string
+	if category.LogoHashedID != "" {
+		logoHash = &category.LogoHashedID
+	}
+
+	var ctgName *string
+	if category.Name != "" {
+		ctgName = &category.Name
+	}
 	res, err := r.db.ExecContext(ctx, query,
-		category.Name,
+		ctgName,
 		description,
-		category.LogoHashedID,
+		logoHash,
 		category.ID,
 		category.UserID,
 	)

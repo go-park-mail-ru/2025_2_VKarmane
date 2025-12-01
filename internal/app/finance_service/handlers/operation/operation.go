@@ -408,6 +408,12 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 			}
 			httputils.ConflictError(w, r, "Доступ запрещен", models.ErrCodeForbidden)
 			return
+		case codes.FailedPrecondition:
+			if log != nil {
+				log.Error("grpc CreateOperation exists error", "error", err)
+			}
+			httputils.Error(w, r, "Баланс счета не может быть отрицательным", http.StatusBadRequest)
+			return
 		default:
 			if log != nil {
 				log.Error("grpc UpdateOperation error", "error", err)
@@ -524,6 +530,12 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 				log.Error("grpc DeleteOperation forbidden", "error", err)
 			}
 			httputils.ConflictError(w, r, "Доступ запрещен", models.ErrCodeForbidden)
+			return
+		case codes.FailedPrecondition:
+			if log != nil {
+				log.Error("grpc CreateOperation exists error", "error", err)
+			}
+			httputils.Error(w, r, "Баланс счета не может быть отрицательным", http.StatusBadRequest)
 			return
 		default:
 			if log != nil {

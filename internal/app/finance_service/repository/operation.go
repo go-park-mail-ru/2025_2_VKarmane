@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 )
 
@@ -203,6 +204,11 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op finmodels.O
 }
 
 func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.UpdateOperationRequest, accID int, opID int) (finmodels.Operation, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return finmodels.Operation{}, err
+	}
+	defer tx.Rollback()
 	query := `
 		WITH updated_operation AS (
 			UPDATE operation 
@@ -239,7 +245,7 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 	}
 
 	var operation OperationDB
-	err := r.db.QueryRowContext(ctx, query,
+	err = tx.QueryRowContext(ctx, query,
 		name,
 		description,
 		sum,
@@ -266,10 +272,53 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 		return finmodels.Operation{}, MapPgOperationError(err)
 	}
 
+	var operationSum float64
+	if operation.Type == finmodels.OperationType(models.OperationExpense) {
+		operationSum = - 1 * operation.Sum
+	} else {
+		operationSum = operation.Sum
+	}
+
+	_, err = tx.ExecContext(ctx, `
+	UPDATE account SET balance = balance + $1 WHERE _id = $2
+	`, operationSum, operation.AccountFromID)
+
+	if err != nil {
+		return finmodels.Operation{}, MapPgAccountError(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return finmodels.Operation{}, MapPgOperationError(err)
+	}
+
 	return operationDBToModel(operation), nil
 }
 
 func (r *PostgresRepository) DeleteOperation(ctx context.Context, accID int, opID int) (finmodels.Operation, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return finmodels.Operation{}, err
+	}
+	defer tx.Rollback()
+
+	var operationSum float64
+	var operationType string
+
+	err = tx.QueryRowContext(ctx, `SELECT sum, type FROM operation WHERE _id = $1`, opID).Scan(&operationSum, &operationType)
+	if err != nil {
+		return finmodels.Operation{}, MapPgOperationError(err)
+	}
+
+	if operationType == string(models.OperationExpense) {
+		operationSum = -1 * operationSum
+	}
+
+	_, err = tx.ExecContext(ctx, `UPDATE account SET balance = balance - $1 WHERE _id = $2`, operationSum, accID)
+	if err != nil {
+		return finmodels.Operation{}, MapPgAccountError(err)
+	}
+
+
 	query := `
 		WITH updated_operation AS (
 			UPDATE operation 
@@ -288,7 +337,7 @@ func (r *PostgresRepository) DeleteOperation(ctx context.Context, accID int, opI
 	`
 
 	var operation OperationDB
-	err := r.db.QueryRowContext(ctx, query, opID, accID).Scan(
+	err = tx.QueryRowContext(ctx, query, opID, accID).Scan(
 		&operation.ID,
 		&operation.AccountFromID,
 		&operation.AccountToID,
@@ -308,6 +357,11 @@ func (r *PostgresRepository) DeleteOperation(ctx context.Context, accID int, opI
 	if err != nil {
 		return finmodels.Operation{}, MapPgOperationError(err)
 	}
+
+	if err := tx.Commit(); err != nil {
+		return finmodels.Operation{}, MapPgOperationError(err)
+	}
+	
 
 	return operationDBToModel(operation), nil
 }
