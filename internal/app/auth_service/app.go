@@ -11,12 +11,12 @@ import (
 
 	config "github.com/go-park-mail-ru/2025_2_VKarmane/cmd/api/app"
 	server "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/grpc"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/pkg/interceptors"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/proto"
 	repo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/repository"
 	authusecase "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/pkg/interceptors"
 )
 
 func Run() error {
@@ -60,7 +60,6 @@ func Run() error {
 		return err
 	}
 	store := repo.NewPostgresRepository(db)
-
 
 	uc := authusecase.NewAuthUseCase(store, config.JWTSecret, clock)
 	authService := server.NewAuthServer(uc)

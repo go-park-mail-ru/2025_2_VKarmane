@@ -126,6 +126,9 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			case string(models.ErrCodeInvalidCredentials):
 				httputil.UnauthorizedError(w, r, "Неверные логин или пароль", models.ErrCodeInvalidCredentials)
 				return
+			case string(models.ErrCodeUserNotFound):
+				httputil.UnauthorizedError(w, r, "Неверные логин или пароль", models.ErrCodeUserNotFound)
+				return
 			default:
 				httputil.InternalError(w, r, "Failed to login")
 				return

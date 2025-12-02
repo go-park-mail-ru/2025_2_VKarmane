@@ -177,16 +177,16 @@ func ProtoGetOperationsRequest(
 
 	operationType := values.Get("operation")
 
-    var ts *timestamppb.Timestamp
-    if dateStr := values.Get("date"); dateStr != "" {
-        var t time.Time
-        var err error
+	var ts *timestamppb.Timestamp
+	if dateStr := values.Get("date"); dateStr != "" {
+		var t time.Time
+		var err error
 
-        t, err = time.Parse("2006-01-02", dateStr)
+		t, err = time.Parse("2006-01-02", dateStr)
 
-        if err == nil {
-            ts = timestamppb.New(t)
-        }
+		if err == nil {
+			ts = timestamppb.New(t)
+		}
 	}
 
 	return &finpb.OperationsByAccountAndFiltersRequest{

@@ -148,7 +148,6 @@ func TestUpdateCategory_Success(t *testing.T) {
 
 	mockFin.EXPECT().
 		UpdateCategory(gomock.Any(), gomock.Any()).
-		
 		Return(&finpb.Category{
 			Id:     1,
 			UserId: 1,

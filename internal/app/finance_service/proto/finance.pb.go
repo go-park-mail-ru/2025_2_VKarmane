@@ -27,9 +27,11 @@ type Account struct {
 	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Balance       float64                `protobuf:"fixed64,2,opt,name=balance,proto3" json:"balance,omitempty"`
 	Type          string                 `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
-	CurrencyId    int32                  `protobuf:"varint,4,opt,name=currency_id,json=currencyId,proto3" json:"currency_id,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	CurrencyId    int32                  `protobuf:"varint,6,opt,name=currency_id,json=currencyId,proto3" json:"currency_id,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -85,6 +87,20 @@ func (x *Account) GetType() string {
 	return ""
 }
 
+func (x *Account) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Account) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
 func (x *Account) GetCurrencyId() int32 {
 	if x != nil {
 		return x.CurrencyId
@@ -110,8 +126,10 @@ type CreateAccountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        int32                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Balance       float64                `protobuf:"fixed64,2,opt,name=balance,proto3" json:"balance,omitempty"`
-	Type          string                 `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
-	CurrencyId    int32                  `protobuf:"varint,4,opt,name=currency_id,json=currencyId,proto3" json:"currency_id,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Type          string                 `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
+	Description   *string                `protobuf:"bytes,5,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	CurrencyId    int32                  `protobuf:"varint,6,opt,name=currency_id,json=currencyId,proto3" json:"currency_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -160,9 +178,23 @@ func (x *CreateAccountRequest) GetBalance() float64 {
 	return 0
 }
 
+func (x *CreateAccountRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 func (x *CreateAccountRequest) GetType() string {
 	if x != nil {
 		return x.Type
+	}
+	return ""
+}
+
+func (x *CreateAccountRequest) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
 	}
 	return ""
 }
@@ -178,7 +210,9 @@ type UpdateAccountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        int32                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	AccountId     int32                  `protobuf:"varint,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
-	Balance       float64                `protobuf:"fixed64,3,opt,name=balance,proto3" json:"balance,omitempty"`
+	Balance       *float64               `protobuf:"fixed64,3,opt,name=balance,proto3,oneof" json:"balance,omitempty"`
+	Name          *string                `protobuf:"bytes,4,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	Description   *string                `protobuf:"bytes,5,opt,name=description,proto3,oneof" json:"description,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -228,10 +262,24 @@ func (x *UpdateAccountRequest) GetAccountId() int32 {
 }
 
 func (x *UpdateAccountRequest) GetBalance() float64 {
-	if x != nil {
-		return x.Balance
+	if x != nil && x.Balance != nil {
+		return *x.Balance
 	}
 	return 0
+}
+
+func (x *UpdateAccountRequest) GetName() string {
+	if x != nil && x.Name != nil {
+		return *x.Name
+	}
+	return ""
+}
+
+func (x *UpdateAccountRequest) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
 }
 
 type AccountRequest struct {
@@ -1514,28 +1562,39 @@ var File_internal_app_finance_service_proto_finance_proto protoreflect.FileDescr
 
 const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
 	"\n" +
-	"0internal/app/finance_service/proto/finance.proto\x12\afinance\x1a\x1fgoogle/protobuf/timestamp.proto\"\xde\x01\n" +
+	"0internal/app/finance_service/proto/finance.proto\x12\afinance\x1a\x1fgoogle/protobuf/timestamp.proto\"\x94\x02\n" +
 	"\aAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x18\n" +
 	"\abalance\x18\x02 \x01(\x01R\abalance\x12\x12\n" +
-	"\x04type\x18\x03 \x01(\tR\x04type\x12\x1f\n" +
-	"\vcurrency_id\x18\x04 \x01(\x05R\n" +
+	"\x04type\x18\x03 \x01(\tR\x04type\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x05 \x01(\tR\vdescription\x12\x1f\n" +
+	"\vcurrency_id\x18\x06 \x01(\x05R\n" +
 	"currencyId\x129\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"~\n" +
+	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xc9\x01\n" +
 	"\x14CreateAccountRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x05R\x06userId\x12\x18\n" +
 	"\abalance\x18\x02 \x01(\x01R\abalance\x12\x12\n" +
-	"\x04type\x18\x03 \x01(\tR\x04type\x12\x1f\n" +
-	"\vcurrency_id\x18\x04 \x01(\x05R\n" +
-	"currencyId\"h\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x12\n" +
+	"\x04type\x18\x04 \x01(\tR\x04type\x12%\n" +
+	"\vdescription\x18\x05 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1f\n" +
+	"\vcurrency_id\x18\x06 \x01(\x05R\n" +
+	"currencyIdB\x0e\n" +
+	"\f_description\"\xd2\x01\n" +
 	"\x14UpdateAccountRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x05R\x06userId\x12\x1d\n" +
 	"\n" +
-	"account_id\x18\x02 \x01(\x05R\taccountId\x12\x18\n" +
-	"\abalance\x18\x03 \x01(\x01R\abalance\"H\n" +
+	"account_id\x18\x02 \x01(\x05R\taccountId\x12\x1d\n" +
+	"\abalance\x18\x03 \x01(\x01H\x00R\abalance\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\x04 \x01(\tH\x01R\x04name\x88\x01\x01\x12%\n" +
+	"\vdescription\x18\x05 \x01(\tH\x02R\vdescription\x88\x01\x01B\n" +
+	"\n" +
+	"\b_balanceB\a\n" +
+	"\x05_nameB\x0e\n" +
+	"\f_description\"H\n" +
 	"\x0eAccountRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x05R\x06userId\x12\x1d\n" +
 	"\n" +
@@ -1792,6 +1851,8 @@ func file_internal_app_finance_service_proto_finance_proto_init() {
 	if File_internal_app_finance_service_proto_finance_proto != nil {
 		return
 	}
+	file_internal_app_finance_service_proto_finance_proto_msgTypes[1].OneofWrappers = []any{}
+	file_internal_app_finance_service_proto_finance_proto_msgTypes[2].OneofWrappers = []any{}
 	file_internal_app_finance_service_proto_finance_proto_msgTypes[8].OneofWrappers = []any{}
 	file_internal_app_finance_service_proto_finance_proto_msgTypes[9].OneofWrappers = []any{}
 	file_internal_app_finance_service_proto_finance_proto_msgTypes[14].OneofWrappers = []any{}

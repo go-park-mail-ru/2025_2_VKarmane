@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
 
 type OperationDB struct {
@@ -274,7 +274,7 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 
 	var operationSum float64
 	if operation.Type == finmodels.OperationType(models.OperationExpense) {
-		operationSum = - 1 * operation.Sum
+		operationSum = -1 * operation.Sum
 	} else {
 		operationSum = operation.Sum
 	}
@@ -318,7 +318,6 @@ func (r *PostgresRepository) DeleteOperation(ctx context.Context, accID int, opI
 		return finmodels.Operation{}, MapPgAccountError(err)
 	}
 
-
 	query := `
 		WITH updated_operation AS (
 			UPDATE operation 
@@ -361,7 +360,6 @@ func (r *PostgresRepository) DeleteOperation(ctx context.Context, accID int, opI
 	if err := tx.Commit(); err != nil {
 		return finmodels.Operation{}, MapPgOperationError(err)
 	}
-	
 
 	return operationDBToModel(operation), nil
 }

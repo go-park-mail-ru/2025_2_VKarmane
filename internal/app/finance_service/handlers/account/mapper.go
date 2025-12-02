@@ -8,12 +8,14 @@ import (
 )
 
 type AccountAPI struct {
-	ID         int     `json:"id"`
-	Balance    float64 `json:"balance"`
-	Type       string  `json:"type"`
-	CurrencyID int     `json:"currency_id"`
-	CreatedAt  string  `json:"created_at,omitempty"`
-	UpdatedAt  string  `json:"updated_at,omitempty"`
+	ID          int     `json:"id"`
+	Balance     float64 `json:"balance"`
+	Type        string  `json:"type"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	CurrencyID  int     `json:"currency_id"`
+	CreatedAt   string  `json:"created_at,omitempty"`
+	UpdatedAt   string  `json:"updated_at,omitempty"`
 }
 
 type AccountsAPI struct {
@@ -60,12 +62,14 @@ func AccountResponseListProtoToApit(resp *finpb.ListAccountsResponse, userID int
 		}
 
 		accounts = append(accounts, AccountAPI{
-			ID:         int(acc.Id),
-			Balance:    acc.Balance,
-			Type:       acc.Type,
-			CurrencyID: int(acc.CurrencyId),
-			CreatedAt:  createdAt,
-			UpdatedAt:  updatedAt,
+			ID:          int(acc.Id),
+			Balance:     acc.Balance,
+			Name:        acc.Name,
+			Description: acc.Description,
+			Type:        acc.Type,
+			CurrencyID:  int(acc.CurrencyId),
+			CreatedAt:   createdAt,
+			UpdatedAt:   updatedAt,
 		})
 	}
 
@@ -77,28 +81,34 @@ func AccountResponseListProtoToApit(resp *finpb.ListAccountsResponse, userID int
 
 func ProtoAccountToApi(acc *finpb.Account) AccountAPI {
 	return AccountAPI{
-		ID:         int(acc.Id),
-		Balance:    acc.Balance,
-		Type:       acc.Type,
-		CurrencyID: int(acc.CurrencyId),
-		CreatedAt:  acc.CreatedAt.AsTime().Format(time.RFC3339),
-		UpdatedAt:  acc.UpdatedAt.AsTime().Format(time.RFC3339),
+		ID:          int(acc.Id),
+		Balance:     acc.Balance,
+		Name:        acc.Name,
+		Description: acc.Description,
+		Type:        acc.Type,
+		CurrencyID:  int(acc.CurrencyId),
+		CreatedAt:   acc.CreatedAt.AsTime().Format(time.RFC3339),
+		UpdatedAt:   acc.UpdatedAt.AsTime().Format(time.RFC3339),
 	}
 }
 
 func AccountCreateRequestToProto(userID int, req models.CreateAccountRequest) *finpb.CreateAccountRequest {
 	return &finpb.CreateAccountRequest{
-		UserId:     int32(userID),
-		Balance:    req.Balance,
-		CurrencyId: int32(req.CurrencyID),
-		Type:       string(req.Type),
+		UserId:      int32(userID),
+		Balance:     req.Balance,
+		CurrencyId:  int32(req.CurrencyID),
+		Type:        string(req.Type),
+		Name:        req.Name,
+		Description: req.Description,
 	}
 }
 
 func AccountUpdateRequestToProto(userID, accID int, req models.UpdateAccountRequest) *finpb.UpdateAccountRequest {
 	return &finpb.UpdateAccountRequest{
-		UserId:    int32(userID),
-		AccountId: int32(accID),
-		Balance:   req.Balance,
+		UserId:      int32(userID),
+		AccountId:   int32(accID),
+		Balance:     req.Balance,
+		Name:        req.Name,
+		Description: req.Description,
 	}
 }

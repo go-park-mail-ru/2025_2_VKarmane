@@ -22,7 +22,6 @@ func MapPgError(err error) error {
 		return err
 	}
 
-
 	switch pqErr.Code {
 	case UniqueViolation:
 		return mapUniqueViolation(pqErr)

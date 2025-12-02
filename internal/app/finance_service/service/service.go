@@ -54,11 +54,13 @@ func (s *Service) GetAccountByID(ctx context.Context, userID, accountID int) (*f
 
 func (s *Service) CreateAccount(ctx context.Context, req finmodels.CreateAccountRequest) (*finpb.Account, error) {
 	account := finmodels.Account{
-		Balance:    req.Balance,
-		Type:       req.Type,
-		CurrencyID: req.CurrencyID,
-		CreatedAt:  s.clock.Now(),
-		UpdatedAt:  s.clock.Now(),
+		Balance:     req.Balance,
+		Type:        req.Type,
+		Name:        req.Name,
+		CurrencyID:  req.CurrencyID,
+		Description: &req.Description,
+		CreatedAt:   s.clock.Now(),
+		UpdatedAt:   s.clock.Now(),
 	}
 
 	createdAcc, err := s.repo.CreateAccount(ctx, account, req.UserID)
@@ -88,11 +90,11 @@ func (s *Service) DeleteAccount(ctx context.Context, userID, accountID int) (*fi
 // Operation methods
 func (s *Service) GetOperationsByAccount(ctx context.Context, req []byte) (*finpb.ListOperationsResponse, error) {
 	res, err := s.es.Search(
-			s.es.Search.WithContext(context.Background()),
-			s.es.Search.WithIndex("transactions"),
-			s.es.Search.WithBody(bytes.NewReader(req)),
-			s.es.Search.WithTrackTotalHits(true),
-		)
+		s.es.Search.WithContext(context.Background()),
+		s.es.Search.WithIndex("transactions"),
+		s.es.Search.WithBody(bytes.NewReader(req)),
+		s.es.Search.WithTrackTotalHits(true),
+	)
 	if err != nil {
 		return nil, err
 	}

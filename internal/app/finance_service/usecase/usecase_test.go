@@ -33,9 +33,10 @@ func TestUpdateAccount(t *testing.T) {
 	defer ctrl.Finish()
 	mockSvc := mocks.NewMockFinanceService(ctrl)
 	uc := NewFinanceUseCase(mockSvc)
+	balance := 200.
 
 	ctx := context.Background()
-	req := models.UpdateAccountRequest{UserID: 10, AccountID: 7, Balance: 200}
+	req := models.UpdateAccountRequest{UserID: 10, AccountID: 7, Balance: &balance}
 	expected := &finpb.Account{}
 
 	mockSvc.EXPECT().UpdateAccount(ctx, req).Return(expected, nil)
@@ -53,7 +54,7 @@ func TestGetOperationsByAccount(t *testing.T) {
 
 	ctx := context.Background()
 	accountID := 1
-	ctgID :=2
+	ctgID := 2
 	opName := "name"
 	opType := "type"
 	accType := "type"
@@ -62,8 +63,8 @@ func TestGetOperationsByAccount(t *testing.T) {
 	expected := &finpb.ListOperationsResponse{}
 
 	mockSvc.EXPECT().
-    GetOperationsByAccount(ctx, gomock.Any()).
-    Return(expected, nil)
+		GetOperationsByAccount(ctx, gomock.Any()).
+		Return(expected, nil)
 
 	res, err := uc.GetOperationsByAccount(ctx, accountID, ctgID, opName, opType, accType, date)
 	require.NoError(t, err)

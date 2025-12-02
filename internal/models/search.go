@@ -8,6 +8,11 @@ const (
 	UPDATE string = "update"
 )
 
+const (
+	TRANSACTIONS string = "transactions"
+	CATEGORIES   string = "categories"
+)
+
 type TransactionSearch struct {
 	ID                   int       `json:"id"`
 	AccountID            int       `json:"account_id"`

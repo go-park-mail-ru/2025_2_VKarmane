@@ -426,7 +426,7 @@ func (h *Handler) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	categoryUpdateSearch.Action = models.UPDATE
 
 	data, _ := json.Marshal(categoryUpdateSearch)
-	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: "categories"}); err != nil {
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: models.CATEGORIES}); err != nil {
 		httputils.InternalError(w, r, "Failed to update category in operations")
 		if log != nil {
 			log.Error("kafka UpdateCategory unknown error", "error", err)

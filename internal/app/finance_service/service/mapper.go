@@ -9,13 +9,19 @@ import (
 )
 
 func accountToProto(account finmodels.Account) *finpb.Account {
+	var description string
+	if account.Description != nil {
+		description = *account.Description
+	}
 	return &finpb.Account{
-		Id:         int32(account.ID),
-		Balance:    account.Balance,
-		Type:       account.Type,
-		CurrencyId: int32(account.CurrencyID),
-		CreatedAt:  timestamppb.New(account.CreatedAt),
-		UpdatedAt:  timestamppb.New(account.UpdatedAt),
+		Id:          int32(account.ID),
+		Balance:     account.Balance,
+		Type:        account.Type,
+		Name:        account.Name,
+		Description: description,
+		CurrencyId:  int32(account.CurrencyID),
+		CreatedAt:   timestamppb.New(account.CreatedAt),
+		UpdatedAt:   timestamppb.New(account.UpdatedAt),
 	}
 }
 

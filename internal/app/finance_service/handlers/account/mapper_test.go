@@ -98,13 +98,14 @@ func TestAccountCreateRequestToProto(t *testing.T) {
 }
 
 func TestAccountUpdateRequestToProto(t *testing.T) {
+	balance := 300.99
 	req := models.UpdateAccountRequest{
-		Balance: 300.99,
+		Balance: &balance,
 	}
 
 	pb := AccountUpdateRequestToProto(5, 11, req)
 
 	require.Equal(t, int32(5), pb.UserId)
 	require.Equal(t, int32(11), pb.AccountId)
-	require.Equal(t, 300.99, pb.Balance)
+	require.Equal(t, &balance, pb.Balance)
 }

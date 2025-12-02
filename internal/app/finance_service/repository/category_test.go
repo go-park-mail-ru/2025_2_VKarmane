@@ -124,7 +124,10 @@ func TestUpdateCategory_Success(t *testing.T) {
 
 	mock.ExpectExec(regexp.QuoteMeta(`
 		UPDATE category 
-		SET category_name = $1, category_description = $2, logo_hashed_id = $3, updated_at = NOW()
+		SET category_name = COALESCE($1,category_name), 
+		    category_description = COALESCE($2,category_description), 
+		    logo_hashed_id = COALESCE($3,logo_hashed_id), 
+		    updated_at = NOW()
 		WHERE _id = $4 AND user_id = $5
 	`)).
 		WithArgs("Food", "desc", "logo123", 10, 1).
@@ -146,7 +149,10 @@ func TestUpdateCategory_NotFound(t *testing.T) {
 
 	mock.ExpectExec(regexp.QuoteMeta(`
 		UPDATE category 
-		SET category_name = $1, category_description = $2, logo_hashed_id = $3, updated_at = NOW()
+		SET category_name = COALESCE($1,category_name), 
+		    category_description = COALESCE($2,category_description), 
+		    logo_hashed_id = COALESCE($3,logo_hashed_id), 
+		    updated_at = NOW()
 		WHERE _id = $4 AND user_id = $5
 	`)).
 		WithArgs("Food", "desc", "logo123", 10, 1).

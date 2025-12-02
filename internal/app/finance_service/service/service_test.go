@@ -62,9 +62,10 @@ func TestUpdateAccount(t *testing.T) {
 	defer ctrl.Finish()
 	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
 	svc := NewService(mockRepo, nil, fixedClock)
+	balance := 200.
 
 	ctx := context.Background()
-	req := models.UpdateAccountRequest{UserID: 1, AccountID: 2, Balance: 200}
+	req := models.UpdateAccountRequest{UserID: 1, AccountID: 2, Balance: &balance}
 	acc := models.Account{ID: 2, Balance: 200}
 
 	mockRepo.EXPECT().UpdateAccount(ctx, req).Return(acc, nil)

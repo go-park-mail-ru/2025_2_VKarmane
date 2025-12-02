@@ -5,25 +5,25 @@ import (
 
 	pkgerrors "github.com/pkg/errors"
 
+	svcerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/errors"
 	authmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/models"
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/proto"
-	svcerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/errors"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
 )
 
 type UseCase struct {
-	repo AuthRepository
-	jwtSecret   string
-	clck        clock.Clock
+	repo      AuthRepository
+	jwtSecret string
+	clck      clock.Clock
 }
 
 func NewAuthUseCase(repo AuthRepository, secret string, clck clock.Clock) *UseCase {
 	return &UseCase{
-		repo: repo,
-		jwtSecret:   secret,
-		clck:        clck,
+		repo:      repo,
+		jwtSecret: secret,
+		clck:      clck,
 	}
 }
 
@@ -144,5 +144,3 @@ func (uc *UseCase) GetCSRFToken(ctx context.Context) (*authpb.CSRFTokenResponse,
 	}
 	return &authpb.CSRFTokenResponse{Token: token}, nil
 }
-
-

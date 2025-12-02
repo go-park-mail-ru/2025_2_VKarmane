@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS currency (
 CREATE TABLE IF NOT EXISTS account (
     _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_name TEXT NOT NULL CHECK (LENGTH(account_name) <= 30),
+    account_description TEXT,
     balance DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (balance >= 0),
     account_type TEXT NOT NULL DEFAULT 'default' CHECK (LENGTH(account_type) <= 30),
     currency_id INT REFERENCES currency(_id) ON DELETE SET NULL,

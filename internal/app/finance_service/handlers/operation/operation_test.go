@@ -69,26 +69,25 @@ func TestCreateOperation_Success(t *testing.T) {
 
 	handler := NewHandler(mockFin, mockImgUC, mockKafka, clock.RealClock{})
 
-
 	opResp := &finpb.Operation{
-		Id:        1,
-		AccountId: 1,
-		Name:      "Test",
-		Sum:       100,
-		Type:      string(models.OperationExpense),
-		Status:    string(models.OperationFinished),
-		CreatedAt: timestamppb.New(time.Now()),
-		Date:      timestamppb.New(time.Now()),
+		Id:         1,
+		AccountId:  1,
+		Name:       "Test",
+		Sum:        100,
+		Type:       string(models.OperationExpense),
+		Status:     string(models.OperationFinished),
+		CreatedAt:  timestamppb.New(time.Now()),
+		Date:       timestamppb.New(time.Now()),
+		CategoryId: 1,
 	}
 
 	mockFin.EXPECT().
 		CreateOperation(gomock.Any(), gomock.Any()).
 		Return(opResp, nil)
 
-
 	categoryResp := &finpb.CategoryWithStats{
 		Category: &finpb.Category{
-			Id:          1,
+			Id:           1,
 			LogoHashedId: "img-123",
 		},
 	}
@@ -97,11 +96,9 @@ func TestCreateOperation_Success(t *testing.T) {
 		GetCategory(gomock.Any(), gomock.Any()).
 		Return(categoryResp, nil)
 
-
 	mockImgUC.EXPECT().
 		GetImageURL(gomock.Any(), "img-123").
 		Return("https://example.com/img-123", nil)
-
 
 	mockKafka.EXPECT().
 		WriteMessages(gomock.Any(), gomock.Any()).
@@ -124,7 +121,6 @@ func TestCreateOperation_Success(t *testing.T) {
 	require.Equal(t, http.StatusCreated, rr.Code)
 }
 
-
 func TestGetOperationByID_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -132,7 +128,7 @@ func TestGetOperationByID_Success(t *testing.T) {
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
 	mockImgUC := mocks.NewMockImageUseCase(ctrl)
 
-	handler := NewHandler(mockFin, mockImgUC,nil, clock.RealClock{})
+	handler := NewHandler(mockFin, mockImgUC, nil, clock.RealClock{})
 
 	opResp := &finpb.Operation{
 		Id:        1,
@@ -214,7 +210,6 @@ func TestUpdateOperation_Success(t *testing.T) {
 	require.Equal(t, http.StatusOK, rr.Code)
 }
 
-
 func TestDeleteOperation_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -250,7 +245,6 @@ func TestDeleteOperation_Success(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rr.Code)
 }
-
 
 // утилиты
 func ptrString(s string) *string    { return &s }

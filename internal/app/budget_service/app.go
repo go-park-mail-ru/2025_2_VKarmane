@@ -11,13 +11,13 @@ import (
 
 	config "github.com/go-park-mail-ru/2025_2_VKarmane/cmd/api/app"
 	bdg "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/grpc"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/pkg/interceptors"
 	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/proto"
 	bdgrepo "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/repository"
 	bdgsvc "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/service"
 	bdgusecase "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/pkg/interceptors"
 )
 
 func Run() error {

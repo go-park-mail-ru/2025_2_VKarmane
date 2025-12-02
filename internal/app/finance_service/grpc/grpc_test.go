@@ -68,8 +68,9 @@ func TestFinanceServer_UpdateAccount(t *testing.T) {
 
 	mockUC := mocks.NewMockFinanceUseCase(ctrl)
 	server := NewFinanceServer(mockUC)
+	balance := 12.
 
-	req := &finpb.UpdateAccountRequest{UserId: 1, AccountId: 1, Balance: 12.0}
+	req := &finpb.UpdateAccountRequest{UserId: 1, AccountId: 1, Balance: &balance}
 	expected := &finpb.Account{Id: 1, Balance: 12.0}
 
 	mockUC.EXPECT().
@@ -77,8 +78,8 @@ func TestFinanceServer_UpdateAccount(t *testing.T) {
 		DoAndReturn(func(_ context.Context, req finmodels.UpdateAccountRequest) (*finpb.Account, error) {
 			assert.Equal(t, 1, req.UserID)
 			assert.Equal(t, 1, req.AccountID)
-			assert.Equal(t, 12.0, req.Balance)
-			return &finpb.Account{Id: int32(req.AccountID), Balance: req.Balance}, nil
+			assert.Equal(t, &balance, req.Balance)
+			return &finpb.Account{Id: int32(req.AccountID), Balance: *req.Balance}, nil
 		})
 
 	resp, err := server.UpdateAccount(context.Background(), req)
