@@ -29,3 +29,10 @@ type UpdateAccountRequest struct {
 	Name        *string
 	Balance     *float64
 }
+
+type SharingAccount struct {
+	ID        int
+	UserID    int
+	AccountID int
+	CreatedAt time.Time
+}

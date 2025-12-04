@@ -23,6 +23,13 @@ type AccountsAPI struct {
 	Accounts []AccountAPI `json:"accounts"`
 }
 
+type SharingApi struct {
+	ID        int    `json:"id"`
+	UserID    int    `json:"user_id"`
+	AccountID int    `json:"account_id"`
+	CreatedAt string `json:"created_at"`
+}
+
 func UserIDToProtoID(userID int) *finpb.UserID {
 	return &finpb.UserID{
 		UserId: int32(userID),
@@ -110,5 +117,14 @@ func AccountUpdateRequestToProto(userID, accID int, req models.UpdateAccountRequ
 		Balance:     req.Balance,
 		Name:        req.Name,
 		Description: req.Description,
+	}
+}
+
+func SharingProtoToApi(resp *finpb.SharingsResponse) SharingApi {
+	return SharingApi{
+		ID:        int(resp.SharingId),
+		AccountID: int(resp.AccountId),
+		UserID:    int(resp.UserId),
+		CreatedAt: resp.CreatedAt.AsTime().Format(time.RFC3339),
 	}
 }

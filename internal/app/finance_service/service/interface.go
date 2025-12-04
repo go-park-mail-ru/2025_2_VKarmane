@@ -14,6 +14,7 @@ type FinanceRepository interface {
 	UpdateAccount(ctx context.Context, req finmodels.UpdateAccountRequest) (finmodels.Account, error)
 	DeleteAccount(ctx context.Context, userID, accID int) (finmodels.Account, error)
 	UpdateAccountBalance(ctx context.Context, accountID int, newBalance float64) error
+	AddUserToAccount(ctx context.Context, userID, accountID int) (finmodels.SharingAccount, error)
 
 	// Operation methods
 	GetOperationsByAccount(ctx context.Context, accountID int) ([]finmodels.OperationInList, error)

@@ -42,6 +42,26 @@ func (m *MockFinanceServiceClient) EXPECT() *MockFinanceServiceClientMockRecorde
 	return m.recorder
 }
 
+// AddUserToAccounnt mocks base method.
+func (m *MockFinanceServiceClient) AddUserToAccounnt(ctx context.Context, in *proto.AccountRequest, opts ...grpc.CallOption) (*proto.SharingsResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "AddUserToAccounnt", varargs...)
+	ret0, _ := ret[0].(*proto.SharingsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddUserToAccounnt indicates an expected call of AddUserToAccounnt.
+func (mr *MockFinanceServiceClientMockRecorder) AddUserToAccounnt(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUserToAccounnt", reflect.TypeOf((*MockFinanceServiceClient)(nil).AddUserToAccounnt), varargs...)
+}
+
 // CreateAccount mocks base method.
 func (m *MockFinanceServiceClient) CreateAccount(ctx context.Context, in *proto.CreateAccountRequest, opts ...grpc.CallOption) (*proto.Account, error) {
 	m.ctrl.T.Helper()

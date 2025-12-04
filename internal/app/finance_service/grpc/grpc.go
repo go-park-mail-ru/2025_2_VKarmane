@@ -152,6 +152,26 @@ func (s *FinanceServerImpl) CreateOperation(ctx context.Context, req *finpb.Crea
 	return operation, nil
 }
 
+func (s *FinanceServerImpl) AddUserToAccounnt(ctx context.Context, req *finpb.AccountRequest) (*finpb.SharingsResponse, error) {
+	sharing, err := s.financeUC.AddUserToAccount(ctx, int(req.UserId), int(req.AccountId))
+	if err != nil {
+		logger := logger.FromContext(ctx)
+		for targetErr, resp := range finerrors.ErrorMap {
+			if errors.Is(err, targetErr) {
+				if logger != nil {
+					logger.Error("Failed to add user to account", "error", err)
+				}
+				return nil, status.Error(resp.Code, resp.Msg)
+			}
+		}
+		if logger != nil {
+			logger.Error("Failed to add user to account, internal error", "error", err)
+		}
+		return nil, status.Error(codes.Internal, string(models.ErrCodeAccountNotFound))
+	}
+	return sharing, nil
+}
+
 func (s *FinanceServerImpl) GetOperation(ctx context.Context, req *finpb.OperationRequest) (*finpb.Operation, error) {
 	operation, err := s.financeUC.GetOperationByID(ctx, int(req.AccountId), int(req.OperationId))
 	if err != nil {

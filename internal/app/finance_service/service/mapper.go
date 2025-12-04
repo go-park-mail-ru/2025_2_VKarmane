@@ -83,6 +83,15 @@ func convertToOperation(src finmodels.ESHitSource) *finpb.OperationInList {
 	}
 }
 
+func SharingToProto(sh finmodels.SharingAccount) *finpb.SharingsResponse {
+	return &finpb.SharingsResponse{
+		SharingId: int32(sh.ID),
+		UserId:    int32(sh.UserID),
+		AccountId: int32(sh.AccountID),
+		CreatedAt: timestamppb.New(sh.CreatedAt),
+	}
+}
+
 func parseTime(s string) *timestamppb.Timestamp {
 	t, err := time.Parse(time.RFC3339Nano, s)
 	if err != nil {

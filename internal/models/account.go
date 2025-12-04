@@ -41,3 +41,8 @@ type UpdateAccountRequest struct {
 	Description *string  `json:"description,omitempty"`
 	Balance     *float64 `json:"balance,omitempty" validate:"min=0"`
 }
+
+type AddUserToAccountRequest struct {
+	UserID    int `json:"user_id"`
+	AccountID int `json:"account_id"`
+}

@@ -10,4 +10,6 @@ var (
 	ErrForbidden         = errors.New("forbidden")
 	ErrInvalidData       = errors.New("invalid data")
 	ErrNegativeBalance   = errors.New("negative balance")
+	ErrPrivateAccount    = errors.New("private account")
+	ErrSharingExists     = errors.New("sharing exists")
 )

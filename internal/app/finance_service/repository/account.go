@@ -7,7 +7,9 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/errors"
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
 
 type PostgresRepository struct {
@@ -233,4 +235,34 @@ func (r *PostgresRepository) DeleteAccount(ctx context.Context, userID, accID in
 	}
 
 	return acc, nil
+}
+
+func (r *PostgresRepository) AddUserToAccount(ctx context.Context, userID, accountID int) (finmodels.SharingAccount, error) {
+	var accountType string
+
+	err := r.db.QueryRowContext(ctx, `SELECT account_type FROM account where _id = $1`, accountID).Scan(&accountType)
+	if err != nil {
+		return finmodels.SharingAccount{}, MapPgAccountError(err)
+	}
+
+	if accountType == models.PrivateAccount {
+		return finmodels.SharingAccount{}, errors.ErrPrivateAccount
+	}
+
+	query := `
+		INSERT INTO sharings
+		(account_id, user_id, created_at, updated_at)
+		VALUES ($1, $2, NOW(), NOW())
+		RETURNING _id, account_id, user_id, created_at
+	`
+	sh := finmodels.SharingAccount{}
+
+	err = r.db.QueryRowContext(ctx, query, accountID, userID).
+		Scan(&sh.ID, &sh.AccountID, &sh.UserID, &sh.CreatedAt)
+
+	if err != nil {
+		return finmodels.SharingAccount{}, MapPgAccountError(err)
+	}
+	return sh, nil
+
 }

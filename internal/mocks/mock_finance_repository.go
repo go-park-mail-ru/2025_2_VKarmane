@@ -41,6 +41,21 @@ func (m *MockFinanceRepository) EXPECT() *MockFinanceRepositoryMockRecorder {
 	return m.recorder
 }
 
+// AddUserToAccount mocks base method.
+func (m *MockFinanceRepository) AddUserToAccount(ctx context.Context, userID, accountID int) (models.SharingAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddUserToAccount", ctx, userID, accountID)
+	ret0, _ := ret[0].(models.SharingAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddUserToAccount indicates an expected call of AddUserToAccount.
+func (mr *MockFinanceRepositoryMockRecorder) AddUserToAccount(ctx, userID, accountID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUserToAccount", reflect.TypeOf((*MockFinanceRepository)(nil).AddUserToAccount), ctx, userID, accountID)
+}
+
 // CreateAccount mocks base method.
 func (m *MockFinanceRepository) CreateAccount(ctx context.Context, account models.Account, userID int) (models.Account, error) {
 	m.ctrl.T.Helper()
