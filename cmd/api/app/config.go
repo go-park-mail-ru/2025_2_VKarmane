@@ -110,14 +110,20 @@ func getEnvAsInt(key string, defaultValue int) int {
 }
 
 func (c *Config) GetDatabaseDSN() string {
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+	statementTimeout := getEnvAsInt("DB_STATEMENT_TIMEOUT", 30) // секунды, по умолчанию 30 секунд
+	lockTimeout := getEnvAsInt("DB_LOCK_TIMEOUT", 10)            // секунды, по умолчанию 10 секунд
+
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s statement_timeout=%d lock_timeout=%d",
 		c.Database.Host,
 		c.Database.Port,
 		c.Database.User,
 		c.Database.Password,
 		c.Database.DBName,
 		c.Database.SSLMode,
+		statementTimeout*1000, // конвертируем в миллисекунды для PostgreSQL
+		lockTimeout*1000,
 	)
+	return dsn
 }
 
 func (c *Config) GetCORSOrigins() []string {

@@ -14,6 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./migrations:/docker-entrypoint-initdb.d
+      - postgres_logs:/var/lib/postgresql/log
     networks:
       - vkarmane-network
     command:
@@ -22,6 +23,66 @@ services:
       - "max_connections=100"
       - "-c"
       - "listen_addresses=*"
+      - "-c"
+      - "shared_preload_libraries=pg_stat_statements,auto_explain"
+      - "-c"
+      - "logging_collector=on"
+      - "-c"
+      - "log_directory=/var/lib/postgresql/log"
+      - "-c"
+      - "log_filename=postgresql-%Y-%m-%d_%H%M%S.log"
+      - "-c"
+      - "log_rotation_age=1d"
+      - "-c"
+      - "log_rotation_size=100MB"
+      - "-c"
+      - "log_line_prefix='%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '"
+      - "-c"
+      - "log_timezone=UTC"
+      - "-c"
+      - "log_min_messages=warning"
+      - "-c"
+      - "log_min_error_statement=error"
+      - "-c"
+      - "log_min_duration_statement=1000"
+      - "-c"
+      - "log_statement=all"
+      - "-c"
+      - "log_duration=on"
+      - "-c"
+      - "log_connections=on"
+      - "-c"
+      - "log_disconnections=on"
+      - "-c"
+      - "log_lock_waits=on"
+      - "-c"
+      - "log_destination=stderr"
+      - "-c"
+      - "pg_stat_statements.max=10000"
+      - "-c"
+      - "pg_stat_statements.track=all"
+      - "-c"
+      - "pg_stat_statements.track_utility=on"
+      - "-c"
+      - "auto_explain.log_min_duration=1000"
+      - "-c"
+      - "auto_explain.log_analyze=on"
+      - "-c"
+      - "auto_explain.log_verbose=on"
+      - "-c"
+      - "auto_explain.log_buffers=on"
+      - "-c"
+      - "auto_explain.log_nested_statements=on"
+      - "-c"
+      - "auto_explain.log_format=text"
+      - "-c"
+      - "statement_timeout=30000"
+      - "-c"
+      - "lock_timeout=10000"
+      - "-c"
+      - "track_io_timing=on"
+      - "-c"
+      - "track_functions=all"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U vkarmane -d vkarmane"]
       interval: 10s
@@ -233,6 +294,7 @@ volumes:
   alertmanager_data:
   grafana_data:
   postgres_data:
+  postgres_logs:
   minio_data:
 
 networks:
