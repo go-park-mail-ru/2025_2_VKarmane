@@ -14,7 +14,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./migrations:/docker-entrypoint-initdb.d
-      - postgres_logs:/var/lib/postgresql/log
     networks:
       - vkarmane-network
     command:
