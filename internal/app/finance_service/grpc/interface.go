@@ -28,6 +28,7 @@ type FinanceUseCase interface {
 	GetCategoriesByUser(ctx context.Context, userID int) (*finpb.ListCategoriesResponse, error)
 	GetCategoriesWithStatsByUser(ctx context.Context, userID int) (*finpb.ListCategoriesWithStatsResponse, error)
 	GetCategoryByID(ctx context.Context, userID, categoryID int) (*finpb.CategoryWithStats, error)
+	GetCategoryByName(ctx context.Context, userID int, categoryName string) (*finpb.CategoryWithStats, error)
 	UpdateCategory(ctx context.Context, category finmodels.Category) (*finpb.Category, error)
 	DeleteCategory(ctx context.Context, userID, categoryID int) error
 }

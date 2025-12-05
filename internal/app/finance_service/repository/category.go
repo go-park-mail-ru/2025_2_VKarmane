@@ -158,6 +158,31 @@ func (r *PostgresRepository) GetCategoryByID(ctx context.Context, userID, catego
 	return categoryDBToModel(categoryDB), nil
 }
 
+func (r *PostgresRepository) GetCategoryByName(ctx context.Context, userID int, categoryName string) (finmodels.Category, error) {
+	query := `
+		SELECT _id, user_id, category_name, category_description, logo_hashed_id, created_at, updated_at
+		FROM category
+		WHERE user_id = $1 AND category_name = $2
+	`
+
+	var categoryDB CategoryDB
+	err := r.db.QueryRowContext(ctx, query, userID, categoryName).Scan(
+		&categoryDB.ID,
+		&categoryDB.UserID,
+		&categoryDB.Name,
+		&categoryDB.Description,
+		&categoryDB.LogoHashedID,
+		&categoryDB.CreatedAt,
+		&categoryDB.UpdatedAt,
+	)
+
+	if err != nil {
+		return finmodels.Category{}, MapPgCategoryError(err)
+	}
+
+	return categoryDBToModel(categoryDB), nil
+}
+
 func (r *PostgresRepository) UpdateCategory(ctx context.Context, category finmodels.Category) error {
 
 	log.Printf("hash %s", category.LogoHashedID)

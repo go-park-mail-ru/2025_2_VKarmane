@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 	"errors"
-	"log"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -284,12 +283,17 @@ func (s *FinanceServerImpl) CreateCategory(ctx context.Context, req *finpb.Creat
 }
 
 func (s *FinanceServerImpl) GetCategory(ctx context.Context, req *finpb.CategoryRequest) (*finpb.CategoryWithStats, error) {
-
 	category, err := s.financeUC.GetCategoryByID(ctx, int(req.UserId), int(req.CategoryId))
 	if err != nil {
-		log.Println(err.Error())
+		logger := logger.FromContext(ctx)
 		if errors.Is(err, finerrors.ErrCategoryNotFound) {
+			if logger != nil {
+				logger.Error("Failed to get category", "error", err)
+			}
 			return nil, status.Error(codes.NotFound, "category not found")
+		}
+		if logger != nil {
+			logger.Error("Failed to get category, internal error", "error", err)
 		}
 		return nil, status.Error(codes.Internal, "internal error")
 	}
@@ -302,6 +306,24 @@ func (s *FinanceServerImpl) GetCategoriesByUser(ctx context.Context, req *finpb.
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return categories, nil
+}
+
+func (s *FinanceServerImpl) GetCategoryByName(ctx context.Context, req *finpb.CategoryByNameRequest) (*finpb.CategoryWithStats, error) {
+	category, err := s.financeUC.GetCategoryByName(ctx, int(req.UserId), req.CategoryName)
+	if err != nil {
+		logger := logger.FromContext(ctx)
+		if errors.Is(err, finerrors.ErrCategoryNotFound) {
+			if logger != nil {
+				logger.Error("Failed to get category", "error", err)
+			}
+			return nil, status.Error(codes.NotFound, "category not found")
+		}
+		if logger != nil {
+			logger.Error("Failed to get category, internal error", "error", err)
+		}
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+	return category, nil
 }
 
 func (s *FinanceServerImpl) GetCategoriesWithStatsByUser(ctx context.Context, req *finpb.UserID) (*finpb.ListCategoriesWithStatsResponse, error) {

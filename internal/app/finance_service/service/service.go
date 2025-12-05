@@ -270,6 +270,19 @@ func (s *Service) GetCategoryByID(ctx context.Context, userID, categoryID int) (
 	return CategoryWithStatsToProto(category, stats), nil
 }
 
+func (s *Service) GetCategoryByName(ctx context.Context, userID int, categoryName string) (*finpb.CategoryWithStats, error) {
+	category, err := s.repo.GetCategoryByName(ctx, userID, categoryName)
+	if err != nil {
+		return nil, err
+	}
+	stats, err := s.repo.GetCategoryStats(ctx, userID, category.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return CategoryWithStatsToProto(category, stats), nil
+}
+
 func (s *Service) UpdateCategory(ctx context.Context, category finmodels.Category) (*finpb.Category, error) {
 	if err := s.repo.UpdateCategory(ctx, category); err != nil {
 		return nil, err

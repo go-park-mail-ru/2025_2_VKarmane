@@ -63,6 +63,13 @@ func UserAndCtegoryIDToProto(userID, ctgID int) *finpb.CategoryRequest {
 	}
 }
 
+func UserIDCategoryNameToProto(userID int, categoryName string) *finpb.CategoryByNameRequest {
+	return &finpb.CategoryByNameRequest{
+		UserId:       int32(userID),
+		CategoryName: categoryName,
+	}
+}
+
 func CategoryUpdateRequestToProto(userID, ctgID int, req models.UpdateCategoryRequest) *finpb.UpdateCategoryRequest {
 	return &finpb.UpdateCategoryRequest{
 		UserId:       int32(userID),

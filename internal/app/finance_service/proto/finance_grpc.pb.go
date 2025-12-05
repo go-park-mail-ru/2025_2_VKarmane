@@ -32,6 +32,7 @@ const (
 	FinanceService_DeleteOperation_FullMethodName              = "/finance.FinanceService/DeleteOperation"
 	FinanceService_CreateCategory_FullMethodName               = "/finance.FinanceService/CreateCategory"
 	FinanceService_GetCategory_FullMethodName                  = "/finance.FinanceService/GetCategory"
+	FinanceService_GetCategoryByName_FullMethodName            = "/finance.FinanceService/GetCategoryByName"
 	FinanceService_GetCategoriesByUser_FullMethodName          = "/finance.FinanceService/GetCategoriesByUser"
 	FinanceService_GetCategoriesWithStatsByUser_FullMethodName = "/finance.FinanceService/GetCategoriesWithStatsByUser"
 	FinanceService_UpdateCategory_FullMethodName               = "/finance.FinanceService/UpdateCategory"
@@ -58,6 +59,7 @@ type FinanceServiceClient interface {
 	// Category methods
 	CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*Category, error)
 	GetCategory(ctx context.Context, in *CategoryRequest, opts ...grpc.CallOption) (*CategoryWithStats, error)
+	GetCategoryByName(ctx context.Context, in *CategoryByNameRequest, opts ...grpc.CallOption) (*CategoryWithStats, error)
 	GetCategoriesByUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*ListCategoriesResponse, error)
 	GetCategoriesWithStatsByUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*ListCategoriesWithStatsResponse, error)
 	UpdateCategory(ctx context.Context, in *UpdateCategoryRequest, opts ...grpc.CallOption) (*Category, error)
@@ -202,6 +204,16 @@ func (c *financeServiceClient) GetCategory(ctx context.Context, in *CategoryRequ
 	return out, nil
 }
 
+func (c *financeServiceClient) GetCategoryByName(ctx context.Context, in *CategoryByNameRequest, opts ...grpc.CallOption) (*CategoryWithStats, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CategoryWithStats)
+	err := c.cc.Invoke(ctx, FinanceService_GetCategoryByName_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *financeServiceClient) GetCategoriesByUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*ListCategoriesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListCategoriesResponse)
@@ -262,6 +274,7 @@ type FinanceServiceServer interface {
 	// Category methods
 	CreateCategory(context.Context, *CreateCategoryRequest) (*Category, error)
 	GetCategory(context.Context, *CategoryRequest) (*CategoryWithStats, error)
+	GetCategoryByName(context.Context, *CategoryByNameRequest) (*CategoryWithStats, error)
 	GetCategoriesByUser(context.Context, *UserID) (*ListCategoriesResponse, error)
 	GetCategoriesWithStatsByUser(context.Context, *UserID) (*ListCategoriesWithStatsResponse, error)
 	UpdateCategory(context.Context, *UpdateCategoryRequest) (*Category, error)
@@ -314,6 +327,9 @@ func (UnimplementedFinanceServiceServer) CreateCategory(context.Context, *Create
 }
 func (UnimplementedFinanceServiceServer) GetCategory(context.Context, *CategoryRequest) (*CategoryWithStats, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetCategory not implemented")
+}
+func (UnimplementedFinanceServiceServer) GetCategoryByName(context.Context, *CategoryByNameRequest) (*CategoryWithStats, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCategoryByName not implemented")
 }
 func (UnimplementedFinanceServiceServer) GetCategoriesByUser(context.Context, *UserID) (*ListCategoriesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetCategoriesByUser not implemented")
@@ -582,6 +598,24 @@ func _FinanceService_GetCategory_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FinanceService_GetCategoryByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CategoryByNameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FinanceServiceServer).GetCategoryByName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FinanceService_GetCategoryByName_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FinanceServiceServer).GetCategoryByName(ctx, req.(*CategoryByNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FinanceService_GetCategoriesByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserID)
 	if err := dec(in); err != nil {
@@ -712,6 +746,10 @@ var FinanceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCategory",
 			Handler:    _FinanceService_GetCategory_Handler,
+		},
+		{
+			MethodName: "GetCategoryByName",
+			Handler:    _FinanceService_GetCategoryByName_Handler,
 		},
 		{
 			MethodName: "GetCategoriesByUser",

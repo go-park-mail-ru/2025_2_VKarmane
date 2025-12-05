@@ -151,6 +151,11 @@ message CategoryRequest {
     int32 category_id = 2;
 }
 
+message CategoryByNameRequest {
+    int32 user_id = 1;
+    string category_name = 2;
+}
+
 message ListCategoriesResponse {
     repeated Category categories = 1;
 }
@@ -201,6 +206,7 @@ service FinanceService {
     // Category methods
     rpc CreateCategory(CreateCategoryRequest) returns (Category);
     rpc GetCategory(CategoryRequest) returns (CategoryWithStats);
+    rpc GetCategoryByName(CategoryByNameRequest) returns (CategoryWithStats);
     rpc GetCategoriesByUser(UserID) returns (ListCategoriesResponse);
     rpc GetCategoriesWithStatsByUser(UserID) returns (ListCategoriesWithStatsResponse);
     rpc UpdateCategory(UpdateCategoryRequest) returns (Category);

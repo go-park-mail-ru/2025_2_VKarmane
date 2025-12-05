@@ -1,9 +1,15 @@
 package operation
 
 import (
+	"encoding/csv"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	lg "log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"google.golang.org/grpc/codes"
@@ -40,6 +46,16 @@ func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error)
 	vars := mux.Vars(r)
 	idStr := vars[paramName]
 	return strconv.Atoi(idStr)
+}
+
+func (h *Handler) checkCSVHeaders(headers []string) error {
+	expected := []string{"date", "category_name", "account_id", "sum-expense", "to", "sum-income", "description"}
+	for i, _ := range headers {
+		if headers[i] != expected[i] {
+			return errors.New("invalid file headers")
+		}
+	}
+	return nil
 }
 
 // func OperationInListToResponse(op models.OperationInList) models.OperationInListResponse {
@@ -565,4 +581,150 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httputils.Success(w, r, operationResponse)
+}
+
+func (h *Handler) UploadCVSData(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.getUserID(r)
+	log := logger.FromContext(r.Context())
+	if !ok {
+		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		httputils.Error(w, r, "Failed to upload file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	headers, err := reader.Read()
+	if err != nil {
+		httputils.Error(w, r, "Failed to read file", http.StatusBadRequest)
+		return
+	}
+	err = h.checkCSVHeaders(headers)
+	if err != nil {
+		httputils.Error(w, r, "Invalid file headers", http.StatusBadRequest)
+		return
+	}
+
+	var reqs []models.CreateOperationRequest
+	var accID int
+
+	for {
+		row, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			if log != nil {
+				log.Error("Failed to read file", "error", err)
+			}
+
+			errMsg := fmt.Sprintf("Failed to read file: %v", err)
+			httputils.Error(w, r, errMsg, http.StatusBadRequest)
+			return
+		}
+
+		var ctgID int
+		categoryName := row[1]
+		accountIDText := row[2]
+		if categoryName != "" {
+			ctg, err := h.finClient.GetCategoryByName(r.Context(), category.UserIDCategoryNameToProto(userID, categoryName))
+			if err != nil {
+				st, ok := status.FromError(err)
+				if !ok {
+					if log != nil {
+						log.Error("grpc CreateCategory unknown error", "error", err)
+					}
+					httputils.InternalError(w, r, "failed update operation")
+					return
+				}
+				switch st.Code() {
+				case codes.NotFound:
+					if log != nil {
+						log.Error("grpc GetCategory invalid arg", "error", err)
+					}
+				default:
+					if log != nil {
+						log.Error("grpc GetCategory error", "error", err)
+					}
+				}
+
+			}
+			ctgID = int(ctg.Category.Id)
+		}
+
+		accID, _ = strconv.Atoi(accountIDText)
+
+		opType := "expense"
+		incomeSum := row[5]
+		if incomeSum != "" {
+			opType = "income"
+		}
+
+		sum, err := strconv.ParseFloat(row[3], 5)
+		if err != nil || sum == 0 {
+			sum, _ = strconv.ParseFloat(row[5], 5)
+		}
+
+		date := row[0]
+		t, err := time.Parse("2006-01-02", date)
+		if err != nil {
+			httputils.InternalError(w, r, "failed parse date")
+			return
+		}
+
+		req := models.CreateOperationRequest{
+			AccountID:   accID,
+			CategoryID:  &ctgID,
+			Type:        models.OperationType(opType),
+			Name:        row[4],
+			Description: row[6],
+			Sum:         sum,
+			Date:        &t,
+		}
+		lg.Printf("req: %v", req)
+		reqs = append(reqs, req)
+	}
+
+	createdOps, _ := ProcessCSV(r.Context(), reqs, userID, accID, h.finClient)
+
+	if len(createdOps) == 0 {
+		httputils.Error(w, r, "Failed to create operations", http.StatusBadRequest)
+		return
+	}
+
+	for _, op := range createdOps {
+		var ctgLogo string
+		var ctgDTO models.CategoryWithStats
+
+		if op.CategoryID != 0 {
+			ctg, err := h.finClient.GetCategory(r.Context(),
+				category.UserAndCtegoryIDToProto(userID, op.CategoryID),
+			)
+			if err == nil {
+				ctgLogo, _ = h.imageUC.GetImageURL(r.Context(), ctg.Category.LogoHashedId)
+				ctgDTO = category.CategoryWithStatsToAPI(ctg)
+			}
+		}
+
+		searchObj := OperationResponseToSearch(op, ctgDTO, ctgLogo)
+		searchObj.Action = models.WRITE
+
+		data, _ := json.Marshal(searchObj)
+
+		_ = h.kafkaProducer.WriteMessages(
+			r.Context(),
+			kafkautils.KafkaMessage{
+				Payload: data,
+				Type:    models.TRANSACTIONS,
+			},
+		)
+	}
+
+	httputils.Created(w, r, "Данные успешно загружены")
+
 }

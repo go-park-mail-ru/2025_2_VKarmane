@@ -96,7 +96,6 @@ func (uc *UseCase) AddUserToAccount(ctx context.Context, userID, accountID int) 
 	return sharing, nil
 }
 
-// Operation methods
 func (uc *UseCase) GetOperationsByAccount(
 	ctx context.Context,
 	accountID, categoryID int,
@@ -125,7 +124,6 @@ func (uc *UseCase) GetOperationsByAccount(
 		},
 	}
 
-	// category_id
 	if categoryID != 0 {
 		boolQuery["filter"] = []interface{}{
 			map[string]interface{}{
@@ -136,7 +134,6 @@ func (uc *UseCase) GetOperationsByAccount(
 		}
 	}
 
-	// name LIKE %name%
 	if opName != "" {
 		boolQuery["should"] = []interface{}{
 			map[string]interface{}{
@@ -150,7 +147,6 @@ func (uc *UseCase) GetOperationsByAccount(
 		boolQuery["minimum_should_match"] = 1
 	}
 
-	// operation_type
 	if opType != "" {
 		if boolQuery["filter"] == nil {
 			boolQuery["filter"] = []interface{}{}
@@ -164,7 +160,6 @@ func (uc *UseCase) GetOperationsByAccount(
 		)
 	}
 
-	// account_type
 	if accType != "" {
 		if boolQuery["filter"] == nil {
 			boolQuery["filter"] = []interface{}{}
@@ -178,7 +173,6 @@ func (uc *UseCase) GetOperationsByAccount(
 		)
 	}
 
-	// DATE FILTER BY DAY
 	if date != "" {
 		t, err := time.Parse(time.RFC3339Nano, date)
 		if err == nil {
@@ -202,7 +196,6 @@ func (uc *UseCase) GetOperationsByAccount(
 		}
 	}
 
-	// Build full query
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": boolQuery,
@@ -314,6 +307,18 @@ func (uc *UseCase) GetCategoryByID(ctx context.Context, userID, categoryID int) 
 			log.Error("Failed to get category by ID", "error", err, "user_id", userID, "category_id", categoryID)
 		}
 		return nil, pkgerrors.Wrap(err, "finance.GetCategoryByID")
+	}
+	return category, nil
+}
+
+func (uc *UseCase) GetCategoryByName(ctx context.Context, userID int, categoryName string) (*finpb.CategoryWithStats, error) {
+	log := logger.FromContext(ctx)
+	category, err := uc.financeService.GetCategoryByName(ctx, userID, categoryName)
+	if err != nil {
+		if log != nil {
+			log.Error("Failed to get category by name", "error", err, "user_id", userID, "category_name", categoryName)
+		}
+		return nil, pkgerrors.Wrap(err, "finance.GetCategoryByName")
 	}
 	return category, nil
 }

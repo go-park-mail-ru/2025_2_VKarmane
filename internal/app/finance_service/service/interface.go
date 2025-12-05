@@ -28,6 +28,7 @@ type FinanceRepository interface {
 	GetCategoriesByUser(ctx context.Context, userID int) ([]finmodels.Category, error)
 	GetCategoriesWithStatsByUser(ctx context.Context, userID int) ([]finmodels.CategoryWithStats, error)
 	GetCategoryByID(ctx context.Context, userID, categoryID int) (finmodels.Category, error)
+	GetCategoryByName(ctx context.Context, userID int, categoryName string) (finmodels.Category, error)
 	UpdateCategory(ctx context.Context, category finmodels.Category) error
 	DeleteCategory(ctx context.Context, userID, categoryID int) error
 	GetCategoryStats(ctx context.Context, userID, categoryID int) (int, error)
