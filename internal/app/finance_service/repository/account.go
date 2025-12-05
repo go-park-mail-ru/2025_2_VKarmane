@@ -4,6 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
+	"strconv"
+	"time"
 
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 )
@@ -18,11 +21,39 @@ func NewDBConnection(dsn string) (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
+	// Настройка connection pool
+	maxOpenConns := getEnvAsInt("DB_MAX_OPEN_CONNS", 25)
+	db.SetMaxOpenConns(maxOpenConns)
+
+	maxIdleConns := getEnvAsInt("DB_MAX_IDLE_CONNS", 5)
+	db.SetMaxIdleConns(maxIdleConns)
+
+	connMaxLifetime := getEnvAsInt("DB_CONN_MAX_LIFETIME", 30) // минуты
+	if connMaxLifetime > 0 {
+		db.SetConnMaxLifetime(time.Duration(connMaxLifetime) * time.Minute)
+	}
+
+	connMaxIdleTime := getEnvAsInt("DB_CONN_MAX_IDLE_TIME", 10) // минуты
+	if connMaxIdleTime > 0 {
+		db.SetConnMaxIdleTime(time.Duration(connMaxIdleTime) * time.Minute)
+	}
+
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
 	return db, nil
+}
+
+func getEnvAsInt(key string, defaultValue int) int {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	if intValue, err := strconv.Atoi(value); err == nil {
+		return intValue
+	}
+	return defaultValue
 }
 
 func NewPostgresRepository(db *sql.DB) *PostgresRepository {

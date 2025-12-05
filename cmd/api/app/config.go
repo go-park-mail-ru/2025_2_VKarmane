@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -23,12 +24,16 @@ type Config struct {
 }
 
 type DatabaseConfig struct {
-	Host     string
-	Port     string
-	User     string
-	Password string
-	DBName   string
-	SSLMode  string
+	Host              string
+	Port              string
+	User              string
+	Password          string
+	DBName            string
+	SSLMode           string
+	MaxOpenConns      int
+	MaxIdleConns      int
+	ConnMaxLifetime   int // в минутах
+	ConnMaxIdleTime   int // в минутах
 }
 
 type HTTPSConfig struct {
@@ -59,12 +64,16 @@ func LoadConfig() *Config {
 		JWTSecret:          getEnv("JWT_SECRET", "your-secret-key"),
 		LogLevel:           getEnv("LOG_LEVEL", "info"),
 		Database: DatabaseConfig{
-			Host:     getEnv("DB_HOST", "localhost"),
-			Port:     getEnv("DB_PORT", "5432"),
-			User:     getEnv("DB_USER", "vkarmane_app"),
-			Password: getEnv("DB_PASSWORD", "vkarmane_app_password"),
-			DBName:   getEnv("DB_NAME", "vkarmane"),
-			SSLMode:  getEnv("DB_SSLMODE", "disable"),
+			Host:            getEnv("DB_HOST", "localhost"),
+			Port:            getEnv("DB_PORT", "5432"),
+			User:            getEnv("DB_USER", "vkarmane_app"),
+			Password:        getEnv("DB_PASSWORD", "vkarmane_app_password"),
+			DBName:          getEnv("DB_NAME", "vkarmane"),
+			SSLMode:         getEnv("DB_SSLMODE", "disable"),
+			MaxOpenConns:    getEnvAsInt("DB_MAX_OPEN_CONNS", 25),
+			MaxIdleConns:    getEnvAsInt("DB_MAX_IDLE_CONNS", 5),
+			ConnMaxLifetime: getEnvAsInt("DB_CONN_MAX_LIFETIME", 30),
+			ConnMaxIdleTime: getEnvAsInt("DB_CONN_MAX_IDLE_TIME", 10),
 		},
 		HTTPS: HTTPSConfig{
 			Enabled:  getEnv("HTTPS_ENABLED", "false") == "true",
@@ -87,6 +96,15 @@ func LoadConfig() *Config {
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+func getEnvAsInt(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		if intValue, err := strconv.Atoi(value); err == nil {
+			return intValue
+		}
 	}
 	return defaultValue
 }
