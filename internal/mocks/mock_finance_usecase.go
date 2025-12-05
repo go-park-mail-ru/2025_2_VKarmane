@@ -221,6 +221,21 @@ func (mr *MockFinanceUseCaseMockRecorder) GetCategoryByID(ctx, userID, categoryI
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryByID", reflect.TypeOf((*MockFinanceUseCase)(nil).GetCategoryByID), ctx, userID, categoryID)
 }
 
+// GetCategoryByName mocks base method.
+func (m *MockFinanceUseCase) GetCategoryByName(ctx context.Context, userID int, categoryName string) (*proto.CategoryWithStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategoryByName", ctx, userID, categoryName)
+	ret0, _ := ret[0].(*proto.CategoryWithStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategoryByName indicates an expected call of GetCategoryByName.
+func (mr *MockFinanceUseCaseMockRecorder) GetCategoryByName(ctx, userID, categoryName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryByName", reflect.TypeOf((*MockFinanceUseCase)(nil).GetCategoryByName), ctx, userID, categoryName)
+}
+
 // GetOperationByID mocks base method.
 func (m *MockFinanceUseCase) GetOperationByID(ctx context.Context, accID, opID int) (*proto.Operation, error) {
 	m.ctrl.T.Helper()
