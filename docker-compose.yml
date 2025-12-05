@@ -147,15 +147,22 @@ services:
       - /:/host:ro
 
 
-  docker_exporter:
-    image: prometheusnet/docker_exporter
-    container_name: vkarmane-docker-exporter
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: vkarmane-cadvisor
     ports:
-      - "9417:9417"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - "8020:8080"
     networks:
       - vkarmane-network
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    labels:
+      vk_service: cadvisor
+      vk_project: vkarmane
+
 
 
   alertmanager:
@@ -226,6 +233,9 @@ services:
     ports:
       - "8100:8100"
     restart: unless-stopped
+    labels:
+      vk_service: budget
+      vk_project: vkarmane
 
   
   finance_service:
