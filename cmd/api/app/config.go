@@ -61,8 +61,8 @@ func LoadConfig() *Config {
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
 			Port:     getEnv("DB_PORT", "5432"),
-			User:     getEnv("DB_USER", "vkarmane"),
-			Password: getEnv("DB_PASSWORD", "vkarmane_password"),
+			User:     getEnv("DB_USER", "vkarmane_app"),
+			Password: getEnv("DB_PASSWORD", "vkarmane_app_password"),
 			DBName:   getEnv("DB_NAME", "vkarmane"),
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},

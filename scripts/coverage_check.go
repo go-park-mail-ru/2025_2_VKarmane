@@ -75,3 +75,5 @@ func parseProfile(path string) (total float64, covered float64, err error) {
 	return total, covered, nil
 }
 
+
+

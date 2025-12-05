@@ -17,3 +17,5 @@ CMD ["/app/finance_service"]
 
 
 
+
+

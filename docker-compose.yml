@@ -106,8 +106,8 @@ services:
 
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: vkarmane
-      DB_PASSWORD: vkarmane_password
+      DB_USER: vkarmane_app
+      DB_PASSWORD: vkarmane_app_password
       DB_NAME: vkarmane
       DB_SSLMODE: disable
 
@@ -132,8 +132,8 @@ services:
       HOST: 0.0.0.0
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: vkarmane
-      DB_PASSWORD: vkarmane_password
+      DB_USER: vkarmane_app
+      DB_PASSWORD: vkarmane_app_password
       DB_NAME: vkarmane
       DB_SSLMODE: disable
 
@@ -159,8 +159,8 @@ services:
       HOST: 0.0.0.0
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: vkarmane
-      DB_PASSWORD: vkarmane_password
+      DB_USER: vkarmane_app
+      DB_PASSWORD: vkarmane_app_password
       DB_NAME: vkarmane
       DB_SSLMODE: disable
 
@@ -183,8 +183,8 @@ services:
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: vkarmane
-      DB_PASSWORD: vkarmane_password
+      DB_USER: vkarmane_app
+      DB_PASSWORD: vkarmane_app_password
       DB_NAME: vkarmane
       DB_SSLMODE: disable
       PORT: 8080
