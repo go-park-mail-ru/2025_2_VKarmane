@@ -23,7 +23,6 @@ func TestCreateRequestToModel(t *testing.T) {
 	budget := CreateRequestToModel(req, userID)
 
 	assert.Equal(t, userID, budget.UserID)
-	assert.Equal(t, req.CategoryID, budget.CategoryID)
 	assert.Equal(t, req.Amount, budget.Amount)
 	assert.Equal(t, 0.0, budget.Actual)
 	assert.Equal(t, 1, budget.CurrencyID)
@@ -37,7 +36,6 @@ func TestModelBudgetToProto(t *testing.T) {
 	bdg := bdgmodels.Budget{
 		ID:          1,
 		UserID:      42,
-		CategoryID:  2,
 		Amount:      5000,
 		Actual:      1000,
 		CurrencyID:  1,
@@ -52,7 +50,6 @@ func TestModelBudgetToProto(t *testing.T) {
 
 	assert.Equal(t, int32(bdg.ID), pb.Id)
 	assert.Equal(t, int32(bdg.UserID), pb.UserId)
-	assert.Equal(t, int32(bdg.CategoryID), pb.CategoryId)
 	assert.Equal(t, bdg.Amount, pb.Sum)
 	assert.Equal(t, bdg.Actual, pb.Actual)
 	assert.Equal(t, int32(bdg.CurrencyID), pb.CurrencyId)
@@ -66,8 +63,8 @@ func TestModelBudgetToProto(t *testing.T) {
 func TestModelListToProto(t *testing.T) {
 	now := time.Now()
 	budgets := []bdgmodels.Budget{
-		{ID: 1, UserID: 1, CategoryID: 1, Amount: 100, Actual: 50, CurrencyID: 1, CreatedAt: now, UpdatedAt: now, PeriodStart: now, PeriodEnd: now},
-		{ID: 2, UserID: 2, CategoryID: 2, Amount: 200, Actual: 150, CurrencyID: 1, CreatedAt: now, UpdatedAt: now, PeriodStart: now, PeriodEnd: now},
+		{ID: 1, UserID: 1, Amount: 100, Actual: 50, CurrencyID: 1, CreatedAt: now, UpdatedAt: now, PeriodStart: now, PeriodEnd: now},
+		{ID: 2, UserID: 2, Amount: 200, Actual: 150, CurrencyID: 1, CreatedAt: now, UpdatedAt: now, PeriodStart: now, PeriodEnd: now},
 	}
 
 	resp := ModelListToProto(budgets)
@@ -86,7 +83,6 @@ func TestCreateRequestToModel_Empty(t *testing.T) {
 	budget := CreateRequestToModel(req, userID)
 
 	assert.Equal(t, 0, budget.UserID)
-	assert.Equal(t, 0, budget.CategoryID)
 	assert.Equal(t, 0.0, budget.Amount)
 	assert.Equal(t, 0.0, budget.Actual)
 	assert.Equal(t, 1, budget.CurrencyID) // по дефолту ставится 1
@@ -102,7 +98,6 @@ func TestModelBudgetToProto_Empty(t *testing.T) {
 
 	assert.Equal(t, int32(0), pb.Id)
 	assert.Equal(t, int32(0), pb.UserId)
-	assert.Equal(t, int32(0), pb.CategoryId)
 	assert.Equal(t, float64(0), pb.Sum)
 	assert.Equal(t, float64(0), pb.Actual)
 	assert.Equal(t, int32(0), pb.CurrencyId)

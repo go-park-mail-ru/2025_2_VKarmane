@@ -8,7 +8,6 @@ import (
 type Budget struct {
 	ID          int `json:"id"`
 	UserID      int `json:"user_id"`
-	CategoryID  int `json:"category_id"`
 	Amount      float64 `json:"sum"`
 	Actual      float64 // Фактические расходы (вычисляемое поле)
 	CurrencyID  int `json:"currency_id"`
@@ -21,7 +20,6 @@ type Budget struct {
 }
 
 type CreateBudgetRequest struct {
-	CategoryID  int       `json:"category_id"`
 	Amount      float64   `json:"sum" validate:"min=0"`
 	Description string    `json:"description,omitempty" validate:"max=80"`
 	CreatedAt   time.Time `json:"created_at"`

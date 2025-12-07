@@ -93,7 +93,6 @@ CREATE TABLE IF NOT EXISTS operation (
 CREATE TABLE IF NOT EXISTS budget (
     _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id INT NOT NULL REFERENCES "user"(_id) ON DELETE CASCADE,
-    category_id INT NOT NULL REFERENCES category(_id) ON DELETE CASCADE,
     currency_id INT NOT NULL REFERENCES currency(_id) ON DELETE CASCADE,
     amount DECIMAL(10,2) NOT NULL CHECK (amount >= 0),
     budget_description TEXT CHECK (LENGTH(budget_description) <= 80),

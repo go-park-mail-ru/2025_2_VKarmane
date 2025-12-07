@@ -10,7 +10,6 @@ import (
 func CreateRequestToModel(req bdgmodels.CreateBudgetRequest, userID int) bdgmodels.Budget {
 	return bdgmodels.Budget{
 		UserID:      userID,
-		CategoryID:  req.CategoryID,
 		Amount:      req.Amount,
 		Actual:      0,
 		CurrencyID:  1,
@@ -24,7 +23,6 @@ func ModelBudgetToProto(bdg bdgmodels.Budget) *bdgpb.Budget {
 	return &bdgpb.Budget{
 		Id:          int32(bdg.ID),
 		UserId:      int32(bdg.UserID),
-		CategoryId:  int32(bdg.CategoryID),
 		Sum:         bdg.Amount,
 		Actual:      bdg.Actual,
 		CurrencyId:  int32(bdg.CurrencyID),

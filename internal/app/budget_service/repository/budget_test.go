@@ -26,11 +26,11 @@ func TestPostgresRepository_GetBudgetsByUser(t *testing.T) {
 	userID := 1
 
 	rows := sqlmock.NewRows([]string{
-		"_id", "user_id", "category_id", "currency_id", "amount", "budget_description",
+		"_id", "user_id", "currency_id", "amount", "budget_description",
 		"created_at", "updated_at", "closed_at", "period_start", "period_end",
-	}).AddRow(1, userID, 2, 1, 100.0, "desc", time.Now(), time.Now(), nil, time.Now(), time.Now())
+	}).AddRow(1, userID, 1, 100.0, "desc", time.Now(), time.Now(), nil, time.Now(), time.Now())
 
-	mock.ExpectQuery("SELECT _id, user_id, category_id, currency_id, amount, budget_description,").
+	mock.ExpectQuery("SELECT _id, user_id, currency_id, amount, budget_description,").
 		WithArgs(userID).
 		WillReturnRows(rows)
 
@@ -50,7 +50,6 @@ func TestPostgresRepository_CreateBudget(t *testing.T) {
 
 	budget := bdgmodels.Budget{
 		UserID:      1,
-		CategoryID:  2,
 		CurrencyID:  1,
 		Amount:      100.0,
 		Description: "desc",
@@ -59,7 +58,7 @@ func TestPostgresRepository_CreateBudget(t *testing.T) {
 	}
 
 	mock.ExpectQuery("INSERT INTO budget").
-		WithArgs(budget.UserID, budget.CategoryID, budget.CurrencyID, budget.Amount, budget.Description, budget.PeriodStart, budget.PeriodEnd).
+		WithArgs(budget.UserID, budget.CurrencyID, budget.Amount, budget.Description, budget.PeriodStart, budget.PeriodEnd).
 		WillReturnRows(sqlmock.NewRows([]string{"_id", "created_at", "updated_at"}).AddRow(1, time.Now(), time.Now()))
 
 	created, err := repo.CreateBudget(ctx, budget)
@@ -100,12 +99,11 @@ func TestPostgresRepository_UpdateBudget(t *testing.T) {
 	mock.ExpectQuery("UPDATE budget").
 		WithArgs(amountArg, descArg, req.PeriodStart, req.PeriodEnd, req.BudgetID, req.UserID).
 		WillReturnRows(sqlmock.NewRows([]string{
-			"_id", "user_id", "category_id", "currency_id", "amount", "budget_description",
+			"_id", "user_id", "currency_id", "amount", "budget_description",
 			"created_at", "updated_at", "period_start", "period_end",
 		}).AddRow(
 			req.BudgetID,
 			req.UserID,
-			2,
 			1,
 			*req.Amount,
 			*req.Description,
@@ -134,9 +132,9 @@ func TestPostgresRepository_DeleteBudget(t *testing.T) {
 	mock.ExpectQuery("UPDATE budget").
 		WithArgs(budgetID).
 		WillReturnRows(sqlmock.NewRows([]string{
-			"_id", "user_id", "category_id", "currency_id", "amount", "budget_description",
+			"_id", "user_id", "currency_id", "amount", "budget_description",
 			"created_at", "updated_at", "period_start", "period_end",
-		}).AddRow(budgetID, 1, 2, 1, 100.0, "desc", time.Now(), time.Now(), time.Now(), time.Now()))
+		}).AddRow(budgetID, 1, 1, 100.0, "desc", time.Now(), time.Now(), time.Now(), time.Now()))
 
 	deleted, err := repo.DeleteBudget(ctx, budgetID)
 	require.NoError(t, err)
@@ -152,7 +150,7 @@ func TestPostgresRepository_GetBudgetsByUser_Error(t *testing.T) {
 	ctx := context.Background()
 	userID := 1
 
-	mock.ExpectQuery("SELECT _id, user_id, category_id, currency_id, amount, budget_description,").
+	mock.ExpectQuery("SELECT _id, user_id, currency_id, amount, budget_description,").
 		WithArgs(userID).
 		WillReturnError(errors.New("db error"))
 
@@ -171,7 +169,6 @@ func TestPostgresRepository_CreateBudget_UniqueViolation(t *testing.T) {
 
 	budget := bdgmodels.Budget{
 		UserID:      1,
-		CategoryID:  2,
 		CurrencyID:  1,
 		Amount:      100,
 		Description: "desc",
@@ -181,7 +178,7 @@ func TestPostgresRepository_CreateBudget_UniqueViolation(t *testing.T) {
 
 	mockErr := &pq.Error{Code: UniqueViolation}
 	mock.ExpectQuery("INSERT INTO budget").WithArgs(
-		budget.UserID, budget.CategoryID, budget.CurrencyID, budget.Amount,
+		budget.UserID, budget.CurrencyID, budget.Amount,
 		budget.Description, budget.PeriodStart, budget.PeriodEnd,
 	).WillReturnError(mockErr)
 
@@ -199,7 +196,6 @@ func TestPostgresRepository_CreateBudget_NotNullViolation(t *testing.T) {
 
 	budget := bdgmodels.Budget{
 		UserID:      1,
-		CategoryID:  2,
 		CurrencyID:  1,
 		Amount:      100,
 		Description: "desc",
@@ -209,7 +205,7 @@ func TestPostgresRepository_CreateBudget_NotNullViolation(t *testing.T) {
 
 	mockErr := &pq.Error{Code: NotNullViolation}
 	mock.ExpectQuery("INSERT INTO budget").WithArgs(
-		budget.UserID, budget.CategoryID, budget.CurrencyID, budget.Amount,
+		budget.UserID, budget.CurrencyID, budget.Amount,
 		budget.Description, budget.PeriodStart, budget.PeriodEnd,
 	).WillReturnError(mockErr)
 

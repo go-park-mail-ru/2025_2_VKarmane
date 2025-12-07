@@ -115,7 +115,6 @@ func TestCreateBudget_Success(t *testing.T) {
 	h := NewHandler(clock.RealClock{}, mockClient)
 
 	reqBody := models.CreateBudgetRequest{
-		CategoryID:  1,
 		Description: "Test budget",
 		Amount:      100,
 		CreatedAt:   time.Now(),
@@ -125,7 +124,7 @@ func TestCreateBudget_Success(t *testing.T) {
 
 	mockClient.EXPECT().
 		CreateBudget(gomock.Any(), ModelCreateReqtoProtoReq(reqBody, 42)).
-		Return(&bdgpb.Budget{Id: 10, Sum: 100, CategoryId: 1}, nil)
+		Return(&bdgpb.Budget{Id: 10, Sum: 100}, nil)
 
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/budget", bytes.NewReader(body))
@@ -143,7 +142,7 @@ func TestCreateBudget_Conflict(t *testing.T) {
 	mockClient := mocks.NewMockBudgetServiceClient(ctrl)
 	h := NewHandler(clock.RealClock{}, mockClient)
 
-	reqBody := models.CreateBudgetRequest{CategoryID: 1, Amount: 50}
+	reqBody := models.CreateBudgetRequest{Amount: 50}
 
 	mockClient.EXPECT().
 		CreateBudget(gomock.Any(), ModelCreateReqtoProtoReq(reqBody, 1)).

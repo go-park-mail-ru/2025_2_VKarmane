@@ -7,7 +7,6 @@ import (
 type Budget struct {
 	ID          int       `json:"id"`
 	UserID      int       `json:"user_id"`
-	CategoryID  int       `json:"category_id"`
 	Amount      float64   `json:"sum"`
 	Actual      float64   // Фактические расходы (вычисляемое поле)
 	CurrencyID  int       `json:"currency_id"`

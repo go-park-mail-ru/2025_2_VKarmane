@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/handlers/account"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/handlers/category"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	image "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/usecase"
@@ -726,5 +727,91 @@ func (h *Handler) UploadCVSData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httputils.Created(w, r, "Данные успешно загружены")
+}
+
+func (h *Handler) GetCSVData(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.getUserID(r)
+	log := logger.FromContext(r.Context())
+	if !ok {
+		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	accs, err := h.finClient.GetAccountsByUser(r.Context(), account.UserIDToProtoID(userID))
+	if err != nil {
+		_, ok := status.FromError(err)
+		if !ok {
+			if log != nil {
+				log.Error("grpc GetAccountsByUser unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to get accounts")
+			return
+		}
+		if log != nil {
+			log.Error("grpc GetAccountsByUser error", "error", err)
+		}
+		httputils.InternalError(w, r, "failed to get account")
+		return
+	}
+
+	accountsDTO := account.AccountResponseListProtoToApit(accs, userID)
+
+	w.Header().Set("Content-Type", "text/csv")
+    w.Header().Set("Content-Disposition", "attachment; filename=\"operations.csv\"")
+
+	writer := csv.NewWriter(w)
+    defer writer.Flush()
+
+    writer.Write([]string{
+        "date",
+        "category_name",
+        "account_id",
+        "sum-expense",
+        "to",
+        "sum-income",
+        "description",
+    })
+
+	for _, acc := range accountsDTO.Accounts {
+		opsResp, err := h.finClient.GetOperationsByAccount(r.Context(), ProtoGetOperationsRequest(userID, acc.ID, r.URL.Query()))
+		 if err != nil {
+            if log != nil {
+                log.Error("grpc GetOperationsByAccount error", "error", err)
+            }
+            continue 
+        }
+		for _, op := range opsResp.Operations {
+			date := ""
+            if op.Date != nil {
+                date = op.Date.AsTime().Format("2006-01-02")
+            }
+			var (
+                categoryName string
+                sumExpense   string
+                sumIncome    string
+                toField      string
+            )
+			if op.Type == "expense" {
+                categoryName = op.CategoryName
+                sumExpense = fmt.Sprintf("%.2f", op.Sum)
+                sumIncome = "0"
+                toField = op.Name
+            } else {
+                categoryName = ""
+                sumExpense = "0"
+                sumIncome = fmt.Sprintf("%.2f", op.Sum)
+                toField = op.Name
+            }
+			writer.Write([]string{
+                date,
+                categoryName,
+                strconv.Itoa(int(op.AccountId)),
+                sumExpense,
+                toField,
+                sumIncome,
+                op.Description,
+            })
+		}
+	}
 
 }

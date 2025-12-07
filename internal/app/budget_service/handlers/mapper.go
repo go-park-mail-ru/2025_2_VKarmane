@@ -10,7 +10,6 @@ func BudgetToAPI(bdg *bdgpb.Budget) models.Budget {
 	return models.Budget{
 		ID:          int(bdg.Id),
 		UserID:      int(bdg.UserId),
-		CategoryID:  int(bdg.CategoryId),
 		CurrencyID:  int(bdg.CurrencyId),
 		Amount:      bdg.Sum,
 		Description: bdg.Description,
@@ -39,7 +38,6 @@ func IDsToBudgetRequest(budgetID, userID int) *bdgpb.BudgetRequest {
 func ModelCreateReqtoProtoReq(req models.CreateBudgetRequest, userID int) *bdgpb.CreateBudgetRequest {
 	return &bdgpb.CreateBudgetRequest{
 		UserID:      int32(userID),
-		CategoryId:  int32(req.CategoryID),
 		Sum:         req.Amount,
 		Description: req.Description,
 		CreatedAt:   timestamppb.New(req.CreatedAt),

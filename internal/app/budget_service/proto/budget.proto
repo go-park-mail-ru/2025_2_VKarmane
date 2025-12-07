@@ -20,28 +20,26 @@ import "google/protobuf/timestamp.proto";
 message Budget {
   int32 id = 1;
   int32 user_id = 2;
-  int32 category_id = 3;
-  double sum = 4;
-  double actual = 5;
-  int32 currency_id = 6;
-  string description = 7;
-  google.protobuf.Timestamp created_at = 8;
-  google.protobuf.Timestamp updated_at = 9;
-  google.protobuf.Timestamp closed_at = 10;
-  google.protobuf.Timestamp period_start = 11;
-  google.protobuf.Timestamp period_end = 12;
+  double sum = 3;
+  double actual = 4;
+  int32 currency_id = 5;
+  string description = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  google.protobuf.Timestamp closed_at = 9;
+  google.protobuf.Timestamp period_start = 10;
+  google.protobuf.Timestamp period_end = 11;
 }
 
 
 message CreateBudgetRequest {
   int32 UserID = 1;
-  int32 category_id = 2;
-  double sum = 3;
-  string description = 4;
+  double sum = 2;
+  string description = 3;
 
-  google.protobuf.Timestamp created_at = 5;
-  google.protobuf.Timestamp period_start = 6;
-  google.protobuf.Timestamp period_end = 7;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp period_start = 5;
+  google.protobuf.Timestamp period_end = 6;
 }
 
 message UpdateBudgetRequest {

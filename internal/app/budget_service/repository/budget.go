@@ -31,7 +31,7 @@ func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 
 func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) ([]bdgmodels.Budget, error) {
 	query := `
-		SELECT _id, user_id, category_id, currency_id, amount, budget_description, 
+		SELECT _id, user_id, currency_id, amount, budget_description, 
 		       created_at, updated_at, closed_at, period_start, period_end
 		FROM budget
 		WHERE user_id = $1 AND closed_at IS NULL
@@ -51,7 +51,6 @@ func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) (
 		if err := rows.Scan(
 			&b.ID,
 			&b.UserID,
-			&b.CategoryID,
 			&b.CurrencyID,
 			&b.Amount,
 			&b.Description,
@@ -67,7 +66,6 @@ func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) (
 		pb := bdgmodels.Budget{
 			ID:          b.ID,
 			UserID:      b.UserID,
-			CategoryID:  b.CategoryID,
 			CurrencyID:  b.CurrencyID,
 			Amount:      b.Amount,
 			Description: b.Description,
@@ -85,16 +83,15 @@ func (r *PostgresRepository) GetBudgetsByUser(ctx context.Context, userID int) (
 func (r *PostgresRepository) CreateBudget(ctx context.Context, budget bdgmodels.Budget) (bdgmodels.Budget, error) {
 	query := `
 		INSERT INTO budget (
-			user_id, category_id, currency_id, amount, budget_description, 
+			user_id, currency_id, amount, budget_description, 
 			created_at, updated_at, period_start, period_end
 		)
-		VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), $6, $7)
+		VALUES ($1, $2, $3, $4, NOW(), NOW(), $5, $6)
 		RETURNING _id, created_at, updated_at
 	`
 
 	err := r.db.QueryRowContext(ctx, query,
 		budget.UserID,
-		budget.CategoryID,
 		budget.CurrencyID,
 		budget.Amount,
 		budget.Description,
@@ -119,7 +116,7 @@ func (r *PostgresRepository) UpdateBudget(ctx context.Context, req bdgmodels.Upd
 			period_end = COALESCE($4, period_end),
 			updated_at = NOW()
 		WHERE _id = $5 AND user_id = $6 AND closed_at IS NULL
-		RETURNING _id, user_id, category_id, currency_id, amount, budget_description,
+		RETURNING _id, user_id,currency_id, amount, budget_description,
 				  created_at, updated_at, period_start, period_end
 	`
 
@@ -134,7 +131,6 @@ func (r *PostgresRepository) UpdateBudget(ctx context.Context, req bdgmodels.Upd
 	).Scan(
 		&b.ID,
 		&b.UserID,
-		&b.CategoryID,
 		&b.CurrencyID,
 		&b.Amount,
 		&b.Description,
@@ -156,7 +152,7 @@ func (r *PostgresRepository) DeleteBudget(ctx context.Context, budgetID int) (bd
 		UPDATE budget 
 		SET closed_at = NOW(), updated_at = NOW()
 		WHERE _id = $1
-		RETURNING _id, user_id, category_id, currency_id, amount, budget_description,
+		RETURNING _id, user_id, currency_id, amount, budget_description,
 				  created_at, updated_at, period_start, period_end
 	`
 
@@ -164,7 +160,6 @@ func (r *PostgresRepository) DeleteBudget(ctx context.Context, budgetID int) (bd
 	err := r.db.QueryRowContext(ctx, query, budgetID).Scan(
 		&b.ID,
 		&b.UserID,
-		&b.CategoryID,
 		&b.CurrencyID,
 		&b.Amount,
 		&b.Description,
