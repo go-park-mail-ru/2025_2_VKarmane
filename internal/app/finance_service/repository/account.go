@@ -59,11 +59,13 @@ func NewPostgresRepository(db *sql.DB) *PostgresRepository {
 
 func (r *PostgresRepository) GetAccountsByUser(ctx context.Context, userID int) ([]finmodels.Account, error) {
 	query := `
-		SELECT a._id, a.balance, a.account_type, a.currency_id, a.created_at, a.updated_at, a.account_name, a.account_description
+			SELECT a._id, a.balance, a.account_type, a.currency_id, 
+		a.created_at, a.updated_at, a.account_name, a.account_description
 		FROM account a
 		JOIN sharings s ON a._id = s.account_id
 		WHERE s.user_id = $1
-		ORDER BY a.created_at DESC
+		ORDER BY a.balance DESC, a.created_at DESC
+		LIMIT 3;
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, userID)

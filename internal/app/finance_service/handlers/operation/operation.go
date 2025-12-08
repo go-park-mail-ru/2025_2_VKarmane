@@ -757,60 +757,60 @@ func (h *Handler) GetCSVData(w http.ResponseWriter, r *http.Request) {
 	accountsDTO := account.AccountResponseListProtoToApit(accs, userID)
 
 	w.Header().Set("Content-Type", "text/csv")
-    w.Header().Set("Content-Disposition", "attachment; filename=\"operations.csv\"")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"operations.csv\"")
 
 	writer := csv.NewWriter(w)
-    defer writer.Flush()
+	defer writer.Flush()
 
-    writer.Write([]string{
-        "date",
-        "category_name",
-        "account_id",
-        "sum-expense",
-        "to",
-        "sum-income",
-        "description",
-    })
+	writer.Write([]string{
+		"date",
+		"category_name",
+		"account_id",
+		"sum-expense",
+		"to",
+		"sum-income",
+		"description",
+	})
 
 	for _, acc := range accountsDTO.Accounts {
 		opsResp, err := h.finClient.GetOperationsByAccount(r.Context(), ProtoGetOperationsRequest(userID, acc.ID, r.URL.Query()))
-		 if err != nil {
-            if log != nil {
-                log.Error("grpc GetOperationsByAccount error", "error", err)
-            }
-            continue 
-        }
+		if err != nil {
+			if log != nil {
+				log.Error("grpc GetOperationsByAccount error", "error", err)
+			}
+			continue
+		}
 		for _, op := range opsResp.Operations {
 			date := ""
-            if op.Date != nil {
-                date = op.Date.AsTime().Format("2006-01-02")
-            }
+			if op.Date != nil {
+				date = op.Date.AsTime().Format("2006-01-02")
+			}
 			var (
-                categoryName string
-                sumExpense   string
-                sumIncome    string
-                toField      string
-            )
+				categoryName string
+				sumExpense   string
+				sumIncome    string
+				toField      string
+			)
 			if op.Type == "expense" {
-                categoryName = op.CategoryName
-                sumExpense = fmt.Sprintf("%.2f", op.Sum)
-                sumIncome = "0"
-                toField = op.Name
-            } else {
-                categoryName = ""
-                sumExpense = "0"
-                sumIncome = fmt.Sprintf("%.2f", op.Sum)
-                toField = op.Name
-            }
+				categoryName = op.CategoryName
+				sumExpense = fmt.Sprintf("%.2f", op.Sum)
+				sumIncome = "0"
+				toField = op.Name
+			} else {
+				categoryName = ""
+				sumExpense = "0"
+				sumIncome = fmt.Sprintf("%.2f", op.Sum)
+				toField = op.Name
+			}
 			writer.Write([]string{
-                date,
-                categoryName,
-                strconv.Itoa(int(op.AccountId)),
-                sumExpense,
-                toField,
-                sumIncome,
-                op.Description,
-            })
+				date,
+				categoryName,
+				strconv.Itoa(int(op.AccountId)),
+				sumExpense,
+				toField,
+				sumIncome,
+				op.Description,
+			})
 		}
 	}
 

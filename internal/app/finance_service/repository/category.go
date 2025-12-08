@@ -269,12 +269,12 @@ func (r *PostgresRepository) GetCategoryStats(ctx context.Context, userID, categ
 }
 
 func (r *PostgresRepository) GetCategoriesReport(
-    ctx context.Context,
-    userID int,
-    start, end time.Time,
+	ctx context.Context,
+	userID int,
+	start, end time.Time,
 ) ([]finmodels.CategoryInReport, error) {
 
-    query := `
+	query := `
         SELECT
             c._id AS category_id,
             c.category_name,
@@ -296,35 +296,35 @@ func (r *PostgresRepository) GetCategoriesReport(
         ORDER BY c.category_name;
     `
 
-    rows, err := r.db.QueryContext(ctx, query, userID, start, end)
-    if err != nil {
-        return nil, MapPgCategoryError(err)
-    }
-    defer rows.Close()
+	rows, err := r.db.QueryContext(ctx, query, userID, start, end)
+	if err != nil {
+		return nil, MapPgCategoryError(err)
+	}
+	defer rows.Close()
 
-    reports := []finmodels.CategoryInReport{}
+	reports := []finmodels.CategoryInReport{}
 
-    for rows.Next() {
-        var rep finmodels.CategoryInReport
+	for rows.Next() {
+		var rep finmodels.CategoryInReport
 
-        err := rows.Scan(
-            &rep.CategoryID,
-            &rep.CategoryName,
-            &rep.OperationCount,
-            &rep.TotalSum,
-        )
-        if err != nil {
-            return nil, MapPgCategoryError(err)
-        }
+		err := rows.Scan(
+			&rep.CategoryID,
+			&rep.CategoryName,
+			&rep.OperationCount,
+			&rep.TotalSum,
+		)
+		if err != nil {
+			return nil, MapPgCategoryError(err)
+		}
 
-        reports = append(reports, rep)
-    }
+		reports = append(reports, rep)
+	}
 
-    if err := rows.Err(); err != nil {
-        return nil, MapPgCategoryError(err)
-    }
+	if err := rows.Err(); err != nil {
+		return nil, MapPgCategoryError(err)
+	}
 
-    return reports, nil
+	return reports, nil
 }
 
 func categoryDBToModel(categoryDB CategoryDB) finmodels.Category {

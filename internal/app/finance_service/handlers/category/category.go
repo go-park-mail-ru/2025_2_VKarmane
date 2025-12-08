@@ -520,6 +520,6 @@ func (h *Handler) GetCategoriesReport(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	httputils.Success(w, r, ProtoToCategoryReport(report))
 
+	httputils.Success(w, r, ProtoToCategoryReport(report))
 }
