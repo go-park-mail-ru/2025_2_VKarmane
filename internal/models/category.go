@@ -29,3 +29,21 @@ type CategoryWithStats struct {
 	Category
 	OperationsCount int `json:"operations_count"`
 }
+
+type CreateCategoryReportRequest struct {
+	PeriodStart time.Time `json:"period_start"`
+	PeriodEnd   time.Time `json:"period_end"`
+}
+
+type CategoryInReport struct {
+	CategoryID     int     `json:"category_id"`
+	CategoryName   string  `json:"category_name"`
+	OperationCount int     `json:"operation_count"`
+	TotalSum       float64 `json:"total_sum"`
+}
+
+type CategoryReport struct {
+	Categories []CategoryInReport `json:"categoires"`
+	Start      time.Time          `json:"start_period"`
+	End        time.Time          `json:"end_period"`
+}

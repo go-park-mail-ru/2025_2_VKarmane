@@ -268,6 +268,65 @@ func (r *PostgresRepository) GetCategoryStats(ctx context.Context, userID, categ
 	return count, nil
 }
 
+func (r *PostgresRepository) GetCategoriesReport(
+    ctx context.Context,
+    userID int,
+    start, end time.Time,
+) ([]finmodels.CategoryInReport, error) {
+
+    query := `
+        SELECT
+            c._id AS category_id,
+            c.category_name,
+            COUNT(op._id) AS operations_count,
+            COALESCE(SUM(op.sum), 0) AS total_sum
+        FROM category AS c
+        LEFT JOIN operation AS op
+            ON op.category_id = c._id
+            AND op.operation_status != 'reverted'
+            AND op.operation_date >= $2
+            AND op.operation_date <= $3
+        LEFT JOIN account AS acc
+            ON acc._id = op.account_from_id OR acc._id = op.account_to_id
+        LEFT JOIN sharings AS sh
+            ON sh.account_id = acc._id
+        WHERE c.user_id = $1
+            AND (sh.user_id = $1 OR sh.user_id IS NULL)
+        GROUP BY c._id, c.category_name
+        ORDER BY c.category_name;
+    `
+
+    rows, err := r.db.QueryContext(ctx, query, userID, start, end)
+    if err != nil {
+        return nil, MapPgCategoryError(err)
+    }
+    defer rows.Close()
+
+    reports := []finmodels.CategoryInReport{}
+
+    for rows.Next() {
+        var rep finmodels.CategoryInReport
+
+        err := rows.Scan(
+            &rep.CategoryID,
+            &rep.CategoryName,
+            &rep.OperationCount,
+            &rep.TotalSum,
+        )
+        if err != nil {
+            return nil, MapPgCategoryError(err)
+        }
+
+        reports = append(reports, rep)
+    }
+
+    if err := rows.Err(); err != nil {
+        return nil, MapPgCategoryError(err)
+    }
+
+    return reports, nil
+}
+
 func categoryDBToModel(categoryDB CategoryDB) finmodels.Category {
 	description := ""
 	if categoryDB.Description != nil {

@@ -37,6 +37,7 @@ const (
 	FinanceService_GetCategoriesWithStatsByUser_FullMethodName = "/finance.FinanceService/GetCategoriesWithStatsByUser"
 	FinanceService_UpdateCategory_FullMethodName               = "/finance.FinanceService/UpdateCategory"
 	FinanceService_DeleteCategory_FullMethodName               = "/finance.FinanceService/DeleteCategory"
+	FinanceService_GetCategoriesReport_FullMethodName          = "/finance.FinanceService/GetCategoriesReport"
 )
 
 // FinanceServiceClient is the client API for FinanceService service.
@@ -64,6 +65,7 @@ type FinanceServiceClient interface {
 	GetCategoriesWithStatsByUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*ListCategoriesWithStatsResponse, error)
 	UpdateCategory(ctx context.Context, in *UpdateCategoryRequest, opts ...grpc.CallOption) (*Category, error)
 	DeleteCategory(ctx context.Context, in *CategoryRequest, opts ...grpc.CallOption) (*Category, error)
+	GetCategoriesReport(ctx context.Context, in *CategoryReportRequest, opts ...grpc.CallOption) (*CategoryReportResponse, error)
 }
 
 type financeServiceClient struct {
@@ -254,6 +256,16 @@ func (c *financeServiceClient) DeleteCategory(ctx context.Context, in *CategoryR
 	return out, nil
 }
 
+func (c *financeServiceClient) GetCategoriesReport(ctx context.Context, in *CategoryReportRequest, opts ...grpc.CallOption) (*CategoryReportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CategoryReportResponse)
+	err := c.cc.Invoke(ctx, FinanceService_GetCategoriesReport_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FinanceServiceServer is the server API for FinanceService service.
 // All implementations must embed UnimplementedFinanceServiceServer
 // for forward compatibility.
@@ -279,6 +291,7 @@ type FinanceServiceServer interface {
 	GetCategoriesWithStatsByUser(context.Context, *UserID) (*ListCategoriesWithStatsResponse, error)
 	UpdateCategory(context.Context, *UpdateCategoryRequest) (*Category, error)
 	DeleteCategory(context.Context, *CategoryRequest) (*Category, error)
+	GetCategoriesReport(context.Context, *CategoryReportRequest) (*CategoryReportResponse, error)
 	mustEmbedUnimplementedFinanceServiceServer()
 }
 
@@ -342,6 +355,9 @@ func (UnimplementedFinanceServiceServer) UpdateCategory(context.Context, *Update
 }
 func (UnimplementedFinanceServiceServer) DeleteCategory(context.Context, *CategoryRequest) (*Category, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteCategory not implemented")
+}
+func (UnimplementedFinanceServiceServer) GetCategoriesReport(context.Context, *CategoryReportRequest) (*CategoryReportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCategoriesReport not implemented")
 }
 func (UnimplementedFinanceServiceServer) mustEmbedUnimplementedFinanceServiceServer() {}
 func (UnimplementedFinanceServiceServer) testEmbeddedByValue()                        {}
@@ -688,6 +704,24 @@ func _FinanceService_DeleteCategory_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FinanceService_GetCategoriesReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CategoryReportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FinanceServiceServer).GetCategoriesReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FinanceService_GetCategoriesReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FinanceServiceServer).GetCategoriesReport(ctx, req.(*CategoryReportRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FinanceService_ServiceDesc is the grpc.ServiceDesc for FinanceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -766,6 +800,10 @@ var FinanceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteCategory",
 			Handler:    _FinanceService_DeleteCategory_Handler,
+		},
+		{
+			MethodName: "GetCategoriesReport",
+			Handler:    _FinanceService_GetCategoriesReport_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

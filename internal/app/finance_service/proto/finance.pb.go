@@ -1510,6 +1510,194 @@ func (x *ListCategoriesWithStatsResponse) GetCategories() []*CategoryWithStats {
 	return nil
 }
 
+type CategoryReportRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int32                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Start         *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=start,proto3" json:"start,omitempty"`
+	End           *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=end,proto3" json:"end,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CategoryReportRequest) Reset() {
+	*x = CategoryReportRequest{}
+	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CategoryReportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CategoryReportRequest) ProtoMessage() {}
+
+func (x *CategoryReportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CategoryReportRequest.ProtoReflect.Descriptor instead.
+func (*CategoryReportRequest) Descriptor() ([]byte, []int) {
+	return file_internal_app_finance_service_proto_finance_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *CategoryReportRequest) GetUserId() int32 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *CategoryReportRequest) GetStart() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Start
+	}
+	return nil
+}
+
+func (x *CategoryReportRequest) GetEnd() *timestamppb.Timestamp {
+	if x != nil {
+		return x.End
+	}
+	return nil
+}
+
+type CategoryInReport struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	CategoryId      int32                  `protobuf:"varint,1,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
+	CategoryName    string                 `protobuf:"bytes,2,opt,name=category_name,json=categoryName,proto3" json:"category_name,omitempty"`
+	OperationsCount int32                  `protobuf:"varint,3,opt,name=operations_count,json=operationsCount,proto3" json:"operations_count,omitempty"`
+	TotalSum        float64                `protobuf:"fixed64,4,opt,name=total_sum,json=totalSum,proto3" json:"total_sum,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *CategoryInReport) Reset() {
+	*x = CategoryInReport{}
+	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CategoryInReport) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CategoryInReport) ProtoMessage() {}
+
+func (x *CategoryInReport) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CategoryInReport.ProtoReflect.Descriptor instead.
+func (*CategoryInReport) Descriptor() ([]byte, []int) {
+	return file_internal_app_finance_service_proto_finance_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *CategoryInReport) GetCategoryId() int32 {
+	if x != nil {
+		return x.CategoryId
+	}
+	return 0
+}
+
+func (x *CategoryInReport) GetCategoryName() string {
+	if x != nil {
+		return x.CategoryName
+	}
+	return ""
+}
+
+func (x *CategoryInReport) GetOperationsCount() int32 {
+	if x != nil {
+		return x.OperationsCount
+	}
+	return 0
+}
+
+func (x *CategoryInReport) GetTotalSum() float64 {
+	if x != nil {
+		return x.TotalSum
+	}
+	return 0
+}
+
+type CategoryReportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Categories    []*CategoryInReport    `protobuf:"bytes,1,rep,name=categories,proto3" json:"categories,omitempty"`
+	Start         *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=start,proto3" json:"start,omitempty"`
+	End           *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=end,proto3" json:"end,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CategoryReportResponse) Reset() {
+	*x = CategoryReportResponse{}
+	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CategoryReportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CategoryReportResponse) ProtoMessage() {}
+
+func (x *CategoryReportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CategoryReportResponse.ProtoReflect.Descriptor instead.
+func (*CategoryReportResponse) Descriptor() ([]byte, []int) {
+	return file_internal_app_finance_service_proto_finance_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *CategoryReportResponse) GetCategories() []*CategoryInReport {
+	if x != nil {
+		return x.Categories
+	}
+	return nil
+}
+
+func (x *CategoryReportResponse) GetStart() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Start
+	}
+	return nil
+}
+
+func (x *CategoryReportResponse) GetEnd() *timestamppb.Timestamp {
+	if x != nil {
+		return x.End
+	}
+	return nil
+}
+
 type OperationsByAccountAndFiltersRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        int32                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -1526,7 +1714,7 @@ type OperationsByAccountAndFiltersRequest struct {
 
 func (x *OperationsByAccountAndFiltersRequest) Reset() {
 	*x = OperationsByAccountAndFiltersRequest{}
-	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[20]
+	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1538,7 +1726,7 @@ func (x *OperationsByAccountAndFiltersRequest) String() string {
 func (*OperationsByAccountAndFiltersRequest) ProtoMessage() {}
 
 func (x *OperationsByAccountAndFiltersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[20]
+	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1551,7 +1739,7 @@ func (x *OperationsByAccountAndFiltersRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use OperationsByAccountAndFiltersRequest.ProtoReflect.Descriptor instead.
 func (*OperationsByAccountAndFiltersRequest) Descriptor() ([]byte, []int) {
-	return file_internal_app_finance_service_proto_finance_proto_rawDescGZIP(), []int{20}
+	return file_internal_app_finance_service_proto_finance_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *OperationsByAccountAndFiltersRequest) GetUserId() int32 {
@@ -1622,7 +1810,7 @@ type SharingsResponse struct {
 
 func (x *SharingsResponse) Reset() {
 	*x = SharingsResponse{}
-	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[21]
+	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1634,7 +1822,7 @@ func (x *SharingsResponse) String() string {
 func (*SharingsResponse) ProtoMessage() {}
 
 func (x *SharingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[21]
+	mi := &file_internal_app_finance_service_proto_finance_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1647,7 +1835,7 @@ func (x *SharingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SharingsResponse.ProtoReflect.Descriptor instead.
 func (*SharingsResponse) Descriptor() ([]byte, []int) {
-	return file_internal_app_finance_service_proto_finance_proto_rawDescGZIP(), []int{21}
+	return file_internal_app_finance_service_proto_finance_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *SharingsResponse) GetSharingId() int32 {
@@ -1846,7 +2034,23 @@ const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
 	"\x1fListCategoriesWithStatsResponse\x12:\n" +
 	"\n" +
 	"categories\x18\x01 \x03(\v2\x1a.finance.CategoryWithStatsR\n" +
-	"categories\"\xb0\x02\n" +
+	"categories\"\x90\x01\n" +
+	"\x15CategoryReportRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x05R\x06userId\x120\n" +
+	"\x05start\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x05start\x12,\n" +
+	"\x03end\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x03end\"\xa0\x01\n" +
+	"\x10CategoryInReport\x12\x1f\n" +
+	"\vcategory_id\x18\x01 \x01(\x05R\n" +
+	"categoryId\x12#\n" +
+	"\rcategory_name\x18\x02 \x01(\tR\fcategoryName\x12)\n" +
+	"\x10operations_count\x18\x03 \x01(\x05R\x0foperationsCount\x12\x1b\n" +
+	"\ttotal_sum\x18\x04 \x01(\x01R\btotalSum\"\xb3\x01\n" +
+	"\x16CategoryReportResponse\x129\n" +
+	"\n" +
+	"categories\x18\x01 \x03(\v2\x19.finance.CategoryInReportR\n" +
+	"categories\x120\n" +
+	"\x05start\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x05start\x12,\n" +
+	"\x03end\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x03end\"\xb0\x02\n" +
 	"$OperationsByAccountAndFiltersRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x05R\x06userId\x12\x1d\n" +
 	"\n" +
@@ -1865,7 +2069,7 @@ const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
 	"account_id\x18\x02 \x01(\x05R\taccountId\x12\x17\n" +
 	"\auser_id\x18\x03 \x01(\x05R\x06userId\x129\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt2\x95\n" +
+	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt2\xed\n" +
 	"\n" +
 	"\x0eFinanceService\x12@\n" +
 	"\rCreateAccount\x12\x1d.finance.CreateAccountRequest\x1a\x10.finance.Account\x127\n" +
@@ -1886,7 +2090,8 @@ const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
 	"\x13GetCategoriesByUser\x12\x0f.finance.UserID\x1a\x1f.finance.ListCategoriesResponse\x12Y\n" +
 	"\x1cGetCategoriesWithStatsByUser\x12\x0f.finance.UserID\x1a(.finance.ListCategoriesWithStatsResponse\x12C\n" +
 	"\x0eUpdateCategory\x12\x1e.finance.UpdateCategoryRequest\x1a\x11.finance.Category\x12=\n" +
-	"\x0eDeleteCategory\x12\x18.finance.CategoryRequest\x1a\x11.finance.CategoryBQZOgithub.com/go-park-mail-ru/2025_2_VKarmane/internal/finance_service/proto;protob\x06proto3"
+	"\x0eDeleteCategory\x12\x18.finance.CategoryRequest\x1a\x11.finance.Category\x12V\n" +
+	"\x13GetCategoriesReport\x12\x1e.finance.CategoryReportRequest\x1a\x1f.finance.CategoryReportResponseBQZOgithub.com/go-park-mail-ru/2025_2_VKarmane/internal/finance_service/proto;protob\x06proto3"
 
 var (
 	file_internal_app_finance_service_proto_finance_proto_rawDescOnce sync.Once
@@ -1900,7 +2105,7 @@ func file_internal_app_finance_service_proto_finance_proto_rawDescGZIP() []byte 
 	return file_internal_app_finance_service_proto_finance_proto_rawDescData
 }
 
-var file_internal_app_finance_service_proto_finance_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_internal_app_finance_service_proto_finance_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_internal_app_finance_service_proto_finance_proto_goTypes = []any{
 	(*Account)(nil),                              // 0: finance.Account
 	(*CreateAccountRequest)(nil),                 // 1: finance.CreateAccountRequest
@@ -1922,69 +2127,79 @@ var file_internal_app_finance_service_proto_finance_proto_goTypes = []any{
 	(*ListCategoriesResponse)(nil),               // 17: finance.ListCategoriesResponse
 	(*CategoryWithStats)(nil),                    // 18: finance.CategoryWithStats
 	(*ListCategoriesWithStatsResponse)(nil),      // 19: finance.ListCategoriesWithStatsResponse
-	(*OperationsByAccountAndFiltersRequest)(nil), // 20: finance.OperationsByAccountAndFiltersRequest
-	(*SharingsResponse)(nil),                     // 21: finance.SharingsResponse
-	(*timestamppb.Timestamp)(nil),                // 22: google.protobuf.Timestamp
+	(*CategoryReportRequest)(nil),                // 20: finance.CategoryReportRequest
+	(*CategoryInReport)(nil),                     // 21: finance.CategoryInReport
+	(*CategoryReportResponse)(nil),               // 22: finance.CategoryReportResponse
+	(*OperationsByAccountAndFiltersRequest)(nil), // 23: finance.OperationsByAccountAndFiltersRequest
+	(*SharingsResponse)(nil),                     // 24: finance.SharingsResponse
+	(*timestamppb.Timestamp)(nil),                // 25: google.protobuf.Timestamp
 }
 var file_internal_app_finance_service_proto_finance_proto_depIdxs = []int32{
-	22, // 0: finance.Account.created_at:type_name -> google.protobuf.Timestamp
-	22, // 1: finance.Account.updated_at:type_name -> google.protobuf.Timestamp
+	25, // 0: finance.Account.created_at:type_name -> google.protobuf.Timestamp
+	25, // 1: finance.Account.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 2: finance.ListAccountsResponse.accounts:type_name -> finance.Account
-	22, // 3: finance.Operation.created_at:type_name -> google.protobuf.Timestamp
-	22, // 4: finance.Operation.date:type_name -> google.protobuf.Timestamp
-	22, // 5: finance.OperationInList.created_at:type_name -> google.protobuf.Timestamp
-	22, // 6: finance.OperationInList.date:type_name -> google.protobuf.Timestamp
-	22, // 7: finance.CreateOperationRequest.date:type_name -> google.protobuf.Timestamp
-	22, // 8: finance.UpdateOperationRequest.created_at:type_name -> google.protobuf.Timestamp
+	25, // 3: finance.Operation.created_at:type_name -> google.protobuf.Timestamp
+	25, // 4: finance.Operation.date:type_name -> google.protobuf.Timestamp
+	25, // 5: finance.OperationInList.created_at:type_name -> google.protobuf.Timestamp
+	25, // 6: finance.OperationInList.date:type_name -> google.protobuf.Timestamp
+	25, // 7: finance.CreateOperationRequest.date:type_name -> google.protobuf.Timestamp
+	25, // 8: finance.UpdateOperationRequest.created_at:type_name -> google.protobuf.Timestamp
 	7,  // 9: finance.ListOperationsResponse.operations:type_name -> finance.OperationInList
-	22, // 10: finance.Category.created_at:type_name -> google.protobuf.Timestamp
-	22, // 11: finance.Category.updated_at:type_name -> google.protobuf.Timestamp
+	25, // 10: finance.Category.created_at:type_name -> google.protobuf.Timestamp
+	25, // 11: finance.Category.updated_at:type_name -> google.protobuf.Timestamp
 	12, // 12: finance.ListCategoriesResponse.categories:type_name -> finance.Category
 	12, // 13: finance.CategoryWithStats.category:type_name -> finance.Category
 	18, // 14: finance.ListCategoriesWithStatsResponse.categories:type_name -> finance.CategoryWithStats
-	22, // 15: finance.OperationsByAccountAndFiltersRequest.date:type_name -> google.protobuf.Timestamp
-	22, // 16: finance.SharingsResponse.created_at:type_name -> google.protobuf.Timestamp
-	1,  // 17: finance.FinanceService.CreateAccount:input_type -> finance.CreateAccountRequest
-	3,  // 18: finance.FinanceService.GetAccount:input_type -> finance.AccountRequest
-	4,  // 19: finance.FinanceService.GetAccountsByUser:input_type -> finance.UserID
-	2,  // 20: finance.FinanceService.UpdateAccount:input_type -> finance.UpdateAccountRequest
-	3,  // 21: finance.FinanceService.DeleteAccount:input_type -> finance.AccountRequest
-	3,  // 22: finance.FinanceService.AddUserToAccounnt:input_type -> finance.AccountRequest
-	8,  // 23: finance.FinanceService.CreateOperation:input_type -> finance.CreateOperationRequest
-	10, // 24: finance.FinanceService.GetOperation:input_type -> finance.OperationRequest
-	20, // 25: finance.FinanceService.GetOperationsByAccount:input_type -> finance.OperationsByAccountAndFiltersRequest
-	9,  // 26: finance.FinanceService.UpdateOperation:input_type -> finance.UpdateOperationRequest
-	10, // 27: finance.FinanceService.DeleteOperation:input_type -> finance.OperationRequest
-	13, // 28: finance.FinanceService.CreateCategory:input_type -> finance.CreateCategoryRequest
-	15, // 29: finance.FinanceService.GetCategory:input_type -> finance.CategoryRequest
-	16, // 30: finance.FinanceService.GetCategoryByName:input_type -> finance.CategoryByNameRequest
-	4,  // 31: finance.FinanceService.GetCategoriesByUser:input_type -> finance.UserID
-	4,  // 32: finance.FinanceService.GetCategoriesWithStatsByUser:input_type -> finance.UserID
-	14, // 33: finance.FinanceService.UpdateCategory:input_type -> finance.UpdateCategoryRequest
-	15, // 34: finance.FinanceService.DeleteCategory:input_type -> finance.CategoryRequest
-	0,  // 35: finance.FinanceService.CreateAccount:output_type -> finance.Account
-	0,  // 36: finance.FinanceService.GetAccount:output_type -> finance.Account
-	5,  // 37: finance.FinanceService.GetAccountsByUser:output_type -> finance.ListAccountsResponse
-	0,  // 38: finance.FinanceService.UpdateAccount:output_type -> finance.Account
-	0,  // 39: finance.FinanceService.DeleteAccount:output_type -> finance.Account
-	21, // 40: finance.FinanceService.AddUserToAccounnt:output_type -> finance.SharingsResponse
-	6,  // 41: finance.FinanceService.CreateOperation:output_type -> finance.Operation
-	6,  // 42: finance.FinanceService.GetOperation:output_type -> finance.Operation
-	11, // 43: finance.FinanceService.GetOperationsByAccount:output_type -> finance.ListOperationsResponse
-	6,  // 44: finance.FinanceService.UpdateOperation:output_type -> finance.Operation
-	6,  // 45: finance.FinanceService.DeleteOperation:output_type -> finance.Operation
-	12, // 46: finance.FinanceService.CreateCategory:output_type -> finance.Category
-	18, // 47: finance.FinanceService.GetCategory:output_type -> finance.CategoryWithStats
-	18, // 48: finance.FinanceService.GetCategoryByName:output_type -> finance.CategoryWithStats
-	17, // 49: finance.FinanceService.GetCategoriesByUser:output_type -> finance.ListCategoriesResponse
-	19, // 50: finance.FinanceService.GetCategoriesWithStatsByUser:output_type -> finance.ListCategoriesWithStatsResponse
-	12, // 51: finance.FinanceService.UpdateCategory:output_type -> finance.Category
-	12, // 52: finance.FinanceService.DeleteCategory:output_type -> finance.Category
-	35, // [35:53] is the sub-list for method output_type
-	17, // [17:35] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	25, // 15: finance.CategoryReportRequest.start:type_name -> google.protobuf.Timestamp
+	25, // 16: finance.CategoryReportRequest.end:type_name -> google.protobuf.Timestamp
+	21, // 17: finance.CategoryReportResponse.categories:type_name -> finance.CategoryInReport
+	25, // 18: finance.CategoryReportResponse.start:type_name -> google.protobuf.Timestamp
+	25, // 19: finance.CategoryReportResponse.end:type_name -> google.protobuf.Timestamp
+	25, // 20: finance.OperationsByAccountAndFiltersRequest.date:type_name -> google.protobuf.Timestamp
+	25, // 21: finance.SharingsResponse.created_at:type_name -> google.protobuf.Timestamp
+	1,  // 22: finance.FinanceService.CreateAccount:input_type -> finance.CreateAccountRequest
+	3,  // 23: finance.FinanceService.GetAccount:input_type -> finance.AccountRequest
+	4,  // 24: finance.FinanceService.GetAccountsByUser:input_type -> finance.UserID
+	2,  // 25: finance.FinanceService.UpdateAccount:input_type -> finance.UpdateAccountRequest
+	3,  // 26: finance.FinanceService.DeleteAccount:input_type -> finance.AccountRequest
+	3,  // 27: finance.FinanceService.AddUserToAccounnt:input_type -> finance.AccountRequest
+	8,  // 28: finance.FinanceService.CreateOperation:input_type -> finance.CreateOperationRequest
+	10, // 29: finance.FinanceService.GetOperation:input_type -> finance.OperationRequest
+	23, // 30: finance.FinanceService.GetOperationsByAccount:input_type -> finance.OperationsByAccountAndFiltersRequest
+	9,  // 31: finance.FinanceService.UpdateOperation:input_type -> finance.UpdateOperationRequest
+	10, // 32: finance.FinanceService.DeleteOperation:input_type -> finance.OperationRequest
+	13, // 33: finance.FinanceService.CreateCategory:input_type -> finance.CreateCategoryRequest
+	15, // 34: finance.FinanceService.GetCategory:input_type -> finance.CategoryRequest
+	16, // 35: finance.FinanceService.GetCategoryByName:input_type -> finance.CategoryByNameRequest
+	4,  // 36: finance.FinanceService.GetCategoriesByUser:input_type -> finance.UserID
+	4,  // 37: finance.FinanceService.GetCategoriesWithStatsByUser:input_type -> finance.UserID
+	14, // 38: finance.FinanceService.UpdateCategory:input_type -> finance.UpdateCategoryRequest
+	15, // 39: finance.FinanceService.DeleteCategory:input_type -> finance.CategoryRequest
+	20, // 40: finance.FinanceService.GetCategoriesReport:input_type -> finance.CategoryReportRequest
+	0,  // 41: finance.FinanceService.CreateAccount:output_type -> finance.Account
+	0,  // 42: finance.FinanceService.GetAccount:output_type -> finance.Account
+	5,  // 43: finance.FinanceService.GetAccountsByUser:output_type -> finance.ListAccountsResponse
+	0,  // 44: finance.FinanceService.UpdateAccount:output_type -> finance.Account
+	0,  // 45: finance.FinanceService.DeleteAccount:output_type -> finance.Account
+	24, // 46: finance.FinanceService.AddUserToAccounnt:output_type -> finance.SharingsResponse
+	6,  // 47: finance.FinanceService.CreateOperation:output_type -> finance.Operation
+	6,  // 48: finance.FinanceService.GetOperation:output_type -> finance.Operation
+	11, // 49: finance.FinanceService.GetOperationsByAccount:output_type -> finance.ListOperationsResponse
+	6,  // 50: finance.FinanceService.UpdateOperation:output_type -> finance.Operation
+	6,  // 51: finance.FinanceService.DeleteOperation:output_type -> finance.Operation
+	12, // 52: finance.FinanceService.CreateCategory:output_type -> finance.Category
+	18, // 53: finance.FinanceService.GetCategory:output_type -> finance.CategoryWithStats
+	18, // 54: finance.FinanceService.GetCategoryByName:output_type -> finance.CategoryWithStats
+	17, // 55: finance.FinanceService.GetCategoriesByUser:output_type -> finance.ListCategoriesResponse
+	19, // 56: finance.FinanceService.GetCategoriesWithStatsByUser:output_type -> finance.ListCategoriesWithStatsResponse
+	12, // 57: finance.FinanceService.UpdateCategory:output_type -> finance.Category
+	12, // 58: finance.FinanceService.DeleteCategory:output_type -> finance.Category
+	22, // 59: finance.FinanceService.GetCategoriesReport:output_type -> finance.CategoryReportResponse
+	41, // [41:60] is the sub-list for method output_type
+	22, // [22:41] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_internal_app_finance_service_proto_finance_proto_init() }
@@ -2003,7 +2218,7 @@ func file_internal_app_finance_service_proto_finance_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_internal_app_finance_service_proto_finance_proto_rawDesc), len(file_internal_app_finance_service_proto_finance_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   22,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -299,3 +299,11 @@ func (s *Service) UpdateCategory(ctx context.Context, category finmodels.Categor
 func (s *Service) DeleteCategory(ctx context.Context, userID, categoryID int) error {
 	return s.repo.DeleteCategory(ctx, userID, categoryID)
 }
+
+func (s *Service) GetCategoriesReport(ctx context.Context, req finmodels.CategoryReportRequest) (*finpb.CategoryReportResponse, error) {
+	ctgs, err := s.repo.GetCategoriesReport(ctx, req.UserID, req.Start, req.End)
+	if err != nil {
+		return nil, err
+	}
+	return ReportToProto(ctgs, req.Start, req.End), nil
+}

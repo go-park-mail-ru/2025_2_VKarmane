@@ -383,6 +383,26 @@ func (s *FinanceServerImpl) DeleteCategory(ctx context.Context, req *finpb.Categ
 	return &finpb.Category{}, nil
 }
 
+func (s *FinanceServerImpl) GetCategoriesReport(ctx context.Context, req *finpb.CategoryReportRequest) (*finpb.CategoryReportResponse, error) {
+	report, err := s.financeUC.GetCategoriesReport(ctx, protoToCategoryRequest(req))
+	if err != nil {
+		logger := logger.FromContext(ctx)
+		for targetErr, resp := range finerrors.ErrorMap {
+			if errors.Is(err, targetErr) {
+				if logger != nil {
+					logger.Error("Failed to get report", "error", err)
+				}
+				return nil, status.Error(resp.Code, resp.Msg)
+			}
+		}
+		if logger != nil {
+			logger.Error("Failed to get report, internal error", "error", err)
+		}
+		return nil, status.Error(codes.Internal, string(models.ErrCodeInternalError))
+	}
+	return report, nil
+}
+
 func getStringValue(s *string) string {
 	if s == nil {
 		return ""

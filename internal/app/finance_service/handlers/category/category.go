@@ -492,3 +492,34 @@ func (h *Handler) DeleteCategory(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *Handler) GetCategoriesReport(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.getUserID(r)
+	if !ok {
+		httputils.UnauthorizedError(w, r, "User not authenticated", models.ErrCodeUnauthorized)
+		return
+	}
+
+	report, err := h.finClient.GetCategoriesReport(r.Context(), CreateCategoryReportRequestToProto(userID, r.URL.Query()))
+	if err != nil {
+		st, ok := status.FromError(err)
+		log := logger.FromContext(r.Context())
+		if !ok {
+			if log != nil {
+				log.Error("grpc GetCategoriesReport unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to get report")
+			return
+		}
+		switch st.Code() {
+		default:
+			if log != nil {
+				log.Error("grpc GetCategoriesReport error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to get report")
+			return
+		}
+	}
+	httputils.Success(w, r, ProtoToCategoryReport(report))
+
+}

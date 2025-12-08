@@ -346,3 +346,15 @@ func (uc *UseCase) DeleteCategory(ctx context.Context, userID, categoryID int) e
 	}
 	return nil
 }
+
+func (uc *UseCase) GetCategoriesReport(ctx context.Context, req finmodels.CategoryReportRequest) (*finpb.CategoryReportResponse, error) {
+	log := logger.FromContext(ctx)
+	report, err := uc.financeService.GetCategoriesReport(ctx, req)
+	if err != nil {
+		if log != nil {
+			log.Error("Failed to get report", "error", err, "user_id", req.UserID)
+		}
+		return nil, pkgerrors.Wrap(err, "finance.GetCategoriesReport")
+	}
+	return report, nil
+}

@@ -99,3 +99,22 @@ func parseTime(s string) *timestamppb.Timestamp {
 	}
 	return timestamppb.New(t)
 }
+
+func ReportToProto(ctgs []finmodels.CategoryInReport, start, end time.Time) *finpb.CategoryReportResponse {
+	resp := &finpb.CategoryReportResponse{
+		Categories: make([]*finpb.CategoryInReport, 0, len(ctgs)),
+		Start:      timestamppb.New(start),
+		End:        timestamppb.New(end),
+	}
+
+	for _, c := range ctgs {
+		resp.Categories = append(resp.Categories, &finpb.CategoryInReport{
+			CategoryId:      int32(c.CategoryID),
+			CategoryName:    c.CategoryName,
+			OperationsCount: int32(c.OperationCount),
+			TotalSum:        c.TotalSum,
+		})
+	}
+
+	return resp
+}

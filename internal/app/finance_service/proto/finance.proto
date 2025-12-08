@@ -169,6 +169,26 @@ message ListCategoriesWithStatsResponse {
     repeated CategoryWithStats categories = 1;
 }
 
+message CategoryReportRequest {
+    int32 user_id = 1;
+    google.protobuf.Timestamp start = 2;
+    google.protobuf.Timestamp end = 3;
+}
+
+message CategoryInReport {
+    int32 category_id = 1;
+    string category_name = 2;
+    int32 operations_count = 3;
+    double total_sum = 4;
+}
+
+
+message CategoryReportResponse  {
+    repeated CategoryInReport categories = 1;
+    google.protobuf.Timestamp start = 2;
+    google.protobuf.Timestamp end = 3;
+}
+
 message OperationsByAccountAndFiltersRequest {
     int32 user_id = 1;
     int32 account_id = 2;
@@ -211,4 +231,5 @@ service FinanceService {
     rpc GetCategoriesWithStatsByUser(UserID) returns (ListCategoriesWithStatsResponse);
     rpc UpdateCategory(UpdateCategoryRequest) returns (Category);
     rpc DeleteCategory(CategoryRequest) returns (Category);
+    rpc GetCategoriesReport(CategoryReportRequest) returns (CategoryReportResponse);
 }

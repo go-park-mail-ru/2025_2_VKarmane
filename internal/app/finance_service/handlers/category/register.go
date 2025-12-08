@@ -13,6 +13,7 @@ func Register(router *mux.Router, finClient finpb.FinanceServiceClient, imageUC 
 
 	router.HandleFunc("/categories", handler.GetCategories).Methods("GET")
 	router.HandleFunc("/categories", handler.CreateCategory).Methods("POST")
+	router.HandleFunc("/categories/report", handler.GetCategoriesReport).Methods("GET")
 	router.HandleFunc("/categories/{id}", handler.GetCategoryByID).Methods("GET")
 	router.HandleFunc("/categories/{id}", handler.UpdateCategory).Methods("PUT")
 	router.HandleFunc("/categories/{id}", handler.DeleteCategory).Methods("DELETE")

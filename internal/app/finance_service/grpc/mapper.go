@@ -131,3 +131,11 @@ func protoToUpdateCategoryRequest(req *finpb.UpdateCategoryRequest) finmodels.Up
 		LogoHashedID: logoHashedID,
 	}
 }
+
+func protoToCategoryRequest(req *finpb.CategoryReportRequest) finmodels.CategoryReportRequest {
+	return finmodels.CategoryReportRequest{
+		UserID: int(req.UserId),
+		Start:  req.Start.AsTime(),
+		End:    req.End.AsTime(),
+	}
+}

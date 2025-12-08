@@ -191,6 +191,21 @@ func (mr *MockFinanceUseCaseMockRecorder) GetCategoriesByUser(ctx, userID any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoriesByUser", reflect.TypeOf((*MockFinanceUseCase)(nil).GetCategoriesByUser), ctx, userID)
 }
 
+// GetCategoriesReport mocks base method.
+func (m *MockFinanceUseCase) GetCategoriesReport(ctx context.Context, req models.CategoryReportRequest) (*proto.CategoryReportResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategoriesReport", ctx, req)
+	ret0, _ := ret[0].(*proto.CategoryReportResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategoriesReport indicates an expected call of GetCategoriesReport.
+func (mr *MockFinanceUseCaseMockRecorder) GetCategoriesReport(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoriesReport", reflect.TypeOf((*MockFinanceUseCase)(nil).GetCategoriesReport), ctx, req)
+}
+
 // GetCategoriesWithStatsByUser mocks base method.
 func (m *MockFinanceUseCase) GetCategoriesWithStatsByUser(ctx context.Context, userID int) (*proto.ListCategoriesWithStatsResponse, error) {
 	m.ctrl.T.Helper()

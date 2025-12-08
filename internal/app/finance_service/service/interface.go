@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 )
@@ -32,4 +33,5 @@ type FinanceRepository interface {
 	UpdateCategory(ctx context.Context, category finmodels.Category) error
 	DeleteCategory(ctx context.Context, userID, categoryID int) error
 	GetCategoryStats(ctx context.Context, userID, categoryID int) (int, error)
+	GetCategoriesReport(ctx context.Context, userID int, start, end time.Time) ([]finmodels.CategoryInReport, error)
 }
