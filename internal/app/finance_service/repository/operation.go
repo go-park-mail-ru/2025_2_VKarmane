@@ -125,12 +125,17 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op finmodels.O
 	}
 	defer tx.Rollback()
 
+	sum := op.Sum
+	if op.Type == "income" {
+		sum = -1 * sum
+	}
+
 	_, err = tx.ExecContext(ctx, `
         UPDATE account
         SET balance = balance - $1, updated_at = NOW()
         WHERE _id = $2
         RETURNING balance
-    `, op.Sum, op.AccountID)
+    `, sum, op.AccountID)
 
 	if err != nil {
 		return finmodels.Operation{}, MapPgAccountError(err)
@@ -304,7 +309,7 @@ func (r *PostgresRepository) DeleteOperation(ctx context.Context, accID int, opI
 	var operationSum float64
 	var operationType string
 
-	err = tx.QueryRowContext(ctx, `SELECT sum, type FROM operation WHERE _id = $1`, opID).Scan(&operationSum, &operationType)
+	err = tx.QueryRowContext(ctx, `SELECT sum, operation_type FROM operation WHERE _id = $1`, opID).Scan(&operationSum, &operationType)
 	if err != nil {
 		return finmodels.Operation{}, MapPgOperationError(err)
 	}
