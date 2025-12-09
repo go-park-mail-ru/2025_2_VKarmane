@@ -229,9 +229,10 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 		SELECT o._id, o.account_from_id, o.account_to_id, o.category_id, o.currency_id, 
 		       o.operation_status, o.operation_type, o.operation_name, o.operation_description, 
 		       o.receipt_url, o.sum, o.created_at, o.operation_date,
-		       COALESCE(c.category_name, 'Без категории') as category_name
+		       COALESCE(c.category_name, 'Без категории') as category_name, acc.account_type
 		FROM updated_operation o
 		LEFT JOIN category c ON o.category_id = c._id
+		JOIN account acc ON acc._id = $5 
 	`
 
 	var name *string
@@ -271,6 +272,7 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 		&operation.CreatedAt,
 		&operation.Date,
 		&operation.CategoryName,
+		&operation.AccountType,
 	)
 
 	if err != nil {
@@ -399,6 +401,7 @@ func operationDBToModel(operationDB OperationDB) finmodels.Operation {
 		Name:         operationDB.Name,
 		Sum:          operationDB.Sum,
 		CurrencyID:   currencyID,
+		AccountType:  operationDB.AccountType,
 		CreatedAt:    operationDB.CreatedAt,
 		Date:         operationDB.Date,
 	}

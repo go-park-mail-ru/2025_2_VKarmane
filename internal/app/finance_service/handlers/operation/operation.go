@@ -447,39 +447,45 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	operationResponse := ProtoOperationToResponse(op)
-	ctg, err := h.finClient.GetCategory(r.Context(), category.UserAndCtegoryIDToProto(id, operationResponse.CategoryID))
-	if err != nil {
-		st, ok := status.FromError(err)
-		if !ok {
-			if log != nil {
-				log.Error("grpc CreateCategory unknown error", "error", err)
+	var ctgLogo string
+	ctgDTO := models.CategoryWithStats{}
+
+	if operationResponse.CategoryID != 0 {
+		ctg, err := h.finClient.GetCategory(r.Context(), category.UserAndCtegoryIDToProto(id, operationResponse.CategoryID))
+		if err != nil {
+			st, ok := status.FromError(err)
+			if !ok {
+				if log != nil {
+					log.Error("grpc CreateCategory unknown error", "error", err)
+				}
+				httputils.InternalError(w, r, "failed update operation")
+				return
 			}
-			httputils.InternalError(w, r, "failed update operation")
-			return
-		}
-		switch st.Code() {
-		case codes.NotFound:
-			if log != nil {
-				log.Error("grpc GetCategory invalid arg", "error", err)
+			switch st.Code() {
+			case codes.NotFound:
+				if log != nil {
+					log.Error("grpc GetCategory invalid arg", "error", err)
+				}
+				httputils.Error(w, r, "failed to update operation", http.StatusBadRequest)
+				return
+			default:
+				if log != nil {
+					log.Error("grpc GetCategory error", "error", err)
+				}
+				httputils.InternalError(w, r, "failed to update operation")
+				return
 			}
-			httputils.Error(w, r, "failed to update operation", http.StatusBadRequest)
-			return
-		default:
-			if log != nil {
-				log.Error("grpc GetCategory error", "error", err)
-			}
-			httputils.InternalError(w, r, "failed to update operation")
-			return
+
 		}
 
+		ctgLogo, err = h.imageUC.GetImageURL(r.Context(), ctg.Category.LogoHashedId)
+		if err != nil {
+			httputils.InternalError(w, r, "Ошибка получения операций")
+			return
+		}
+		
+	ctgDTO = category.CategoryWithStatsToAPI(ctg)
 	}
-
-	ctgLogo, err := h.imageUC.GetImageURL(r.Context(), ctg.Category.LogoHashedId)
-	if err != nil {
-		httputils.InternalError(w, r, "Ошибка получения операций")
-		return
-	}
-	ctgDTO := category.CategoryWithStatsToAPI(ctg)
 
 	transactionSearch := OperationResponseToSearch(operationResponse, ctgDTO, ctgLogo)
 	transactionSearch.Action = models.UPDATE
@@ -556,7 +562,7 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 			return
 		case codes.FailedPrecondition:
 			if log != nil {
-				log.Error("grpc CreateOperation exists error", "error", err)
+				log.Error("grpc DeleteOperation balance error", "error", err)
 			}
 			httputils.Error(w, r, "Баланс счета не может быть отрицательным", http.StatusBadRequest)
 			return
@@ -577,7 +583,7 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: models.TRANSACTIONS}); err != nil {
 		httputils.InternalError(w, r, "Failed to delete opeartion")
 		if log != nil {
-			log.Error("kafka GetCategory unknown error", "error", err)
+			log.Error("kafka DeleteOperation unknown error", "error", err)
 		}
 		return
 	}

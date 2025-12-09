@@ -25,6 +25,8 @@ func MapPgError(err error) error {
 	switch pqErr.Code {
 	case UniqueViolation:
 		return mapUniqueViolation(pqErr)
+	case CheckViolation:
+		return serviceerrors.ErrInvalidCredentials
 	default:
 		return err
 	}
