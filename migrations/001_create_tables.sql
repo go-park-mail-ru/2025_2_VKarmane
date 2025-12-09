@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS budget (
     closed_at TIMESTAMPTZ,
     period_start DATE NOT NULL,
     period_end DATE NOT NULL,
-    UNIQUE (user_id, category_id, currency_id, period_start, period_end)
+    UNIQUE (user_id, currency_id, period_start, period_end)
 );
 
 -- ========================================================
