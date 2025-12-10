@@ -67,7 +67,6 @@ func (r *PostgresRepository) GetAccountsByUser(ctx context.Context, userID int) 
 		WHERE s.user_id = $1
 
 		ORDER BY a.balance DESC, a.created_at DESC
-		LIMIT 3;
 	`
 	rows, err := r.db.QueryContext(ctx, query, userID)
 
