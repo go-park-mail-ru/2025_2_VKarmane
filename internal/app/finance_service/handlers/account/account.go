@@ -72,7 +72,7 @@ func (h *Handler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accountsDTO := AccountResponseListProtoToApit(accounts, userID)
+	accountsDTO := AccountResponseListProtoToApi(accounts, userID)
 	httputils.Success(w, r, accountsDTO)
 }
 

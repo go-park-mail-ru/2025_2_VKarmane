@@ -21,6 +21,7 @@ type AccountAPI struct {
 type AccountsAPI struct {
 	UserID   int          `json:"user_id"`
 	Accounts []AccountAPI `json:"accounts"`
+	TotalSum float64      `json:"total_sum"`
 }
 
 type SharingApi struct {
@@ -43,7 +44,7 @@ func UserIDAndAccountIDToProtoID(userID, accID int) *finpb.AccountRequest {
 	}
 }
 
-func AccountResponseListProtoToApit(resp *finpb.ListAccountsResponse, userID int) AccountsAPI {
+func AccountResponseListProtoToApi(resp *finpb.ListAccountsResponse, userID int) AccountsAPI {
 	if resp == nil {
 		return AccountsAPI{
 			UserID:   userID,
@@ -51,6 +52,7 @@ func AccountResponseListProtoToApit(resp *finpb.ListAccountsResponse, userID int
 		}
 	}
 
+	var sum float64
 	accounts := make([]AccountAPI, 0, len(resp.Accounts))
 
 	for _, acc := range resp.Accounts {
@@ -78,11 +80,13 @@ func AccountResponseListProtoToApit(resp *finpb.ListAccountsResponse, userID int
 			CreatedAt:   createdAt,
 			UpdatedAt:   updatedAt,
 		})
+		sum += acc.Balance
 	}
 
 	return AccountsAPI{
 		UserID:   userID,
 		Accounts: accounts,
+		TotalSum: sum,
 	}
 }
 

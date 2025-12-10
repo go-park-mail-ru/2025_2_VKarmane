@@ -22,7 +22,7 @@ func TestUserIDAndAccountIDToProtoID(t *testing.T) {
 }
 
 func TestAccountResponseListProtoToApit_NilResponse(t *testing.T) {
-	res := AccountResponseListProtoToApit(nil, 42)
+	res := AccountResponseListProtoToApi(nil, 42)
 
 	require.Equal(t, 42, res.UserID)
 	require.Len(t, res.Accounts, 0)
@@ -45,7 +45,7 @@ func TestAccountResponseListProtoToApit_Full(t *testing.T) {
 		},
 	}
 
-	api := AccountResponseListProtoToApit(resp, 99)
+	api := AccountResponseListProtoToApi(resp, 99)
 
 	require.Equal(t, 99, api.UserID)
 	require.Len(t, api.Accounts, 1)

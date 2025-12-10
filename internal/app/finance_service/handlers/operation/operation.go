@@ -760,7 +760,7 @@ func (h *Handler) GetCSVData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accountsDTO := account.AccountResponseListProtoToApit(accs, userID)
+	accountsDTO := account.AccountResponseListProtoToApi(accs, userID)
 
 	w.Header().Set("Content-Type", "text/csv")
 	w.Header().Set("Content-Disposition", "attachment; filename=\"operations.csv\"")
