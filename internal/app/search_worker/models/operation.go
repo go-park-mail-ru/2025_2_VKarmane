@@ -2,6 +2,8 @@ package models
 
 import "time"
 
+//go:generate easyjson -all operation.go
+
 type Transaction struct {
 	ID                   int       `json:"id"`
 	AccountID            int       `json:"account_id"`

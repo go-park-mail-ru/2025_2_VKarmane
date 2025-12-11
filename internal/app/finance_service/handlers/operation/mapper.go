@@ -166,10 +166,13 @@ func ProtoGetOperationsRequest(
 
 	name := values.Get("title")
 
-	var categoryID int32
-	if categoryIDStr := values.Get("category_id"); categoryIDStr != "" {
-		if v, err := strconv.Atoi(categoryIDStr); err == nil {
-			categoryID = int32(v)
+	categoriesIDs := make([]int32, 0)
+
+	if categoriesIDStr := values["category_id"]; len(categoriesIDStr) != 0 {
+		for _, idStr := range categoriesIDStr {
+			if v, err := strconv.Atoi(idStr); err == nil {
+				categoriesIDs = append(categoriesIDs, int32(v))
+			}
 		}
 	}
 
@@ -192,7 +195,7 @@ func ProtoGetOperationsRequest(
 	return &finpb.OperationsByAccountAndFiltersRequest{
 		UserId:        int32(userID),
 		AccountId:     int32(accID),
-		CategoryId:    categoryID,
+		CategoryIds:   categoriesIDs,
 		Name:          name,
 		OperationType: operationType,
 		AccountType:   accountType,

@@ -1704,7 +1704,7 @@ type OperationsByAccountAndFiltersRequest struct {
 	AccountId     int32                  `protobuf:"varint,2,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 	OperationId   int32                  `protobuf:"varint,3,opt,name=operation_id,json=operationId,proto3" json:"operation_id,omitempty"`
 	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	CategoryId    int32                  `protobuf:"varint,5,opt,name=category_id,json=categoryId,proto3" json:"category_id,omitempty"`
+	CategoryIds   []int32                `protobuf:"varint,5,rep,packed,name=category_ids,json=categoryIds,proto3" json:"category_ids,omitempty"`
 	OperationType string                 `protobuf:"bytes,6,opt,name=operation_type,json=operationType,proto3" json:"operation_type,omitempty"`
 	AccountType   string                 `protobuf:"bytes,7,opt,name=account_type,json=accountType,proto3" json:"account_type,omitempty"`
 	Date          *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=date,proto3" json:"date,omitempty"`
@@ -1770,11 +1770,11 @@ func (x *OperationsByAccountAndFiltersRequest) GetName() string {
 	return ""
 }
 
-func (x *OperationsByAccountAndFiltersRequest) GetCategoryId() int32 {
+func (x *OperationsByAccountAndFiltersRequest) GetCategoryIds() []int32 {
 	if x != nil {
-		return x.CategoryId
+		return x.CategoryIds
 	}
-	return 0
+	return nil
 }
 
 func (x *OperationsByAccountAndFiltersRequest) GetOperationType() string {
@@ -2050,15 +2050,14 @@ const file_internal_app_finance_service_proto_finance_proto_rawDesc = "" +
 	"categories\x18\x01 \x03(\v2\x19.finance.CategoryInReportR\n" +
 	"categories\x120\n" +
 	"\x05start\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x05start\x12,\n" +
-	"\x03end\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x03end\"\xb0\x02\n" +
+	"\x03end\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x03end\"\xb2\x02\n" +
 	"$OperationsByAccountAndFiltersRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x05R\x06userId\x12\x1d\n" +
 	"\n" +
 	"account_id\x18\x02 \x01(\x05R\taccountId\x12!\n" +
 	"\foperation_id\x18\x03 \x01(\x05R\voperationId\x12\x12\n" +
-	"\x04name\x18\x04 \x01(\tR\x04name\x12\x1f\n" +
-	"\vcategory_id\x18\x05 \x01(\x05R\n" +
-	"categoryId\x12%\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x12!\n" +
+	"\fcategory_ids\x18\x05 \x03(\x05R\vcategoryIds\x12%\n" +
 	"\x0eoperation_type\x18\x06 \x01(\tR\roperationType\x12!\n" +
 	"\faccount_type\x18\a \x01(\tR\vaccountType\x12.\n" +
 	"\x04date\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\x04date\"\xa4\x01\n" +

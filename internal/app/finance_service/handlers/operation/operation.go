@@ -271,7 +271,7 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 	transactionSearch := OperationResponseToSearch(operationResponse, ctgDTO, ctgLogo)
 	transactionSearch.Action = models.WRITE
 
-	data, _ := json.Marshal(transactionSearch)
+	data, _ := transactionSearch.MarshalJSON()
 	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: models.TRANSACTIONS}); err != nil {
 		httputils.InternalError(w, r, "Failed to create opeartion")
 		if log != nil {
@@ -490,7 +490,8 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 	transactionSearch := OperationResponseToSearch(operationResponse, ctgDTO, ctgLogo)
 	transactionSearch.Action = models.UPDATE
 
-	data, _ := json.Marshal(transactionSearch)
+	// data, _ := json.Marshal(transactionSearch)
+	data, _ := transactionSearch.MarshalJSON()
 	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: models.TRANSACTIONS}); err != nil {
 		httputils.InternalError(w, r, "Failed to update opeartion")
 		if log != nil {
@@ -579,7 +580,8 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 	transactionSearch := OperationResponseToSearchDelete(operationResponse)
 	transactionSearch.Action = models.DELETE
 
-	data, _ := json.Marshal(transactionSearch)
+	// data, _ := json.Marshal(transactionSearch)
+	data, _ := transactionSearch.MarshalJSON()
 	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: models.TRANSACTIONS}); err != nil {
 		httputils.InternalError(w, r, "Failed to delete opeartion")
 		if log != nil {
@@ -721,7 +723,8 @@ func (h *Handler) UploadCVSData(w http.ResponseWriter, r *http.Request) {
 		searchObj := OperationResponseToSearch(op, ctgDTO, ctgLogo)
 		searchObj.Action = models.WRITE
 
-		data, _ := json.Marshal(searchObj)
+		// data, _ := json.Marshal(searchObj)
+		data, _ := searchObj.MarshalJSON()
 
 		_ = h.kafkaProducer.WriteMessages(
 			r.Context(),

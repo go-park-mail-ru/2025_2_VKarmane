@@ -3,7 +3,6 @@ package service
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -115,7 +114,7 @@ func (s *Service) GetOperationsByAccount(ctx context.Context, req []byte) (*finp
 	}
 
 	var esResp finmodels.ElasticsearchResponse
-	if err := json.Unmarshal(body, &esResp); err != nil {
+	if err := (&esResp).UnmarshalJSON(body); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal ES: %w", err)
 	}
 

@@ -2,7 +2,6 @@ package category
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -425,7 +424,7 @@ func (h *Handler) UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	categoryUpdateSearch := CategoryToUpdateSearch(categoryDTO)
 	categoryUpdateSearch.Action = models.UPDATE
 
-	data, _ := json.Marshal(categoryUpdateSearch)
+	data, _ := categoryUpdateSearch.MarshalJSON()
 	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: models.CATEGORIES}); err != nil {
 		httputils.InternalError(w, r, "Failed to update category in operations")
 		if log != nil {

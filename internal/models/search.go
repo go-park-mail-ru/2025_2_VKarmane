@@ -2,6 +2,8 @@ package models
 
 import "time"
 
+//go:generate easyjson -all search.go
+
 const (
 	WRITE  string = "create"
 	DELETE string = "delete"

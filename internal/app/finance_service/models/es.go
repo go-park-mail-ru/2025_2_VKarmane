@@ -1,5 +1,7 @@
 package models
 
+//go:generate easyjson -all es.go
+
 type ESHitSource struct {
 	ID                   int32   `json:"id"`
 	AccountID            int32   `json:"account_id"`

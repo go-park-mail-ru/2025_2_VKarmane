@@ -49,8 +49,8 @@ func Run() error {
 		switch wrapper.Type {
 		case models.TRANSACTIONS:
 			var tx models.Transaction
-			if err := json.Unmarshal(wrapper.Payload, &tx); err != nil {
-				log.Fatal("JSON unmarshal error:", err)
+			if err := (&tx).UnmarshalJSON(wrapper.Payload); err != nil {
+				log.Fatal("easyjson unmarshal error:", err)
 				continue
 			}
 			switch tx.Action {
@@ -67,8 +67,8 @@ func Run() error {
 			}
 		case models.CATEGORIES:
 			var ctg models.Category
-			if err := json.Unmarshal(wrapper.Payload, &ctg); err != nil {
-				log.Fatal("JSON unmarshal error:", err)
+			if err := (&ctg).UnmarshalJSON(wrapper.Payload); err != nil {
+				log.Fatal("easyjson unmarshal error:", err)
 				continue
 			}
 			switch ctg.Action {

@@ -54,7 +54,7 @@ func TestGetOperationsByAccount(t *testing.T) {
 
 	ctx := context.Background()
 	accountID := 1
-	ctgID := 2
+	ctgID := []int{1}
 	opName := "name"
 	opType := "type"
 	accType := "type"

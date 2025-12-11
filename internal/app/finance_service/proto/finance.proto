@@ -194,7 +194,7 @@ message OperationsByAccountAndFiltersRequest {
     int32 account_id = 2;
     int32 operation_id = 3;
     string name = 4;
-    int32 category_id = 5;
+    repeated int32 category_ids = 5;
     string operation_type = 6;
     string account_type = 7;
     google.protobuf.Timestamp date = 8;

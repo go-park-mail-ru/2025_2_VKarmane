@@ -201,7 +201,7 @@ func (s *FinanceServerImpl) GetOperationsByAccount(ctx context.Context, req *fin
 		date = ""
 	}
 
-	operations, err := s.financeUC.GetOperationsByAccount(ctx, int(req.AccountId), int(req.CategoryId), req.Name, req.OperationType, req.AccountType, date)
+	operations, err := s.financeUC.GetOperationsByAccount(ctx, int(req.AccountId), CategoryIDsInt(req.CategoryIds), req.Name, req.OperationType, req.AccountType, date)
 	if err != nil {
 		for targetErr, resp := range finerrors.ErrorMap {
 			if errors.Is(err, targetErr) {

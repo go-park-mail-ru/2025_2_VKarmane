@@ -98,7 +98,7 @@ func (uc *UseCase) AddUserToAccount(ctx context.Context, userID, accountID int) 
 
 func (uc *UseCase) GetOperationsByAccount(
 	ctx context.Context,
-	accountID, categoryID int,
+	accountID int, categoryIDs []int,
 	opName, opType, accType, date string,
 ) (*finpb.ListOperationsResponse, error) {
 
@@ -124,11 +124,11 @@ func (uc *UseCase) GetOperationsByAccount(
 		},
 	}
 
-	if categoryID != 0 {
+	if len(categoryIDs) != 0 {
 		boolQuery["filter"] = []interface{}{
 			map[string]interface{}{
-				"term": map[string]interface{}{
-					"category_id": categoryID,
+				"terms": map[string]interface{}{
+					"category_id": categoryIDs,
 				},
 			},
 		}

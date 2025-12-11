@@ -139,3 +139,11 @@ func protoToCategoryRequest(req *finpb.CategoryReportRequest) finmodels.Category
 		End:    req.End.AsTime(),
 	}
 }
+
+func CategoryIDsInt(ids []int32) []int {
+	intIds := make([]int, len(ids))
+	for _, id := range ids {
+		intIds = append(intIds, int(id))
+	}
+	return intIds
+}
