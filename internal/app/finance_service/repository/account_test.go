@@ -81,13 +81,14 @@ func TestGetAccountsByUser(t *testing.T) {
 		AddRow(1, 100.0, "cash", 1, created, updated, "Cash Wallet", "My cash").
 		AddRow(2, 200.0, "card", 2, created, updated, "Bank Card", "My card")
 
+
 	mock.ExpectQuery(regexp.QuoteMeta(`
 		SELECT a._id, a.balance, a.account_type, a.currency_id, 
 		       a.created_at, a.updated_at, a.account_name, a.account_description
 		FROM account a
 		JOIN sharings s ON a._id = s.account_id
 		WHERE s.user_id = $1
-		ORDER BY a.created_at DESC
+		ORDER BY a.balance DESC, a.created_at DESC
 	`)).
 		WithArgs(userID).
 		WillReturnRows(rows)

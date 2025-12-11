@@ -171,6 +171,7 @@ func TestUpdateOperation_Success(t *testing.T) {
 	opResp := &finpb.Operation{
 		Id:        1,
 		AccountId: 1,
+		CategoryId: 2,
 		Name:      "Updated",
 		Sum:       200,
 		CreatedAt: timestamppb.New(time.Now()),

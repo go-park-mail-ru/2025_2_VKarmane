@@ -63,7 +63,6 @@ func (r *PostgresRepository) GetAccountsByUser(ctx context.Context, userID int) 
 		a.created_at, a.updated_at, a.account_name, a.account_description
 		FROM account a
 		JOIN sharings s ON a._id = s.account_id
-		JOIN 
 		WHERE s.user_id = $1
 		ORDER BY a.balance DESC, a.created_at DESC
 	`

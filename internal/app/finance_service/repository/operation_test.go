@@ -219,31 +219,36 @@ func TestUpdateOperation_Success(t *testing.T) {
 	mock.ExpectBegin()
 
 	rows := sqlmock.NewRows([]string{
-		"_id", "account_from_id", "account_to_id", "category_id", "currency_id",
-		"operation_status", "operation_type", "operation_name", "operation_description",
-		"receipt_url", "sum", "created_at", "operation_date", "category_name",
+    "_id", "account_from_id", "account_to_id", "category_id", "currency_id",
+    "operation_status", "operation_type", "operation_name", "operation_description",
+    "receipt_url", "sum", "created_at", "operation_date",
+    "category_name", "account_type",
 	}).AddRow(
 		5, 1, nil, 3, 1, "done", "expense", name, "old desc",
-		"url", sum, now, now, "Еда",
+		"url", sum, now, now, "Еда", "debit",
 	)
 
-	mock.ExpectQuery(regexp.QuoteMeta(`WITH updated_operation AS (
+
+	mock.ExpectQuery(regexp.QuoteMeta(`
+		WITH updated_operation AS (
 			UPDATE operation 
 			SET 
-			    operation_name = COALESCE($1, operation_name),
-			    operation_description = COALESCE($2, operation_description),
-			    sum = COALESCE($3, sum)
+				operation_name = COALESCE($1, operation_name),
+				operation_description = COALESCE($2, operation_description),
+				sum = COALESCE($3, sum)
 			WHERE _id = $4 AND (account_from_id = $5 OR account_to_id = $5) AND operation_status != 'reverted'
 			RETURNING _id, account_from_id, account_to_id, category_id, currency_id, 
-			          operation_status, operation_type, operation_name, operation_description, 
-			          receipt_url, sum, created_at, operation_date
+					operation_status, operation_type, operation_name, operation_description, 
+					receipt_url, sum, created_at, operation_date
 		)
 		SELECT o._id, o.account_from_id, o.account_to_id, o.category_id, o.currency_id, 
-		       o.operation_status, o.operation_type, o.operation_name, o.operation_description, 
-		       o.receipt_url, o.sum, o.created_at, o.operation_date,
-		       COALESCE(c.category_name, 'Без категории') as category_name
+			o.operation_status, o.operation_type, o.operation_name, o.operation_description, 
+			o.receipt_url, o.sum, o.created_at, o.operation_date,
+			COALESCE(c.category_name, 'Без категории') as category_name, acc.account_type
 		FROM updated_operation o
-		LEFT JOIN category c ON o.category_id = c._id`)).
+		LEFT JOIN category c ON o.category_id = c._id
+		JOIN account acc ON acc._id = $5
+	`)).
 		WithArgs(&name, nil, &sum, 5, 1).
 		WillReturnRows(rows)
 
@@ -270,7 +275,7 @@ func TestDeleteOperation_Success(t *testing.T) {
 
 	mock.ExpectBegin()
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT sum, type FROM operation WHERE _id = $1`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT sum, operation_type FROM operation WHERE _id = $1`)).
 		WithArgs(7).
 		WillReturnRows(sqlmock.NewRows([]string{"sum", "type"}).AddRow(50.0, "expense"))
 
