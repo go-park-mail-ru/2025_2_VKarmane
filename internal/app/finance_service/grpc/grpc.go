@@ -135,17 +135,24 @@ func (s *FinanceServerImpl) CreateOperation(ctx context.Context, req *finpb.Crea
 	operation, err := s.financeUC.CreateOperation(ctx, createReq, int(req.AccountId))
 	if err != nil {
 		logger := logger.FromContext(ctx)
+		logger.Info("got")
 		for targetErr, resp := range finerrors.ErrorMap {
+			logger.Info("got2")
 			if errors.Is(err, targetErr) {
+				logger.Info("got3")
 				if logger != nil {
 					logger.Error("Failed to create operation", "error", err)
 				}
+				logger.Info("here")
 				return nil, status.Error(resp.Code, resp.Msg)
 			}
+			logger.Info("here2")
 		}
+		logger.Info("got4")
 		if logger != nil {
 			logger.Error("Failed to create operation, internal error", "error", err)
 		}
+		logger.Info("got5")
 		return nil, status.Error(codes.Internal, string(models.ErrCodeInternalError))
 	}
 	return operation, nil

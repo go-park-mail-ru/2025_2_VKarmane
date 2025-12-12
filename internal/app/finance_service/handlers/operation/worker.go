@@ -58,13 +58,26 @@ func ProcessCSV(
 	var created []models.OperationResponse
 	var errorsList []error
 
-	for r := range results {
-		created = append(created, r)
-	}
+	finishedResults := false
+    finishedErrors := false
 
-	for e := range errs {
-		errorsList = append(errorsList, e)
-	}
+    for !(finishedResults && finishedErrors) {
+        select {
+        case r, ok := <-results:
+            if !ok {
+                finishedResults = true
+                continue
+            }
+            created = append(created, r)
+
+        case e, ok := <-errs:
+            if !ok {
+                finishedErrors = true
+                continue
+            }
+            errorsList = append(errorsList, e)
+        }
+    }
 
 	return created, errorsList
 }

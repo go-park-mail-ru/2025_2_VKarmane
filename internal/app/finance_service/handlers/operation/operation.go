@@ -219,6 +219,12 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 			}
 			httputils.ConflictError(w, r, "Доступ запрещен", models.ErrCodeForbidden)
 			return
+		case codes.InvalidArgument:
+			if log != nil {
+				log.Error("grpc CreateOperation invalid argument error", "error", err)
+			}
+			httputils.ConflictError(w, r, "Некорректные данные", models.ErrCodeInvalidData)
+			return
 		default:
 			if log != nil {
 				log.Error("grpc CreateOperation error", "error", err)
@@ -483,8 +489,8 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 			httputils.InternalError(w, r, "Ошибка получения операций")
 			return
 		}
-		
-	ctgDTO = category.CategoryWithStatsToAPI(ctg)
+
+		ctgDTO = category.CategoryWithStatsToAPI(ctg)
 	}
 
 	transactionSearch := OperationResponseToSearch(operationResponse, ctgDTO, ctgLogo)
