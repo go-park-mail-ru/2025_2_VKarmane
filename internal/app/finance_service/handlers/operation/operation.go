@@ -656,10 +656,13 @@ func (h *Handler) UploadCVSData(w http.ResponseWriter, r *http.Request) {
 					if log != nil {
 						log.Error("grpc GetCategory invalid arg", "error", err)
 					}
+					continue
+
 				default:
 					if log != nil {
 						log.Error("grpc GetCategory error", "error", err)
 					}
+					continue
 				}
 
 			}

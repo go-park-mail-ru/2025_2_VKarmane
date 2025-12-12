@@ -218,3 +218,84 @@ func TestGetCategoriesWithStatsByUser(t *testing.T) {
 	require.Len(t, res.Categories, 1)
 	require.Equal(t, int32(10), res.Categories[0].OperationsCount)
 }
+
+
+func TestGetAccountsByUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
+	svc := NewService(mockRepo, nil, clock.FixedClock{})
+
+	ctx := context.Background()
+	accounts := []models.Account{
+		{ID: 1, Balance: 100},
+		{ID: 2, Balance: 50},
+	}
+	mockRepo.EXPECT().GetAccountsByUser(ctx, 1).Return(accounts, nil)
+
+	resp, err := svc.GetAccountsByUser(ctx, 1)
+	require.NoError(t, err)
+	require.Len(t, resp.Accounts, 2)
+	require.Equal(t, int32(1), resp.Accounts[0].Id)
+}
+
+
+func TestGetCategoryByID(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
+	svc := NewService(mockRepo, nil, clock.FixedClock{})
+
+	ctx := context.Background()
+	category := models.Category{ID: 3, UserID: 1, Name: "food"}
+	mockRepo.EXPECT().GetCategoryByID(ctx, 1, 3).Return(category, nil)
+	mockRepo.EXPECT().GetCategoryStats(ctx, 1, 3).Return(5, nil)
+
+	resp, err := svc.GetCategoryByID(ctx, 1, 3)
+	require.NoError(t, err)
+	require.Equal(t, int32(3), resp.Category.Id)
+	require.Equal(t, int32(5), resp.OperationsCount)
+}
+
+func TestDeleteOperation(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
+	svc := NewService(mockRepo, nil, clock.FixedClock{})
+
+	ctx := context.Background()
+	op := models.Operation{ID: 4, AccountID: 2}
+	mockRepo.EXPECT().DeleteOperation(ctx, 2, 4).Return(op, nil)
+
+	resp, err := svc.DeleteOperation(ctx, 2, 4)
+	require.NoError(t, err)
+	require.Equal(t, int32(4), resp.Id)
+}
+
+func TestCreateOperationDefaults(t *testing.T) {
+	fixedClock := clock.FixedClock{
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.UTC),
+	}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mockRepo := mock_repo.NewMockFinanceRepository(ctrl)
+	svc := NewService(mockRepo, nil, fixedClock)
+
+	ctx := context.Background()
+	req := models.CreateOperationRequest{
+		UserID:    1,
+		AccountID: 2,
+		Type:      models.OperationExpense,
+		Sum:       75,
+	}
+
+	mockRepo.EXPECT().CreateOperation(ctx, gomock.Any()).DoAndReturn(func(_ context.Context, op models.Operation) (models.Operation, error) {
+		require.Equal(t, 0, op.CategoryID)
+		require.Equal(t, fixedClock.FixedTime, op.Date)
+		return op, nil
+	})
+
+	resp, err := svc.CreateOperation(ctx, req, req.AccountID)
+	require.NoError(t, err)
+	require.Equal(t, float64(75), resp.Sum)
+}

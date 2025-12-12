@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS operation (
     operation_name TEXT NOT NULL CHECK (LENGTH(operation_name) <= 50),
     operation_description TEXT CHECK (LENGTH(operation_description) <= 100),
     receipt_url TEXT CHECK (LENGTH(receipt_url) <= 200),
-    sum DECIMAL(10,2) NOT NULL CHECK (sum > 0),
+    sum DECIMAL(11,2) NOT NULL CHECK (sum > 0),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
