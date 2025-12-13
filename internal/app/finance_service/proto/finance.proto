@@ -46,6 +46,12 @@ message AccountRequest {
     int32 account_id = 2;
 }
 
+
+message AddToAccountReqeust {
+    string user_login = 1;
+    int32 account_id = 2;
+}
+
 message UserID {
     int32 user_id = 1;
 }
@@ -207,29 +213,81 @@ message SharingsResponse {
     google.protobuf.Timestamp created_at = 4;
 }
 
+// FinanceService provides account, operation, and category management
+// for users, enabling creation, retrieval, update, deletion, and reporting
+// of financial data within the system.
 service FinanceService {
+
+    // --------------------------
     // Account methods
+    // --------------------------
+
+    // Creates a new financial account for the user.
     rpc CreateAccount(CreateAccountRequest) returns (Account);
+
+    // Retrieves an account by its ID.
     rpc GetAccount(AccountRequest) returns (Account);
+
+    // Retrieves all accounts associated with a specific user.
     rpc GetAccountsByUser(UserID) returns (ListAccountsResponse);
+
+    // Updates properties of an existing account.
     rpc UpdateAccount(UpdateAccountRequest) returns (Account);
+
+    // Deletes an account by ID and returns the deleted account.
     rpc DeleteAccount(AccountRequest) returns (Account);
-    rpc AddUserToAccounnt(AccountRequest) returns (SharingsResponse);
-    
+
+    // Shares an account with another user and returns updated sharing info.
+    rpc AddUserToAccounnt(AddToAccountReqeust) returns (SharingsResponse);
+
+
+    // --------------------------
     // Operation methods
+    // --------------------------
+
+    // Creates a new financial operation (expense, income, transfer, etc.).
     rpc CreateOperation(CreateOperationRequest) returns (Operation);
+
+    // Retrieves a financial operation by its ID.
     rpc GetOperation(OperationRequest) returns (Operation);
-    rpc GetOperationsByAccount(OperationsByAccountAndFiltersRequest) returns (ListOperationsResponse);
+
+    // Retrieves operations for a given account, supporting filters.
+    rpc GetOperationsByAccount(OperationsByAccountAndFiltersRequest)
+        returns (ListOperationsResponse);
+
+    // Updates an existing financial operation.
     rpc UpdateOperation(UpdateOperationRequest) returns (Operation);
+
+    // Deletes an operation and returns the deleted entity.
     rpc DeleteOperation(OperationRequest) returns (Operation);
-    
+
+
+    // --------------------------
     // Category methods
+    // --------------------------
+
+    // Creates a new category for classifying operations.
     rpc CreateCategory(CreateCategoryRequest) returns (Category);
+
+    // Retrieves a category by its ID, including associated statistics.
     rpc GetCategory(CategoryRequest) returns (CategoryWithStats);
+
+    // Retrieves a category by its name, including associated statistics.
     rpc GetCategoryByName(CategoryByNameRequest) returns (CategoryWithStats);
+
+    // Retrieves all categories belonging to a specific user.
     rpc GetCategoriesByUser(UserID) returns (ListCategoriesResponse);
-    rpc GetCategoriesWithStatsByUser(UserID) returns (ListCategoriesWithStatsResponse);
+
+    // Retrieves categories with statistics for a specific user.
+    rpc GetCategoriesWithStatsByUser(UserID)
+        returns (ListCategoriesWithStatsResponse);
+
+    // Updates properties of an existing category.
     rpc UpdateCategory(UpdateCategoryRequest) returns (Category);
+
+    // Deletes a category and returns the deleted entity.
     rpc DeleteCategory(CategoryRequest) returns (Category);
+
+    // Generates a category-based financial report for a user.
     rpc GetCategoriesReport(CategoryReportRequest) returns (CategoryReportResponse);
 }

@@ -86,8 +86,8 @@ func (s *Service) DeleteAccount(ctx context.Context, userID, accountID int) (*fi
 	return accountToProto(deletedAcc), nil
 }
 
-func (s *Service) AddUserToAccount(ctx context.Context, userID, accountID int) (*finpb.SharingsResponse, error) {
-	sh, err := s.repo.AddUserToAccount(ctx, userID, accountID)
+func (s *Service) AddUserToAccount(ctx context.Context, userLogin string, accountID int) (*finpb.SharingsResponse, error) {
+	sh, err := s.repo.AddUserToAccount(ctx, userLogin, accountID)
 	if err != nil {
 		return nil, err
 	}

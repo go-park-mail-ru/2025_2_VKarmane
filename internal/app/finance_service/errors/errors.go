@@ -12,4 +12,5 @@ var (
 	ErrNegativeBalance   = errors.New("negative balance")
 	ErrPrivateAccount    = errors.New("private account")
 	ErrSharingExists     = errors.New("sharing exists")
+	ErrUserNotFound      = errors.New("user not found")
 )

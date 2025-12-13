@@ -18,4 +18,5 @@ var ErrorMap = map[error]struct {
 	ErrNegativeBalance:   {Code: codes.FailedPrecondition, Msg: string(models.ErrCodeNegaticeBalance)},
 	ErrPrivateAccount:    {Code: codes.FailedPrecondition, Msg: string(models.ErrCodePrivateAccount)},
 	ErrSharingExists:     {Code: codes.AlreadyExists, Msg: string(models.ErrCodeSharingExists)},
+	ErrUserNotFound:      {Code: codes.NotFound, Msg: string(models.ErrCodeUserNotFound)},
 }

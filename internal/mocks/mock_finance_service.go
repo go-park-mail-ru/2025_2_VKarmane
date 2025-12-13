@@ -43,18 +43,18 @@ func (m *MockFinanceService) EXPECT() *MockFinanceServiceMockRecorder {
 }
 
 // AddUserToAccount mocks base method.
-func (m *MockFinanceService) AddUserToAccount(ctx context.Context, userID, accountID int) (*proto.SharingsResponse, error) {
+func (m *MockFinanceService) AddUserToAccount(ctx context.Context, userLogin string, accountID int) (*proto.SharingsResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddUserToAccount", ctx, userID, accountID)
+	ret := m.ctrl.Call(m, "AddUserToAccount", ctx, userLogin, accountID)
 	ret0, _ := ret[0].(*proto.SharingsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddUserToAccount indicates an expected call of AddUserToAccount.
-func (mr *MockFinanceServiceMockRecorder) AddUserToAccount(ctx, userID, accountID any) *gomock.Call {
+func (mr *MockFinanceServiceMockRecorder) AddUserToAccount(ctx, userLogin, accountID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUserToAccount", reflect.TypeOf((*MockFinanceService)(nil).AddUserToAccount), ctx, userID, accountID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUserToAccount", reflect.TypeOf((*MockFinanceService)(nil).AddUserToAccount), ctx, userLogin, accountID)
 }
 
 // CreateAccount mocks base method.

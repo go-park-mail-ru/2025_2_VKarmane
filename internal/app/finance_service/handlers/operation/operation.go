@@ -683,9 +683,9 @@ func (h *Handler) UploadCVSData(w http.ResponseWriter, r *http.Request) {
 			opType = "income"
 		}
 
-		sum, err := strconv.ParseFloat(row[3], 5)
+		sum, err := strconv.ParseFloat(row[3], 64)
 		if err != nil || sum == 0 {
-			sum, _ = strconv.ParseFloat(row[5], 5)
+			sum, _ = strconv.ParseFloat(row[5], 64)
 		}
 
 		date := row[0]
@@ -831,5 +831,4 @@ func (h *Handler) GetCSVData(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 	}
-
 }

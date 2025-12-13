@@ -158,8 +158,8 @@ func (s *FinanceServerImpl) CreateOperation(ctx context.Context, req *finpb.Crea
 	return operation, nil
 }
 
-func (s *FinanceServerImpl) AddUserToAccounnt(ctx context.Context, req *finpb.AccountRequest) (*finpb.SharingsResponse, error) {
-	sharing, err := s.financeUC.AddUserToAccount(ctx, int(req.UserId), int(req.AccountId))
+func (s *FinanceServerImpl) AddUserToAccounnt(ctx context.Context, req *finpb.AddToAccountReqeust) (*finpb.SharingsResponse, error) {
+	sharing, err := s.financeUC.AddUserToAccount(ctx, req.UserLogin, int(req.AccountId))
 	if err != nil {
 		logger := logger.FromContext(ctx)
 		for targetErr, resp := range finerrors.ErrorMap {

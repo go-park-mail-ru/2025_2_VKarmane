@@ -289,7 +289,7 @@ func (h *Handler) AddUserToAccount(w http.ResponseWriter, r *http.Request) {
 		httputils.ValidationError(w, r, "Некорректный формат данных", "body")
 		return
 	}
-	sharing, err := h.finClient.AddUserToAccounnt(r.Context(), UserIDAndAccountIDToProtoID(req.UserID, req.AccountID))
+	sharing, err := h.finClient.AddUserToAccounnt(r.Context(), UserLoginIDtoProtoID(req.UserLogin, req.AccountID))
 	if err != nil {
 		st, ok := status.FromError(err)
 		log := logger.FromContext(r.Context())
@@ -305,7 +305,7 @@ func (h *Handler) AddUserToAccount(w http.ResponseWriter, r *http.Request) {
 			if log != nil {
 				log.Error("grpc AddUserToAccount not found error", "error", err)
 			}
-			httputils.Error(w, r, "Счет не найден", http.StatusBadRequest)
+			httputils.Error(w, r, "Счет или пользователь не найден", http.StatusBadRequest)
 			return
 		case codes.FailedPrecondition:
 			if log != nil {

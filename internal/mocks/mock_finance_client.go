@@ -43,7 +43,7 @@ func (m *MockFinanceServiceClient) EXPECT() *MockFinanceServiceClientMockRecorde
 }
 
 // AddUserToAccounnt mocks base method.
-func (m *MockFinanceServiceClient) AddUserToAccounnt(ctx context.Context, in *proto.AccountRequest, opts ...grpc.CallOption) (*proto.SharingsResponse, error) {
+func (m *MockFinanceServiceClient) AddUserToAccounnt(ctx context.Context, in *proto.AddToAccountReqeust, opts ...grpc.CallOption) (*proto.SharingsResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, in}
 	for _, a := range opts {

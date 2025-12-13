@@ -84,12 +84,12 @@ func (uc *UseCase) DeleteAccount(ctx context.Context, userID, accountID int) (*f
 	return account, nil
 }
 
-func (uc *UseCase) AddUserToAccount(ctx context.Context, userID, accountID int) (*finpb.SharingsResponse, error) {
+func (uc *UseCase) AddUserToAccount(ctx context.Context, userLogin string, accountID int) (*finpb.SharingsResponse, error) {
 	log := logger.FromContext(ctx)
-	sharing, err := uc.financeService.AddUserToAccount(ctx, userID, accountID)
+	sharing, err := uc.financeService.AddUserToAccount(ctx, userLogin, accountID)
 	if err != nil {
 		if log != nil {
-			log.Error("Failed to add user to account", "error", err, "user_id", userID, "account_id", accountID)
+			log.Error("Failed to add user to account", "error", err, "user_login", userLogin, "account_id", accountID)
 		}
 		return nil, pkgerrors.Wrap(err, "finance.AddUserToAccounnt")
 	}

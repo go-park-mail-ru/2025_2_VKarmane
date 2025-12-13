@@ -238,7 +238,7 @@ func (r *PostgresRepository) DeleteAccount(ctx context.Context, userID, accID in
 	return acc, nil
 }
 
-func (r *PostgresRepository) AddUserToAccount(ctx context.Context, userID, accountID int) (finmodels.SharingAccount, error) {
+func (r *PostgresRepository) AddUserToAccount(ctx context.Context, userLogin string, accountID int) (finmodels.SharingAccount, error) {
 	var accountType string
 
 	err := r.db.QueryRowContext(ctx, `SELECT account_type FROM account where _id = $1`, accountID).Scan(&accountType)
@@ -248,6 +248,12 @@ func (r *PostgresRepository) AddUserToAccount(ctx context.Context, userID, accou
 
 	if accountType == models.PrivateAccount {
 		return finmodels.SharingAccount{}, errors.ErrPrivateAccount
+	}
+
+	var userID int
+	err = r.db.QueryRowContext(ctx, `SELECT _id FROM "user" where user_login = $1`, userLogin).Scan(&userID)
+	if err != nil {
+		return finmodels.SharingAccount{}, errors.ErrUserNotFound
 	}
 
 	query := `

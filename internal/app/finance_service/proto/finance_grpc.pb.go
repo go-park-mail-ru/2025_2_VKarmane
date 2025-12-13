@@ -43,28 +43,48 @@ const (
 // FinanceServiceClient is the client API for FinanceService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// FinanceService provides account, operation, and category management
+// for users, enabling creation, retrieval, update, deletion, and reporting
+// of financial data within the system.
 type FinanceServiceClient interface {
-	// Account methods
+	// Creates a new financial account for the user.
 	CreateAccount(ctx context.Context, in *CreateAccountRequest, opts ...grpc.CallOption) (*Account, error)
+	// Retrieves an account by its ID.
 	GetAccount(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*Account, error)
+	// Retrieves all accounts associated with a specific user.
 	GetAccountsByUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*ListAccountsResponse, error)
+	// Updates properties of an existing account.
 	UpdateAccount(ctx context.Context, in *UpdateAccountRequest, opts ...grpc.CallOption) (*Account, error)
+	// Deletes an account by ID and returns the deleted account.
 	DeleteAccount(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*Account, error)
-	AddUserToAccounnt(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*SharingsResponse, error)
-	// Operation methods
+	// Shares an account with another user and returns updated sharing info.
+	AddUserToAccounnt(ctx context.Context, in *AddToAccountReqeust, opts ...grpc.CallOption) (*SharingsResponse, error)
+	// Creates a new financial operation (expense, income, transfer, etc.).
 	CreateOperation(ctx context.Context, in *CreateOperationRequest, opts ...grpc.CallOption) (*Operation, error)
+	// Retrieves a financial operation by its ID.
 	GetOperation(ctx context.Context, in *OperationRequest, opts ...grpc.CallOption) (*Operation, error)
+	// Retrieves operations for a given account, supporting filters.
 	GetOperationsByAccount(ctx context.Context, in *OperationsByAccountAndFiltersRequest, opts ...grpc.CallOption) (*ListOperationsResponse, error)
+	// Updates an existing financial operation.
 	UpdateOperation(ctx context.Context, in *UpdateOperationRequest, opts ...grpc.CallOption) (*Operation, error)
+	// Deletes an operation and returns the deleted entity.
 	DeleteOperation(ctx context.Context, in *OperationRequest, opts ...grpc.CallOption) (*Operation, error)
-	// Category methods
+	// Creates a new category for classifying operations.
 	CreateCategory(ctx context.Context, in *CreateCategoryRequest, opts ...grpc.CallOption) (*Category, error)
+	// Retrieves a category by its ID, including associated statistics.
 	GetCategory(ctx context.Context, in *CategoryRequest, opts ...grpc.CallOption) (*CategoryWithStats, error)
+	// Retrieves a category by its name, including associated statistics.
 	GetCategoryByName(ctx context.Context, in *CategoryByNameRequest, opts ...grpc.CallOption) (*CategoryWithStats, error)
+	// Retrieves all categories belonging to a specific user.
 	GetCategoriesByUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*ListCategoriesResponse, error)
+	// Retrieves categories with statistics for a specific user.
 	GetCategoriesWithStatsByUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*ListCategoriesWithStatsResponse, error)
+	// Updates properties of an existing category.
 	UpdateCategory(ctx context.Context, in *UpdateCategoryRequest, opts ...grpc.CallOption) (*Category, error)
+	// Deletes a category and returns the deleted entity.
 	DeleteCategory(ctx context.Context, in *CategoryRequest, opts ...grpc.CallOption) (*Category, error)
+	// Generates a category-based financial report for a user.
 	GetCategoriesReport(ctx context.Context, in *CategoryReportRequest, opts ...grpc.CallOption) (*CategoryReportResponse, error)
 }
 
@@ -126,7 +146,7 @@ func (c *financeServiceClient) DeleteAccount(ctx context.Context, in *AccountReq
 	return out, nil
 }
 
-func (c *financeServiceClient) AddUserToAccounnt(ctx context.Context, in *AccountRequest, opts ...grpc.CallOption) (*SharingsResponse, error) {
+func (c *financeServiceClient) AddUserToAccounnt(ctx context.Context, in *AddToAccountReqeust, opts ...grpc.CallOption) (*SharingsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SharingsResponse)
 	err := c.cc.Invoke(ctx, FinanceService_AddUserToAccounnt_FullMethodName, in, out, cOpts...)
@@ -269,28 +289,48 @@ func (c *financeServiceClient) GetCategoriesReport(ctx context.Context, in *Cate
 // FinanceServiceServer is the server API for FinanceService service.
 // All implementations must embed UnimplementedFinanceServiceServer
 // for forward compatibility.
+//
+// FinanceService provides account, operation, and category management
+// for users, enabling creation, retrieval, update, deletion, and reporting
+// of financial data within the system.
 type FinanceServiceServer interface {
-	// Account methods
+	// Creates a new financial account for the user.
 	CreateAccount(context.Context, *CreateAccountRequest) (*Account, error)
+	// Retrieves an account by its ID.
 	GetAccount(context.Context, *AccountRequest) (*Account, error)
+	// Retrieves all accounts associated with a specific user.
 	GetAccountsByUser(context.Context, *UserID) (*ListAccountsResponse, error)
+	// Updates properties of an existing account.
 	UpdateAccount(context.Context, *UpdateAccountRequest) (*Account, error)
+	// Deletes an account by ID and returns the deleted account.
 	DeleteAccount(context.Context, *AccountRequest) (*Account, error)
-	AddUserToAccounnt(context.Context, *AccountRequest) (*SharingsResponse, error)
-	// Operation methods
+	// Shares an account with another user and returns updated sharing info.
+	AddUserToAccounnt(context.Context, *AddToAccountReqeust) (*SharingsResponse, error)
+	// Creates a new financial operation (expense, income, transfer, etc.).
 	CreateOperation(context.Context, *CreateOperationRequest) (*Operation, error)
+	// Retrieves a financial operation by its ID.
 	GetOperation(context.Context, *OperationRequest) (*Operation, error)
+	// Retrieves operations for a given account, supporting filters.
 	GetOperationsByAccount(context.Context, *OperationsByAccountAndFiltersRequest) (*ListOperationsResponse, error)
+	// Updates an existing financial operation.
 	UpdateOperation(context.Context, *UpdateOperationRequest) (*Operation, error)
+	// Deletes an operation and returns the deleted entity.
 	DeleteOperation(context.Context, *OperationRequest) (*Operation, error)
-	// Category methods
+	// Creates a new category for classifying operations.
 	CreateCategory(context.Context, *CreateCategoryRequest) (*Category, error)
+	// Retrieves a category by its ID, including associated statistics.
 	GetCategory(context.Context, *CategoryRequest) (*CategoryWithStats, error)
+	// Retrieves a category by its name, including associated statistics.
 	GetCategoryByName(context.Context, *CategoryByNameRequest) (*CategoryWithStats, error)
+	// Retrieves all categories belonging to a specific user.
 	GetCategoriesByUser(context.Context, *UserID) (*ListCategoriesResponse, error)
+	// Retrieves categories with statistics for a specific user.
 	GetCategoriesWithStatsByUser(context.Context, *UserID) (*ListCategoriesWithStatsResponse, error)
+	// Updates properties of an existing category.
 	UpdateCategory(context.Context, *UpdateCategoryRequest) (*Category, error)
+	// Deletes a category and returns the deleted entity.
 	DeleteCategory(context.Context, *CategoryRequest) (*Category, error)
+	// Generates a category-based financial report for a user.
 	GetCategoriesReport(context.Context, *CategoryReportRequest) (*CategoryReportResponse, error)
 	mustEmbedUnimplementedFinanceServiceServer()
 }
@@ -317,7 +357,7 @@ func (UnimplementedFinanceServiceServer) UpdateAccount(context.Context, *UpdateA
 func (UnimplementedFinanceServiceServer) DeleteAccount(context.Context, *AccountRequest) (*Account, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteAccount not implemented")
 }
-func (UnimplementedFinanceServiceServer) AddUserToAccounnt(context.Context, *AccountRequest) (*SharingsResponse, error) {
+func (UnimplementedFinanceServiceServer) AddUserToAccounnt(context.Context, *AddToAccountReqeust) (*SharingsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddUserToAccounnt not implemented")
 }
 func (UnimplementedFinanceServiceServer) CreateOperation(context.Context, *CreateOperationRequest) (*Operation, error) {
@@ -471,7 +511,7 @@ func _FinanceService_DeleteAccount_Handler(srv interface{}, ctx context.Context,
 }
 
 func _FinanceService_AddUserToAccounnt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AccountRequest)
+	in := new(AddToAccountReqeust)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -483,7 +523,7 @@ func _FinanceService_AddUserToAccounnt_Handler(srv interface{}, ctx context.Cont
 		FullMethod: FinanceService_AddUserToAccounnt_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FinanceServiceServer).AddUserToAccounnt(ctx, req.(*AccountRequest))
+		return srv.(FinanceServiceServer).AddUserToAccounnt(ctx, req.(*AddToAccountReqeust))
 	}
 	return interceptor(ctx, in, info, handler)
 }

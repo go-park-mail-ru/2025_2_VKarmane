@@ -43,6 +43,6 @@ type UpdateAccountRequest struct {
 }
 
 type AddUserToAccountRequest struct {
-	UserID    int `json:"user_id"`
-	AccountID int `json:"account_id"`
+	UserLogin string `json:"user_login"`
+	AccountID int    `json:"account_id"`
 }

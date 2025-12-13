@@ -44,6 +44,13 @@ func UserIDAndAccountIDToProtoID(userID, accID int) *finpb.AccountRequest {
 	}
 }
 
+func UserLoginIDtoProtoID(login string, accID int) *finpb.AddToAccountReqeust {
+	return &finpb.AddToAccountReqeust{
+		AccountId: int32(accID),
+		UserLogin: login,
+	}
+}
+
 func AccountResponseListProtoToApi(resp *finpb.ListAccountsResponse, userID int) AccountsAPI {
 	if resp == nil {
 		return AccountsAPI{

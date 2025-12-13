@@ -14,7 +14,7 @@ type FinanceService interface {
 	CreateAccount(ctx context.Context, req finmodels.CreateAccountRequest) (*finpb.Account, error)
 	UpdateAccount(ctx context.Context, req finmodels.UpdateAccountRequest) (*finpb.Account, error)
 	DeleteAccount(ctx context.Context, userID, accountID int) (*finpb.Account, error)
-	AddUserToAccount(ctx context.Context, userID, accountID int) (*finpb.SharingsResponse, error)
+	AddUserToAccount(ctx context.Context, userLogin string, accountID int) (*finpb.SharingsResponse, error)
 
 	// Operation methods
 	// GetOperationsByAccount(ctx context.Context, accountID, categoryID int, opName string) (*finpb.ListOperationsResponse, error)
