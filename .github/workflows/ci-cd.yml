@@ -50,9 +50,7 @@ jobs:
           tags: |
             imperialmelon1/vkarmane-api:${{ github.sha }}
             imperialmelon1/vkarmane-api:latest
-          cache-from: type=registry,ref=imperialmelon1/vkarmane-api:latest
-          cache-to: type=registry,ref=imperialmelon1/vkarmane-api:cache,mode=max
-
+            
       - name: Build & push auth
         uses: docker/build-push-action@v6
         with:
@@ -62,8 +60,6 @@ jobs:
           tags: |
             imperialmelon1/vkarmane-auth:${{ github.sha }}
             imperialmelon1/vkarmane-auth:latest
-          cache-from: type=registry,ref=imperialmelon1/vkarmane-auth:latest
-          cache-to: type=registry,ref=imperialmelon1/vkarmane-auth:cache,mode=max
 
       - name: Build & push budget
         uses: docker/build-push-action@v6
@@ -74,8 +70,6 @@ jobs:
           tags: |
             imperialmelon1/vkarmane-budget:${{ github.sha }}
             imperialmelon1/vkarmane-budget:latest
-          cache-from: type=registry,ref=imperialmelon1/vkarmane-budget:latest
-          cache-to: type=registry,ref=imperialmelon1/vkarmane-budget:cache,mode=max
 
       - name: Build & push finance
         uses: docker/build-push-action@v6
@@ -86,8 +80,6 @@ jobs:
           tags: |
             imperialmelon1/vkarmane-finance:${{ github.sha }}
             imperialmelon1/vkarmane-finance:latest
-          cache-from: type=registry,ref=imperialmelon1/vkarmane-finance:latest
-          cache-to: type=registry,ref=imperialmelon1/vkarmane-finance:cache,mode=max
 
       - name: Build & push search_worker
         uses: docker/build-push-action@v6
@@ -98,8 +90,6 @@ jobs:
           tags: |
             imperialmelon1/vkarmane-search_worker:${{ github.sha }}
             imperialmelon1/vkarmane-search_worker:latest
-          cache-from: type=registry,ref=imperialmelon1/vkarmane-search_worker:latest
-          cache-to: type=registry,ref=imperialmelon1/vkarmane-search_worker:cache,mode=max
             
   deploy:
     name: Deploy
