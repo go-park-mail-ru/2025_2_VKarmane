@@ -1,0 +1,112 @@
+name: CI / CD
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    name: 🧪 Go tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📦 Checkout
+      uses: actions/checkout@v4
+
+    - name: 🧰 Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+
+    - name: 📥 Download deps
+      run: go mod download
+
+    - name: 🧪 Run tests
+      run: go test ./... -v
+
+  deploy:
+    name: 🚀 Deploy
+    needs: test
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'push'
+
+    steps:
+    - name: 📦 Checkout
+      uses: actions/checkout@v4
+
+    - name: 🔐 Setup SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: 🔎 Test SSH
+      run: |
+        ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH OK"
+
+    - name: 📤 Upload project
+      run: |
+        rsync -az --delete \
+          --exclude='.git' \
+          ./ \
+          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/ubuntu/vkarmane
+
+    - name: 📝 Create .env
+      run: |
+        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
+        cat > /home/ubuntu/vkarmane/.env << 'EOT'
+        DB_HOST=postgres
+        DB_PORT=5432
+        DB_USER=vkarmane
+        DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+        DB_NAME=vkarmane
+        DB_SSLMODE=disable
+
+        PORT=8080
+        HOST=0.0.0.0
+
+        JWT_SECRET=${{ secrets.JWT_SECRET }}
+        LOG_LEVEL=info
+        ENV=production
+
+        AUTH_SERVICE_HOST=auth_service
+        AUTH_SERVICE_PORT=8090
+        BUDGET_SERVICE_HOST=budget_service
+        BUDGET_SERVICE_PORT=8100
+        FINANCE_SERVICE_HOST=finance_service
+        FINANCE_SERVICE_PORT=8110
+        KAFKA_PRODUCER_HOST=kafka
+        KAFKA_PRODUCER_PORT=9092
+        ELASTIC_SEARCH_HOST=elasticsearch
+        ELASTIC_SEARCH_PORT=9200
+
+        HTTPS_ENABLED=false
+        HTTPS_CERT_FILE=/etc/letsencrypt/live/vkarmane-planero.duckdns.org/fullchain.pem
+        HTTPS_KEY_FILE=/etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
+
+        CORS_HOST=vkarmane-planero.duckdns.org
+        CORS_FRONTEND_PORT=8000
+        CORS_ORIGINS=https://vkarmane-planero.duckdns.org:8000
+
+        MINIO_ENDPOINT=minio
+        MINIO_PORT=9000
+        MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
+        MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}
+        MINIO_USE_SSL=false
+        MINIO_BUCKET_NAME=images
+        EOT
+        EOF
+
+    - name: 🚀 Docker compose up
+      run: |
+        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
+        cd /home/ubuntu/vkarmane
+        docker compose down || true
+        docker volume rm vkarmane_kafka_data || true
+        docker compose up -d --build
+        sleep 5
+        docker compose ps | grep 'Up'
+        EOF
