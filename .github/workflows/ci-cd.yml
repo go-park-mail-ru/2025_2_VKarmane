@@ -107,7 +107,6 @@ jobs:
           script: |
             cd /home/ubuntu/vkarmane
 
-            # 1️⃣ docker-compose.prod.yml — создаём только если нет
             if [ ! -f docker-compose.prod.yml ]; then
               echo "docker-compose.prod.yml not found, creating"
               cat > docker-compose.prod.yml << 'EOT'
@@ -162,7 +161,6 @@ jobs:
             EOT
             fi
 
-            # 2️⃣ .env — создаём только если нет
             if [ ! -f .env ]; then
               echo ".env not found, creating"
               cat > .env << 'EOT'
@@ -208,7 +206,6 @@ jobs:
             EOT
             fi
 
-            # 3️⃣ docker-compose.yml — всегда обновляем
             echo "Updating docker-compose.yml"
             cat > docker-compose.yml << 'EOT'
             version: '3.8'
@@ -392,7 +389,6 @@ jobs:
                 driver: bridge
             EOT
 
-            # 4️⃣ деплой с SHA-тегами
             export IMAGE_TAG=${{ github.sha }}
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
             docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
