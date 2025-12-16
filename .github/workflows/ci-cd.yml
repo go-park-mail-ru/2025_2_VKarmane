@@ -159,9 +159,6 @@ jobs:
                   - vkarmane-network
                 restart: unless-stopped
 
-            networks:
-              vkarmane-network:
-                driver: bridge
             EOT
             fi
 
