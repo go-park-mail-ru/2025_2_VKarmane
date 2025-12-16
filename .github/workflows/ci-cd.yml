@@ -161,7 +161,7 @@ jobs:
 
             networks:
               vkarmane-network:
-                external: true
+                driver: bridge
             EOT
             fi
 
