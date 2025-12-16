@@ -219,7 +219,6 @@ func TestGetCategoriesWithStatsByUser(t *testing.T) {
 	require.Equal(t, int32(10), res.Categories[0].OperationsCount)
 }
 
-
 func TestGetAccountsByUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -238,7 +237,6 @@ func TestGetAccountsByUser(t *testing.T) {
 	require.Len(t, resp.Accounts, 2)
 	require.Equal(t, int32(1), resp.Accounts[0].Id)
 }
-
 
 func TestGetCategoryByID(t *testing.T) {
 	ctrl := gomock.NewController(t)

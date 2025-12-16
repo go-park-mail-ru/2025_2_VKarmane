@@ -678,16 +678,16 @@ func (h *Handler) UploadCVSData(w http.ResponseWriter, r *http.Request) {
 					ctg, err = h.finClient.GetCategoryByName(r.Context(), category.UserIDCategoryNameToProto(userID, createdCtg.Name))
 					if err != nil {
 						_, ok = status.FromError(err)
-							if !ok {
-								if log != nil {
-									log.Error("grpc CreateCategory unknown error", "error", err)
-								}
-								httputils.InternalError(w, r, "failed create category")
-								return
-							}
+						if !ok {
 							if log != nil {
-								log.Error("grpc GetCategory error", "error", err)
+								log.Error("grpc CreateCategory unknown error", "error", err)
 							}
+							httputils.InternalError(w, r, "failed create category")
+							return
+						}
+						if log != nil {
+							log.Error("grpc GetCategory error", "error", err)
+						}
 						continue
 					}
 				default:

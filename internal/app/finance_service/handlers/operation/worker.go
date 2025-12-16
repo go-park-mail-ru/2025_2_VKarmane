@@ -59,25 +59,25 @@ func ProcessCSV(
 	var errorsList []error
 
 	finishedResults := false
-    finishedErrors := false
+	finishedErrors := false
 
-    for !(finishedResults && finishedErrors) {
-        select {
-        case r, ok := <-results:
-            if !ok {
-                finishedResults = true
-                continue
-            }
-            created = append(created, r)
+	for !(finishedResults && finishedErrors) {
+		select {
+		case r, ok := <-results:
+			if !ok {
+				finishedResults = true
+				continue
+			}
+			created = append(created, r)
 
-        case e, ok := <-errs:
-            if !ok {
-                finishedErrors = true
-                continue
-            }
-            errorsList = append(errorsList, e)
-        }
-    }
+		case e, ok := <-errs:
+			if !ok {
+				finishedErrors = true
+				continue
+			}
+			errorsList = append(errorsList, e)
+		}
+	}
 
 	return created, errorsList
 }

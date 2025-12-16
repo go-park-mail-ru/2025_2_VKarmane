@@ -219,15 +219,14 @@ func TestUpdateOperation_Success(t *testing.T) {
 	mock.ExpectBegin()
 
 	rows := sqlmock.NewRows([]string{
-    "_id", "account_from_id", "account_to_id", "category_id", "currency_id",
-    "operation_status", "operation_type", "operation_name", "operation_description",
-    "receipt_url", "sum", "created_at", "operation_date",
-    "category_name", "account_type",
+		"_id", "account_from_id", "account_to_id", "category_id", "currency_id",
+		"operation_status", "operation_type", "operation_name", "operation_description",
+		"receipt_url", "sum", "created_at", "operation_date",
+		"category_name", "account_type",
 	}).AddRow(
 		5, 1, nil, 3, 1, "done", "expense", name, "old desc",
 		"url", sum, now, now, "Еда", "debit",
 	)
-
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
 		WITH updated_operation AS (

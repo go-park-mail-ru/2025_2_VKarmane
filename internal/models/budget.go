@@ -6,12 +6,12 @@ import (
 )
 
 type Budget struct {
-	ID          int `json:"id"`
-	UserID      int `json:"user_id"`
-	Amount      float64 `json:"sum"`
-	Actual      float64 // Фактические расходы (вычисляемое поле)
-	CurrencyID  int `json:"currency_id"`
-	Description string `json:"description"`
+	ID          int       `json:"id"`
+	UserID      int       `json:"user_id"`
+	Amount      float64   `json:"sum"`
+	Actual      float64   // Фактические расходы (вычисляемое поле)
+	CurrencyID  int       `json:"currency_id"`
+	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	ClosedAt    time.Time `json:"closed_at"`

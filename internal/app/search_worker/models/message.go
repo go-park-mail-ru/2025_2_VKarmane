@@ -2,7 +2,6 @@ package models
 
 import "encoding/json"
 
-
 //go:generate easyjson -all message.go
 
 const (

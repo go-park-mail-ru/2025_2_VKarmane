@@ -176,8 +176,6 @@ func TestUpdateCategory(t *testing.T) {
 	require.Equal(t, expected, res)
 }
 
-
-
 func TestGetAccountsByUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -290,6 +288,5 @@ func TestDeleteCategoryError(t *testing.T) {
 	require.Error(t, err)
 	require.ErrorContains(t, err, "finance.DeleteCategory")
 }
-
 
 func ptrFloat64(v float64) *float64 { return &v }

@@ -203,7 +203,7 @@ func (uc *UseCase) GetOperationsByAccount(
 		"sort": []map[string]interface{}{
 			{
 				"date": map[string]interface{}{
-					"order": "desc", 
+					"order": "desc",
 				},
 			},
 		},

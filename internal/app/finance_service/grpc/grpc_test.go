@@ -5,17 +5,15 @@ import (
 	"errors"
 	"testing"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"github.com/stretchr/testify/assert"
 	gomock "go.uber.org/mock/gomock"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	finerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/errors"
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
-	
-	
 )
 
 func TestFinanceServer_CreateAccount(t *testing.T) {

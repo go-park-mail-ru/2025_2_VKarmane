@@ -169,13 +169,13 @@ func TestUpdateOperation_Success(t *testing.T) {
 	}
 
 	opResp := &finpb.Operation{
-		Id:        1,
-		AccountId: 1,
+		Id:         1,
+		AccountId:  1,
 		CategoryId: 2,
-		Name:      "Updated",
-		Sum:       200,
-		CreatedAt: timestamppb.New(time.Now()),
-		Date:      timestamppb.New(time.Now()),
+		Name:       "Updated",
+		Sum:        200,
+		CreatedAt:  timestamppb.New(time.Now()),
+		Date:       timestamppb.New(time.Now()),
 	}
 
 	mockFin.EXPECT().
