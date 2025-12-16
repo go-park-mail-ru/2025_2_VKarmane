@@ -9,6 +9,7 @@ import (
 	lg "log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -606,12 +607,17 @@ func (h *Handler) UploadCVSData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, _, err := r.FormFile("file")
+	file, header, err := r.FormFile("file")
 	if err != nil {
 		httputils.Error(w, r, "Failed to upload file", http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
+
+	if !strings.HasSuffix(strings.ToLower(header.Filename), ".csv") {
+		httputils.Error(w, r, "File must have .csv extension", http.StatusBadRequest)
+		return
+	}
 
 	reader := csv.NewReader(file)
 	headers, err := reader.Read()
@@ -654,7 +660,7 @@ func (h *Handler) UploadCVSData(w http.ResponseWriter, r *http.Request) {
 					if log != nil {
 						log.Error("grpc CreateCategory unknown error", "error", err)
 					}
-					httputils.InternalError(w, r, "failed update operation")
+					httputils.InternalError(w, r, "failed get category")
 					return
 				}
 				switch st.Code() {
@@ -662,8 +668,28 @@ func (h *Handler) UploadCVSData(w http.ResponseWriter, r *http.Request) {
 					if log != nil {
 						log.Error("grpc GetCategory invalid arg", "error", err)
 					}
-					continue
-
+					createdCtg, err := h.finClient.CreateCategory(r.Context(), category.CategoryCreateRequestToProto(userID, models.CreateCategoryRequest{Name: categoryName}))
+					if err != nil {
+						if log != nil {
+							log.Error("grpc CreateCategory error", "error", err)
+						}
+						continue
+					}
+					ctg, err = h.finClient.GetCategoryByName(r.Context(), category.UserIDCategoryNameToProto(userID, createdCtg.Name))
+					if err != nil {
+						_, ok = status.FromError(err)
+							if !ok {
+								if log != nil {
+									log.Error("grpc CreateCategory unknown error", "error", err)
+								}
+								httputils.InternalError(w, r, "failed create category")
+								return
+							}
+							if log != nil {
+								log.Error("grpc GetCategory error", "error", err)
+							}
+						continue
+					}
 				default:
 					if log != nil {
 						log.Error("grpc GetCategory error", "error", err)

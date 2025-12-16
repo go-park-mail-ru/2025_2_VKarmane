@@ -200,6 +200,13 @@ func (uc *UseCase) GetOperationsByAccount(
 		"query": map[string]interface{}{
 			"bool": boolQuery,
 		},
+		"sort": []map[string]interface{}{
+			{
+				"date": map[string]interface{}{
+					"order": "desc", 
+				},
+			},
+		},
 	}
 
 	body, _ := json.Marshal(query)
