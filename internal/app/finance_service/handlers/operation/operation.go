@@ -52,7 +52,7 @@ func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error)
 
 func (h *Handler) checkCSVHeaders(headers []string) error {
 	expected := []string{"date", "category_name", "account_id", "sum-expense", "to", "sum-income", "description"}
-	for i, _ := range headers {
+	for i := range headers {
 		if headers[i] != expected[i] {
 			return errors.New("invalid file headers")
 		}
