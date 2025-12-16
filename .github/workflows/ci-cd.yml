@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ "main" ]
   push:
-    branches: [ "main" ]
+    branches: [ "main"]
 
 jobs:
   test:
@@ -12,101 +12,387 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.22'
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
 
-    - name: Download deps
-      run: go mod download
+      - name: Download deps
+        run: go mod download
 
-    - name: Run tests
-      run: go test ./... -v
-
-  deploy:
-    name: Deploy
+      - name: Run tests
+        run: go test ./... -v
+    
+  build:
+    name: Build & Push Docker images
     needs: test
     runs-on: ubuntu-latest
-
     if: github.event_name == 'push'
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Test SSH
-      run: |
-        ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH OK"
+      - name: Build & push api
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            imperialmelon1/vkarmane-api:${{ github.sha }}
+            imperialmelon1/vkarmane-api:latest
+            
+      - name: Build & push auth
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: cmd/auth_service/Dockerfile
+          push: true
+          tags: |
+            imperialmelon1/vkarmane-auth:${{ github.sha }}
+            imperialmelon1/vkarmane-auth:latest
 
-    - name: Upload project
-      run: |
-        rsync -az --delete \
-          --exclude='.git' \
-          ./ \
-          ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/ubuntu/vkarmane
+      - name: Build & push budget
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: cmd/budget_service/Dockerfile
+          push: true
+          tags: |
+            imperialmelon1/vkarmane-budget:${{ github.sha }}
+            imperialmelon1/vkarmane-budget:latest
 
-    - name: Create .env
-      run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
-        cat > /home/ubuntu/vkarmane/.env << 'EOT'
-        DB_HOST=postgres
-        DB_PORT=5432
-        DB_USER=vkarmane
-        DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-        DB_NAME=vkarmane
-        DB_SSLMODE=disable
+      - name: Build & push finance
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: cmd/finance_service/Dockerfile
+          push: true
+          tags: |
+            imperialmelon1/vkarmane-finance:${{ github.sha }}
+            imperialmelon1/vkarmane-finance:latest
 
-        PORT=8080
-        HOST=0.0.0.0
+      - name: Build & push search_worker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: cmd/search_worker/Dockerfile
+          push: true
+          tags: |
+            imperialmelon1/vkarmane-search_worker:${{ github.sha }}
+            imperialmelon1/vkarmane-search_worker:latest
+            
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
 
-        JWT_SECRET=${{ secrets.JWT_SECRET }}
-        LOG_LEVEL=info
-        ENV=production
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/vkarmane
 
-        AUTH_SERVICE_HOST=auth_service
-        AUTH_SERVICE_PORT=8090
-        BUDGET_SERVICE_HOST=budget_service
-        BUDGET_SERVICE_PORT=8100
-        FINANCE_SERVICE_HOST=finance_service
-        FINANCE_SERVICE_PORT=8110
-        KAFKA_PRODUCER_HOST=kafka
-        KAFKA_PRODUCER_PORT=9092
-        ELASTIC_SEARCH_HOST=elasticsearch
-        ELASTIC_SEARCH_PORT=9200
+            # 1️⃣ docker-compose.prod.yml — создаём только если нет
+            if [ ! -f docker-compose.prod.yml ]; then
+              echo "docker-compose.prod.yml not found, creating"
+              cat > docker-compose.prod.yml << 'EOT'
+            services:
+              app:
+                image: imperialmelon1/vkarmane-api:latest
+                env_file:
+                  - .env
+                ports:
+                  - "8080:8080"
+                networks:
+                  - vkarmane-network
+                restart: unless-stopped
+                healthcheck:
+                  test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+                  interval: 10s
+                  timeout: 2s
+                  retries: 5
 
-        HTTPS_ENABLED=false
-        HTTPS_CERT_FILE=/etc/letsencrypt/live/vkarmane-planero.duckdns.org/fullchain.pem
-        HTTPS_KEY_FILE=/etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
+              auth_service:
+                image: imperialmelon1/vkarmane-auth:latest
+                env_file:
+                  - .env
+                networks:
+                  - vkarmane-network
+                restart: unless-stopped
 
-        CORS_HOST=vkarmane-planero.duckdns.org
-        CORS_FRONTEND_PORT=8000
-        CORS_ORIGINS=https://vkarmane-planero.duckdns.org:8000
+              budget_service:
+                image: imperialmelon1/vkarmane-budget:latest
+                env_file:
+                  - .env
+                networks:
+                  - vkarmane-network
+                restart: unless-stopped
 
-        MINIO_ENDPOINT=minio
-        MINIO_PORT=9000
-        MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
-        MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}
-        MINIO_USE_SSL=false
-        MINIO_BUCKET_NAME=images
-        EOT
-        EOF
+              finance_service:
+                image: imperialmelon1/vkarmane-finance:latest
+                env_file:
+                  - .env
+                networks:
+                  - vkarmane-network
+                restart: unless-stopped
 
-    - name: Docker compose up
-      run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
-        cd /home/ubuntu/vkarmane
-        docker compose down || true
-        docker volume rm vkarmane_kafka_data || true
-        docker compose up -d --build
-        sleep 5
-        docker compose ps | grep 'Up'
-        EOF
+              search_worker:
+                image: imperialmelon1/vkarmane-search_worker:latest
+                env_file:
+                  - .env
+                networks:
+                  - vkarmane-network
+                restart: unless-stopped
+
+            EOT
+            fi
+
+            # 2️⃣ .env — создаём только если нет
+            if [ ! -f .env ]; then
+              echo ".env not found, creating"
+              cat > .env << 'EOT'
+            DB_HOST=postgres
+            DB_PORT=5432
+            DB_USER=vkarmane
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=vkarmane
+            DB_SSLMODE=disable
+
+            PORT=8080
+            HOST=0.0.0.0
+
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            LOG_LEVEL=info
+            ENV=production
+
+            AUTH_SERVICE_HOST=auth_service
+            AUTH_SERVICE_PORT=8090
+            BUDGET_SERVICE_HOST=budget_service
+            BUDGET_SERVICE_PORT=8100
+            FINANCE_SERVICE_HOST=finance_service
+            FINANCE_SERVICE_PORT=8110
+            KAFKA_PRODUCER_HOST=kafka
+            KAFKA_PRODUCER_PORT=9092
+            ELASTIC_SEARCH_HOST=elasticsearch
+            ELASTIC_SEARCH_PORT=9200
+
+            HTTPS_ENABLED=false
+            HTTPS_CERT_FILE=/etc/letsencrypt/live/vkarmane-planero.duckdns.org/fullchain.pem
+            HTTPS_KEY_FILE=/etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
+
+            CORS_HOST=vkarmane-planero.duckdns.org
+            CORS_FRONTEND_PORT=8000
+            CORS_ORIGINS=https://vkarmane-planero.duckdns.org:8000
+
+            MINIO_ENDPOINT=minio
+            MINIO_PORT=9000
+            MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
+            MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}
+            MINIO_USE_SSL=false
+            MINIO_BUCKET_NAME=images
+            EOT
+            fi
+
+            # 3️⃣ docker-compose.yml — всегда обновляем
+            echo "Updating docker-compose.yml"
+            cat > docker-compose.yml << 'EOT'
+            version: '3.8'
+
+            services:
+              postgres:
+                image: postgres:15-alpine
+                container_name: vkarmane-postgres
+                environment:
+                  POSTGRES_DB: vkarmane
+                  POSTGRES_USER: vkarmane
+                  POSTGRES_PASSWORD: vkarmane_password
+                  POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+                ports:
+                  - "5433:5432"
+                volumes:
+                  - postgres_data:/var/lib/postgresql/data
+                  - ./migrations:/docker-entrypoint-initdb.d
+                networks:
+                  - vkarmane-network
+                healthcheck:
+                  test: ["CMD-SHELL", "pg_isready -U vkarmane -d vkarmane"]
+                  interval: 10s
+                  timeout: 5s
+                  retries: 5
+
+              minio:
+                image: minio/minio:latest
+                container_name: vkarmane-minio
+                environment:
+                  MINIO_ROOT_USER: minioadmin
+                  MINIO_ROOT_PASSWORD: minioadmin123
+                  MINIO_BROWSER: "on"
+                  MINIO_DOMAIN: vkarmane-planero-minio.duckdns.org
+                ports:
+                  - "9000:9000"
+                  - "9001:9001"
+                volumes:
+                  - minio_data:/data
+                command: server /data --console-address ":9001"
+                networks:
+                  - vkarmane-network
+
+              prometheus:
+                image: prom/prometheus:latest
+                container_name: vkarmane-prometheus
+                volumes:
+                  - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+                  - ./docker/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+                ports:
+                  - "9090:9090"
+                networks:
+                  - vkarmane-network
+                restart: unless-stopped
+
+              grafana:
+                image: grafana/grafana:latest
+                container_name: vkarmane-grafana
+                environment:
+                  - GF_SECURITY_ADMIN_PASSWORD=admin
+                  - GF_USERS_ALLOW_SIGN_UP=false
+                ports:
+                  - "4000:3000"
+                depends_on:
+                  - prometheus
+                networks:
+                  - vkarmane-network
+                volumes:
+                  - grafana_data:/var/lib/grafana
+                restart: unless-stopped
+
+              node_exporter:
+                image: prom/node-exporter:latest
+                container_name: vkarmane-node-exporter
+                ports:
+                  - "9500:9100"
+                networks:
+                  - vkarmane-network
+                restart: unless-stopped
+                pid: "host"
+                volumes:
+                  - /proc:/host/proc:ro
+                  - /sys:/host/sys:ro
+                  - /:/host:ro
+
+              alertmanager:
+                image: prom/alertmanager:latest
+                container_name: vkarmane-alertmanager
+                volumes:
+                  - ./docker/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+                  - alertmanager_data:/alertmanager
+                ports:
+                  - "9099:9093"
+                networks:
+                  - vkarmane-network
+                restart: unless-stopped
+                command:
+                  - "--config.file=/etc/alertmanager/alertmanager.yml"
+                  - "--storage.path=/alertmanager"
+                  - "--cluster.listen-address=:9095"
+
+              zookeeper:
+                image: confluentinc/cp-zookeeper:7.5.0
+                container_name: vkarmane-zookeeper
+                environment:
+                  ZOOKEEPER_CLIENT_PORT: 2181
+                ports:
+                  - "2181:2181"
+                networks:
+                  - vkarmane-network
+
+              kafka:
+                image: confluentinc/cp-kafka:7.5.0
+                depends_on:
+                  - zookeeper
+                ports:
+                  - "9092:9092"
+                  - "29092:29092"
+                container_name: vkarmane-kafka
+                volumes:
+                  - kafka_data:/var/lib/kafka/data
+                environment:
+                  KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+                  KAFKA_BROKER_ID: 1
+                  KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+                  KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+                  KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+                  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+                  KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+                  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+                healthcheck:
+                  test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list || exit 1"]
+                  interval: 10s
+                  timeout: 5s
+                  retries: 5
+                networks:
+                  - vkarmane-network
+
+              elasticsearch:
+                image: elasticsearch:8.7.1
+                networks:
+                  - vkarmane-network
+                container_name: vkarmane-elasticsearch
+                environment:
+                  - discovery.type=single-node
+                  - xpack.security.enabled=false
+                  - ES_JAVA_OPTS=-Xms512m -Xmx512m
+                ports:
+                  - "9200:9200"
+
+              kibana:
+                image: kibana:8.7.1
+                container_name: vkarmane-kibana
+                environment:
+                  - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+                ports:
+                  - "5601:5601"
+                networks:
+                  - vkarmane-network
+
+              kafka-ui:
+                image: provectuslabs/kafka-ui
+                ports:
+                  - "8085:8080"
+                container_name: vkarmane-kafka-ui
+                environment:
+                  KAFKA_CLUSTERS_0_NAME: "local"
+                  KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9092"
+                networks:
+                  - vkarmane-network
+
+            volumes:
+              alertmanager_data:
+              grafana_data:
+              kafka_data:
+              postgres_data:
+              minio_data:
+
+            networks:
+              vkarmane-network:
+                driver: bridge
+            EOT
+
+            # 4️⃣ деплой с SHA-тегами
+            export IMAGE_TAG=${{ github.sha }}
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans

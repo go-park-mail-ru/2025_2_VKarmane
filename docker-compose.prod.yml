@@ -1,0 +1,47 @@
+services:
+  app:
+    image: imperialmelon1/vkarmane-api:latest
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    networks:
+      - vkarmane-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+
+  auth_service:
+    image: imperialmelon1/vkarmane-auth:latest
+    env_file:
+      - .env
+    networks:
+      - vkarmane-network
+    restart: unless-stopped
+
+  budget_service:
+    image: imperialmelon1/vkarmane-budget:latest
+    env_file:
+      - .env
+    networks:
+      - vkarmane-network
+    restart: unless-stopped
+
+  finance_service:
+    image: imperialmelon1/vkarmane-finance:latest
+    env_file:
+      - .env
+    networks:
+      - vkarmane-network
+    restart: unless-stopped
+
+  search_worker:
+    image: imperialmelon1/vkarmane-search_worker:latest
+    env_file:
+      - .env
+    networks:
+      - vkarmane-network
+    restart: unless-stopped
