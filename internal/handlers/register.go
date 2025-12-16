@@ -31,12 +31,21 @@ func NewRegistrator(uc *usecase.UseCase, log logger.Logger) *Registrator {
 
 }
 
+<<<<<<< HEAD
 func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux.Router, uc *usecase.UseCase, log logger.Logger, authClient authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient, finClient finpb.FinanceServiceClient, kafkaProducer kafkautils.KafkaProducer) {
 	auth.Register(publicRouter, protectedRouter, log, authClient)
 	balance.Register(protectedRouter, finClient)
 	budget.Register(protectedRouter, budgetClient)
 	operation.Register(protectedRouter, finClient, uc.ImageUC, kafkaProducer)
 	category.Register(protectedRouter, finClient, uc.ImageUC, kafkaProducer)
+=======
+func (r *Registrator) RegisterAll(publicRouter *mux.Router, protectedRouter *mux.Router, uc *usecase.UseCase, log logger.Logger, authClient authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient, finClient finpb.FinanceServiceClient) {
+	auth.Register(publicRouter, protectedRouter, log, authClient)
+	balance.Register(protectedRouter, finClient)
+	budget.Register(protectedRouter, budgetClient)
+	operation.Register(protectedRouter, finClient, uc.ImageUC)
+	category.Register(protectedRouter, finClient, uc.ImageUC)
+>>>>>>> main
 	profile.Register(protectedRouter, uc.ImageUC, authClient)
 	image.Register(protectedRouter, uc.ImageUC)
 }

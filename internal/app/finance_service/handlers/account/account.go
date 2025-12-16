@@ -331,3 +331,4 @@ func (h *Handler) AddUserToAccount(w http.ResponseWriter, r *http.Request) {
 	httputils.Created(w, r, sharingDTO)
 
 }
+

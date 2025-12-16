@@ -77,7 +77,7 @@ func LoadConfig() *Config {
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
 		HTTPS: HTTPSConfig{
-			Enabled:  getEnv("HTTPS_ENABLED", "true") == "true",
+			Enabled:  getEnv("HTTPS_ENABLED", "false") == "true",
 			CertFile: getEnv("HTTPS_CERT_FILE", "ssl/server.crt"),
 			KeyFile:  getEnv("HTTPS_KEY_FILE", "ssl/server.key"),
 		},

@@ -7,6 +7,10 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/service"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
+<<<<<<< HEAD
+=======
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/service"
+>>>>>>> main
 )
 
 type UseCase struct {
