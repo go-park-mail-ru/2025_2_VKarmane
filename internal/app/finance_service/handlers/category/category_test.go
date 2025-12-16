@@ -23,7 +23,7 @@ func TestGetCategories_Unauthorized(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
-	handler := NewHandler(mockFin, nil)
+	handler := NewHandler(mockFin, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/categories", nil)
 	rr := httptest.NewRecorder()
@@ -37,7 +37,7 @@ func TestGetCategories_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
-	handler := NewHandler(mockFin, nil)
+	handler := NewHandler(mockFin, nil, nil)
 
 	mockFin.EXPECT().
 		GetCategoriesWithStatsByUser(gomock.Any(), gomock.Any()).
@@ -66,7 +66,7 @@ func TestCreateCategory_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
-	handler := NewHandler(mockFin, nil)
+	handler := NewHandler(mockFin, nil, nil)
 
 	mockFin.EXPECT().
 		CreateCategory(gomock.Any(), gomock.Any()).
@@ -96,7 +96,7 @@ func TestGetCategoryByID_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
-	handler := NewHandler(mockFin, nil)
+	handler := NewHandler(mockFin, nil, nil)
 
 	mockFin.EXPECT().
 		GetCategory(gomock.Any(), gomock.Any()).
@@ -122,7 +122,7 @@ func TestGetCategoryByID_NotFound(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
-	handler := NewHandler(mockFin, nil)
+	handler := NewHandler(mockFin, nil, nil)
 
 	mockFin.EXPECT().
 		GetCategory(gomock.Any(), gomock.Any()).
@@ -142,7 +142,9 @@ func TestUpdateCategory_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
-	handler := NewHandler(mockFin, nil)
+	mockKafka := mocks.NewMockKafkaProducer(ctrl)
+
+	handler := NewHandler(mockFin, nil, mockKafka)
 
 	mockFin.EXPECT().
 		UpdateCategory(gomock.Any(), gomock.Any()).
@@ -151,6 +153,10 @@ func TestUpdateCategory_Success(t *testing.T) {
 			UserId: 1,
 			Name:   "Updated",
 		}, nil)
+
+	mockKafka.EXPECT().
+		WriteMessages(gomock.Any(), gomock.Any()).
+		Return(nil)
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -172,7 +178,7 @@ func TestDeleteCategory_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
-	handler := NewHandler(mockFin, nil)
+	handler := NewHandler(mockFin, nil, nil)
 
 	// DeleteCategory возвращает *finpb.Category (пустой объект)
 	mockFin.EXPECT().
@@ -194,7 +200,7 @@ func TestCreateCategory_WithImage(t *testing.T) {
 
 	mockFin := mocks.NewMockFinanceServiceClient(ctrl)
 	mockImgUC := mocks.NewMockImageUseCase(ctrl)
-	handler := NewHandler(mockFin, mockImgUC)
+	handler := NewHandler(mockFin, mockImgUC, nil)
 
 	// Мок на UploadImage
 	mockImgUC.EXPECT().

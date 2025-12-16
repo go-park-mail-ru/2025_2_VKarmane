@@ -102,6 +102,7 @@ type OperationResponse struct {
 	Name         string    `json:"name"`
 	Sum          float64   `json:"sum"`
 	CurrencyID   int       `json:"currency_id"`
+	AccountType  string    `json:"account_type"`
 	CreatedAt    time.Time `json:"created_at"`
 	Date         time.Time `json:"date"` // Дата операции
 }
@@ -115,6 +116,7 @@ type OperationInListResponse struct {
 	Type             string    `json:"type"`
 	Description      string    `json:"description"`
 	CategoryLogo     string    `json:"category_logo"`
+	AccountType      string    `json:"account_type"`
 	CategoryHashedID string    `json:"-"`
 	Sum              float64   `json:"sum"`
 	CurrencyID       int       `json:"currency_id"`

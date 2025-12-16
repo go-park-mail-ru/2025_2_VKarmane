@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/usecase"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 )
 

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 )
@@ -14,6 +15,7 @@ type FinanceRepository interface {
 	UpdateAccount(ctx context.Context, req finmodels.UpdateAccountRequest) (finmodels.Account, error)
 	DeleteAccount(ctx context.Context, userID, accID int) (finmodels.Account, error)
 	UpdateAccountBalance(ctx context.Context, accountID int, newBalance float64) error
+	AddUserToAccount(ctx context.Context, userLogin string, accountID int) (finmodels.SharingAccount, error)
 
 	// Operation methods
 	GetOperationsByAccount(ctx context.Context, accountID int) ([]finmodels.OperationInList, error)
@@ -27,7 +29,9 @@ type FinanceRepository interface {
 	GetCategoriesByUser(ctx context.Context, userID int) ([]finmodels.Category, error)
 	GetCategoriesWithStatsByUser(ctx context.Context, userID int) ([]finmodels.CategoryWithStats, error)
 	GetCategoryByID(ctx context.Context, userID, categoryID int) (finmodels.Category, error)
+	GetCategoryByName(ctx context.Context, userID int, categoryName string) (finmodels.Category, error)
 	UpdateCategory(ctx context.Context, category finmodels.Category) error
 	DeleteCategory(ctx context.Context, userID, categoryID int) error
 	GetCategoryStats(ctx context.Context, userID, categoryID int) (int, error)
+	GetCategoriesReport(ctx context.Context, userID int, start, end time.Time) ([]finmodels.CategoryInReport, error)
 }

@@ -2,10 +2,10 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 )
 
 type OperationDB struct {
@@ -17,6 +17,7 @@ type OperationDB struct {
 	CurrencyID    *int
 	Status        finmodels.OperationStatus
 	Type          finmodels.OperationType
+	AccountType   finmodels.AccountType
 	Name          string
 	Description   string
 	ReceiptURL    string
@@ -31,9 +32,11 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 		       o.operation_status, o.operation_type, o.operation_name, o.operation_description, 
 		       o.receipt_url, o.sum, o.created_at, o.operation_date,
 		       COALESCE(c.category_name, 'Без категории') as category_name,
-			   COALESCE(c.logo_hashed_id, '') AS logo_hashed_idc
+			   COALESCE(c.logo_hashed_id, '') AS logo_hashed_idc,
+			   a.account_type
 		FROM operation o
 		LEFT JOIN category c ON o.category_id = c._id
+		JOIN account a ON a._id = o.account_from_id
 		WHERE (o.account_from_id = $1 OR o.account_to_id = $1) AND o.operation_status != 'reverted'
 		ORDER BY o.created_at DESC
 	`
@@ -66,6 +69,7 @@ func (r *PostgresRepository) GetOperationsByAccount(ctx context.Context, account
 			&opDB.Date,
 			&opDB.CategoryName,
 			&categoryLogoHashID,
+			&opDB.AccountType,
 		)
 		if err != nil {
 			return nil, MapPgOperationError(err)
@@ -115,30 +119,50 @@ func (r *PostgresRepository) GetOperationByID(ctx context.Context, accID int, op
 }
 
 func (r *PostgresRepository) CreateOperation(ctx context.Context, op finmodels.Operation) (finmodels.Operation, error) {
-	query := `
-		INSERT INTO operation (account_from_id, account_to_id, category_id, currency_id, 
-		                      operation_status, operation_type, operation_name, operation_description, 
-		                      receipt_url, sum, created_at, operation_date)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-		RETURNING _id
-	`
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return finmodels.Operation{}, err
+	}
+	defer tx.Rollback()
+
+	sum := op.Sum
+	if op.Type == "income" {
+		sum = -1 * sum
+	}
+
+	_, err = tx.ExecContext(ctx, `
+        UPDATE account
+        SET balance = balance - $1, updated_at = NOW()
+        WHERE _id = $2
+        RETURNING balance
+    `, sum, op.AccountID)
+
+	if err != nil {
+		return finmodels.Operation{}, MapPgAccountError(err)
+	}
 
 	var categoryID interface{}
 	if op.CategoryID > 0 {
 		categoryID = op.CategoryID
-	} else {
-		categoryID = nil
 	}
 
 	var currencyID interface{}
 	if op.CurrencyID > 0 {
 		currencyID = op.CurrencyID
-	} else {
-		currencyID = nil
 	}
 
+	query := `
+		INSERT INTO operation (
+		    account_from_id, account_to_id, category_id, currency_id, 
+		    operation_status, operation_type, operation_name, operation_description, 
+		    receipt_url, sum, created_at, operation_date
+		)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+		RETURNING _id
+	`
+
 	var id int
-	err := r.db.QueryRowContext(ctx, query,
+	err = tx.QueryRowContext(ctx, query,
 		op.AccountID,
 		nil,
 		categoryID,
@@ -159,34 +183,45 @@ func (r *PostgresRepository) CreateOperation(ctx context.Context, op finmodels.O
 
 	op.ID = id
 
+	if err := tx.Commit(); err != nil {
+		return finmodels.Operation{}, MapPgOperationError(err)
+	}
+
 	if op.CategoryID > 0 {
-		var categoryName string
-		err = r.db.QueryRowContext(ctx, "SELECT category_name FROM category WHERE _id = $1", op.CategoryID).Scan(&categoryName)
-		if err != nil {
+		_ = r.db.QueryRowContext(ctx,
+			"SELECT category_name FROM category WHERE _id = $1",
+			op.CategoryID,
+		).Scan(&op.CategoryName)
+		if op.CategoryName == "" {
 			op.CategoryName = "Без категории"
-		} else {
-			op.CategoryName = categoryName
 		}
 	} else {
 		op.CategoryName = "Без категории"
 	}
+	var accountType string
+	_ = r.db.QueryRowContext(ctx,
+		"SELECT account_type from account where _id = $1",
+		op.AccountID,
+	).Scan(&accountType)
+	op.AccountType = finmodels.AccountType(accountType)
 
 	return op, nil
 }
 
 func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.UpdateOperationRequest, accID int, opID int) (finmodels.Operation, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return finmodels.Operation{}, err
+	}
+	defer tx.Rollback()
 	query := `
 		WITH updated_operation AS (
 			UPDATE operation 
-			SET category_id = CASE 
-			        WHEN $1::bigint IS NULL THEN category_id
-			        WHEN $1::bigint = -1 THEN NULL
-			        ELSE $1::bigint
-			    END,
-			    operation_name = COALESCE($2, operation_name),
-			    operation_description = COALESCE($3, operation_description),
-			    sum = COALESCE($4, sum)
-			WHERE _id = $5 AND (account_from_id = $6 OR account_to_id = $6) AND operation_status != 'reverted'
+			SET 
+			    operation_name = COALESCE($1, operation_name),
+			    operation_description = COALESCE($2, operation_description),
+			    sum = COALESCE($3, sum)
+			WHERE _id = $4 AND (account_from_id = $5 OR account_to_id = $5) AND operation_status != 'reverted'
 			RETURNING _id, account_from_id, account_to_id, category_id, currency_id, 
 			          operation_status, operation_type, operation_name, operation_description, 
 			          receipt_url, sum, created_at, operation_date
@@ -194,19 +229,11 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 		SELECT o._id, o.account_from_id, o.account_to_id, o.category_id, o.currency_id, 
 		       o.operation_status, o.operation_type, o.operation_name, o.operation_description, 
 		       o.receipt_url, o.sum, o.created_at, o.operation_date,
-		       COALESCE(c.category_name, 'Без категории') as category_name
+		       COALESCE(c.category_name, 'Без категории') as category_name, acc.account_type
 		FROM updated_operation o
 		LEFT JOIN category c ON o.category_id = c._id
+		JOIN account acc ON acc._id = $5 
 	`
-
-	var categoryID sql.NullInt64
-	if req.CategoryID != nil {
-		if *req.CategoryID > 0 {
-			categoryID = sql.NullInt64{Int64: int64(*req.CategoryID), Valid: true}
-		} else {
-			categoryID = sql.NullInt64{Int64: -1, Valid: true}
-		}
-	}
 
 	var name *string
 	if req.Name != nil {
@@ -224,8 +251,7 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 	}
 
 	var operation OperationDB
-	err := r.db.QueryRowContext(ctx, query,
-		categoryID,
+	err = tx.QueryRowContext(ctx, query,
 		name,
 		description,
 		sum,
@@ -246,9 +272,29 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 		&operation.CreatedAt,
 		&operation.Date,
 		&operation.CategoryName,
+		&operation.AccountType,
 	)
 
 	if err != nil {
+		return finmodels.Operation{}, MapPgOperationError(err)
+	}
+
+	var operationSum float64
+	if operation.Type == finmodels.OperationType(models.OperationExpense) {
+		operationSum = -1 * operation.Sum
+	} else {
+		operationSum = operation.Sum
+	}
+
+	_, err = tx.ExecContext(ctx, `
+	UPDATE account SET balance = balance + $1 WHERE _id = $2
+	`, operationSum, operation.AccountFromID)
+
+	if err != nil {
+		return finmodels.Operation{}, MapPgAccountError(err)
+	}
+
+	if err := tx.Commit(); err != nil {
 		return finmodels.Operation{}, MapPgOperationError(err)
 	}
 
@@ -256,6 +302,29 @@ func (r *PostgresRepository) UpdateOperation(ctx context.Context, req finmodels.
 }
 
 func (r *PostgresRepository) DeleteOperation(ctx context.Context, accID int, opID int) (finmodels.Operation, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return finmodels.Operation{}, err
+	}
+	defer tx.Rollback()
+
+	var operationSum float64
+	var operationType string
+
+	err = tx.QueryRowContext(ctx, `SELECT sum, operation_type FROM operation WHERE _id = $1`, opID).Scan(&operationSum, &operationType)
+	if err != nil {
+		return finmodels.Operation{}, MapPgOperationError(err)
+	}
+
+	if operationType == string(models.OperationExpense) {
+		operationSum = -1 * operationSum
+	}
+
+	_, err = tx.ExecContext(ctx, `UPDATE account SET balance = balance - $1 WHERE _id = $2`, operationSum, accID)
+	if err != nil {
+		return finmodels.Operation{}, MapPgAccountError(err)
+	}
+
 	query := `
 		WITH updated_operation AS (
 			UPDATE operation 
@@ -274,7 +343,7 @@ func (r *PostgresRepository) DeleteOperation(ctx context.Context, accID int, opI
 	`
 
 	var operation OperationDB
-	err := r.db.QueryRowContext(ctx, query, opID, accID).Scan(
+	err = tx.QueryRowContext(ctx, query, opID, accID).Scan(
 		&operation.ID,
 		&operation.AccountFromID,
 		&operation.AccountToID,
@@ -292,6 +361,10 @@ func (r *PostgresRepository) DeleteOperation(ctx context.Context, accID int, opI
 	)
 
 	if err != nil {
+		return finmodels.Operation{}, MapPgOperationError(err)
+	}
+
+	if err := tx.Commit(); err != nil {
 		return finmodels.Operation{}, MapPgOperationError(err)
 	}
 
@@ -328,6 +401,7 @@ func operationDBToModel(operationDB OperationDB) finmodels.Operation {
 		Name:         operationDB.Name,
 		Sum:          operationDB.Sum,
 		CurrencyID:   currencyID,
+		AccountType:  operationDB.AccountType,
 		CreatedAt:    operationDB.CreatedAt,
 		Date:         operationDB.Date,
 	}
@@ -362,6 +436,7 @@ func operationDBToModelInList(opDB OperationDB, categoryLogoHash string) finmode
 		CategoryLogoHashedID: categoryLogoHash,
 		Sum:                  opDB.Sum,
 		CurrencyID:           currencyID,
+		AccountType:          string(opDB.AccountType),
 		CreatedAt:            opDB.CreatedAt,
 		Date:                 opDB.Date,
 	}

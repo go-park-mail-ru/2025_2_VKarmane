@@ -22,7 +22,7 @@ func TestUserIDAndAccountIDToProtoID(t *testing.T) {
 }
 
 func TestAccountResponseListProtoToApit_NilResponse(t *testing.T) {
-	res := AccountResponseListProtoToApit(nil, 42)
+	res := AccountResponseListProtoToApi(nil, 42)
 
 	require.Equal(t, 42, res.UserID)
 	require.Len(t, res.Accounts, 0)
@@ -45,7 +45,7 @@ func TestAccountResponseListProtoToApit_Full(t *testing.T) {
 		},
 	}
 
-	api := AccountResponseListProtoToApit(resp, 99)
+	api := AccountResponseListProtoToApi(resp, 99)
 
 	require.Equal(t, 99, api.UserID)
 	require.Len(t, api.Accounts, 1)
@@ -98,13 +98,14 @@ func TestAccountCreateRequestToProto(t *testing.T) {
 }
 
 func TestAccountUpdateRequestToProto(t *testing.T) {
+	balance := 300.99
 	req := models.UpdateAccountRequest{
-		Balance: 300.99,
+		Balance: &balance,
 	}
 
 	pb := AccountUpdateRequestToProto(5, 11, req)
 
 	require.Equal(t, int32(5), pb.UserId)
 	require.Equal(t, int32(11), pb.AccountId)
-	require.Equal(t, 300.99, pb.Balance)
+	require.Equal(t, &balance, pb.Balance)
 }

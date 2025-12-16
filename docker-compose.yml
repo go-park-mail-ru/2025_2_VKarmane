@@ -28,6 +28,8 @@ services:
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin123
+      MINIO_BROWSER: "on"
+      MINIO_DOMAIN: vkarmane-planero-minio.duckdns.org
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -94,141 +96,84 @@ services:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
       - "--storage.path=/alertmanager"
       - "--cluster.listen-address=:9095"
-    
-  auth_service:
-    build:
-      context: .
-      dockerfile: cmd/auth_service/Dockerfile
-    container_name: vkarmane-auth
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: vkarmane-zookeeper
     environment:
-      PORT: 8090
-      HOST: 0.0.0.0
-
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: vkarmane
-      DB_PASSWORD: vkarmane_password
-      DB_NAME: vkarmane
-      DB_SSLMODE: disable
-
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
-      LOG_LEVEL: debug
-    depends_on:
-      postgres:
-        condition: service_healthy
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
     networks:
       - vkarmane-network
-    ports:
-      - "8090:8090"
-    restart: unless-stopped
-  
-  budget_service:
-    build:
-      context: .
-      dockerfile: cmd/budget_service/Dockerfile
-    container_name: vkarmane-budget
-    environment:
-      PORT: 8100
-      HOST: 0.0.0.0
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: vkarmane
-      DB_PASSWORD: vkarmane_password
-      DB_NAME: vkarmane
-      DB_SSLMODE: disable
 
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
-      LOG_LEVEL: debug
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
     depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - vkarmane-network
+      - zookeeper
     ports:
-      - "8100:8100"
-    restart: unless-stopped
-
-  
-  finance_service:
-    build:
-      context: .
-      dockerfile: cmd/finance_service/Dockerfile
-    container_name: vkarmane-finance
-    environment:
-      PORT: 8110
-      HOST: 0.0.0.0
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: vkarmane
-      DB_PASSWORD: vkarmane_password
-      DB_NAME: vkarmane
-      DB_SSLMODE: disable
-
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
-      LOG_LEVEL: debug
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - vkarmane-network
-    ports:
-      - "8110:8110"
-    restart: unless-stopped
-
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: vkarmane-api
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: vkarmane
-      DB_PASSWORD: vkarmane_password
-      DB_NAME: vkarmane
-      DB_SSLMODE: disable
-      PORT: 8080
-      HOST: 0.0.0.0
-      JWT_SECRET: your-super-secret-jwt-key-change-in-production
-      LOG_LEVEL: info
-      HTTPS_ENABLED: "true"
-      AUTH_SERVICE_HOST: auth_service
-      AUTH_SERVICE_PORT: 8090
-      BUDGET_SERVICE_HOST: budget_service
-      BUDGET_SERVICE_PORT: 8100
-      FINANCE_SERVICE_HOST: finance_service
-      FINANCE_SERVICE_PORT: 8110
-      HTTPS_CERT_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/fullchain.pem
-      HTTPS_KEY_FILE: /etc/letsencrypt/live/vkarmane.duckdns.org/privkey.pem
-      CORS_HOST: "vkarmane.duckdns.org"
-      CORS_FRONTEND_PORT: "8000"
-      CORS_ORIGINS: "https://vkarmane.duckdns.org:8080"
-      MINIO_ENDPOINT: minio
-      MINIO_PORT: "9000"
-      MINIO_ACCESS_KEY: minioadmin
-      MINIO_SECRET_KEY: minioadmin123
-      MINIO_USE_SSL: "false"
-      MINIO_BUCKET_NAME: images
-    ports:
-      - "8080:8080"
+      - "9092:9092"
+      - "29092:29092"
+    container_name: vkarmane-kafka
     volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - ./logs:/root/logs
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_started
+      - kafka_data:/var/lib/kafka/data
+    environment:
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - vkarmane-network
-    restart: unless-stopped
 
+  elasticsearch:
+    image: elasticsearch:8.7.1
+    networks:
+      - vkarmane-network
+    container_name: vkarmane-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+
+  kibana:
+    image: kibana:8.7.1
+    container_name: vkarmane-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - vkarmane-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    ports:
+      - "8085:8080"
+    container_name: vkarmane-kafka-ui
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "local"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:9092"
+    networks:
+      - vkarmane-network
+    
 volumes:
   alertmanager_data:
   grafana_data:
+  kafka_data:
   postgres_data:
   minio_data:
 
 networks:
   vkarmane-network:
-    driver: bridge
+    driver: bridge 

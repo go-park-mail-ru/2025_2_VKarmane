@@ -42,6 +42,26 @@ func (m *MockFinanceServiceClient) EXPECT() *MockFinanceServiceClientMockRecorde
 	return m.recorder
 }
 
+// AddUserToAccounnt mocks base method.
+func (m *MockFinanceServiceClient) AddUserToAccounnt(ctx context.Context, in *proto.AddToAccountReqeust, opts ...grpc.CallOption) (*proto.SharingsResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "AddUserToAccounnt", varargs...)
+	ret0, _ := ret[0].(*proto.SharingsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddUserToAccounnt indicates an expected call of AddUserToAccounnt.
+func (mr *MockFinanceServiceClientMockRecorder) AddUserToAccounnt(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUserToAccounnt", reflect.TypeOf((*MockFinanceServiceClient)(nil).AddUserToAccounnt), varargs...)
+}
+
 // CreateAccount mocks base method.
 func (m *MockFinanceServiceClient) CreateAccount(ctx context.Context, in *proto.CreateAccountRequest, opts ...grpc.CallOption) (*proto.Account, error) {
 	m.ctrl.T.Helper()
@@ -222,6 +242,26 @@ func (mr *MockFinanceServiceClientMockRecorder) GetCategoriesByUser(ctx, in any,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoriesByUser", reflect.TypeOf((*MockFinanceServiceClient)(nil).GetCategoriesByUser), varargs...)
 }
 
+// GetCategoriesReport mocks base method.
+func (m *MockFinanceServiceClient) GetCategoriesReport(ctx context.Context, in *proto.CategoryReportRequest, opts ...grpc.CallOption) (*proto.CategoryReportResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetCategoriesReport", varargs...)
+	ret0, _ := ret[0].(*proto.CategoryReportResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategoriesReport indicates an expected call of GetCategoriesReport.
+func (mr *MockFinanceServiceClientMockRecorder) GetCategoriesReport(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoriesReport", reflect.TypeOf((*MockFinanceServiceClient)(nil).GetCategoriesReport), varargs...)
+}
+
 // GetCategoriesWithStatsByUser mocks base method.
 func (m *MockFinanceServiceClient) GetCategoriesWithStatsByUser(ctx context.Context, in *proto.UserID, opts ...grpc.CallOption) (*proto.ListCategoriesWithStatsResponse, error) {
 	m.ctrl.T.Helper()
@@ -262,6 +302,26 @@ func (mr *MockFinanceServiceClientMockRecorder) GetCategory(ctx, in any, opts ..
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategory", reflect.TypeOf((*MockFinanceServiceClient)(nil).GetCategory), varargs...)
 }
 
+// GetCategoryByName mocks base method.
+func (m *MockFinanceServiceClient) GetCategoryByName(ctx context.Context, in *proto.CategoryByNameRequest, opts ...grpc.CallOption) (*proto.CategoryWithStats, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetCategoryByName", varargs...)
+	ret0, _ := ret[0].(*proto.CategoryWithStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategoryByName indicates an expected call of GetCategoryByName.
+func (mr *MockFinanceServiceClientMockRecorder) GetCategoryByName(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryByName", reflect.TypeOf((*MockFinanceServiceClient)(nil).GetCategoryByName), varargs...)
+}
+
 // GetOperation mocks base method.
 func (m *MockFinanceServiceClient) GetOperation(ctx context.Context, in *proto.OperationRequest, opts ...grpc.CallOption) (*proto.Operation, error) {
 	m.ctrl.T.Helper()
@@ -283,7 +343,7 @@ func (mr *MockFinanceServiceClientMockRecorder) GetOperation(ctx, in any, opts .
 }
 
 // GetOperationsByAccount mocks base method.
-func (m *MockFinanceServiceClient) GetOperationsByAccount(ctx context.Context, in *proto.AccountRequest, opts ...grpc.CallOption) (*proto.ListOperationsResponse, error) {
+func (m *MockFinanceServiceClient) GetOperationsByAccount(ctx context.Context, in *proto.OperationsByAccountAndFiltersRequest, opts ...grpc.CallOption) (*proto.ListOperationsResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, in}
 	for _, a := range opts {

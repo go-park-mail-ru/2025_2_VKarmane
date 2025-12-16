@@ -12,6 +12,7 @@ package mocks
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	models "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 	gomock "go.uber.org/mock/gomock"
@@ -39,6 +40,21 @@ func NewMockFinanceRepository(ctrl *gomock.Controller) *MockFinanceRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockFinanceRepository) EXPECT() *MockFinanceRepositoryMockRecorder {
 	return m.recorder
+}
+
+// AddUserToAccount mocks base method.
+func (m *MockFinanceRepository) AddUserToAccount(ctx context.Context, userLogin string, accountID int) (models.SharingAccount, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddUserToAccount", ctx, userLogin, accountID)
+	ret0, _ := ret[0].(models.SharingAccount)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddUserToAccount indicates an expected call of AddUserToAccount.
+func (mr *MockFinanceRepositoryMockRecorder) AddUserToAccount(ctx, userLogin, accountID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUserToAccount", reflect.TypeOf((*MockFinanceRepository)(nil).AddUserToAccount), ctx, userLogin, accountID)
 }
 
 // CreateAccount mocks base method.
@@ -175,6 +191,21 @@ func (mr *MockFinanceRepositoryMockRecorder) GetCategoriesByUser(ctx, userID any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoriesByUser", reflect.TypeOf((*MockFinanceRepository)(nil).GetCategoriesByUser), ctx, userID)
 }
 
+// GetCategoriesReport mocks base method.
+func (m *MockFinanceRepository) GetCategoriesReport(ctx context.Context, userID int, start, end time.Time) ([]models.CategoryInReport, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategoriesReport", ctx, userID, start, end)
+	ret0, _ := ret[0].([]models.CategoryInReport)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategoriesReport indicates an expected call of GetCategoriesReport.
+func (mr *MockFinanceRepositoryMockRecorder) GetCategoriesReport(ctx, userID, start, end any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoriesReport", reflect.TypeOf((*MockFinanceRepository)(nil).GetCategoriesReport), ctx, userID, start, end)
+}
+
 // GetCategoriesWithStatsByUser mocks base method.
 func (m *MockFinanceRepository) GetCategoriesWithStatsByUser(ctx context.Context, userID int) ([]models.CategoryWithStats, error) {
 	m.ctrl.T.Helper()
@@ -203,6 +234,21 @@ func (m *MockFinanceRepository) GetCategoryByID(ctx context.Context, userID, cat
 func (mr *MockFinanceRepositoryMockRecorder) GetCategoryByID(ctx, userID, categoryID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryByID", reflect.TypeOf((*MockFinanceRepository)(nil).GetCategoryByID), ctx, userID, categoryID)
+}
+
+// GetCategoryByName mocks base method.
+func (m *MockFinanceRepository) GetCategoryByName(ctx context.Context, userID int, categoryName string) (models.Category, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategoryByName", ctx, userID, categoryName)
+	ret0, _ := ret[0].(models.Category)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategoryByName indicates an expected call of GetCategoryByName.
+func (mr *MockFinanceRepositoryMockRecorder) GetCategoryByName(ctx, userID, categoryName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryByName", reflect.TypeOf((*MockFinanceRepository)(nil).GetCategoryByName), ctx, userID, categoryName)
 }
 
 // GetCategoryStats mocks base method.

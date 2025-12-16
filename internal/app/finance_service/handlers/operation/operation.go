@@ -1,10 +1,23 @@
 package operation
 
 import (
+	"encoding/csv"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	lg "log"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
+	"github.com/gorilla/mux"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/handlers/account"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/handlers/category"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	image "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
@@ -12,21 +25,19 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
+	kafkautils "github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/kafka"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
-	"github.com/gorilla/mux"
 )
 
 type Handler struct {
-	finClient finpb.FinanceServiceClient
-	imageUC   image.ImageUseCase
-	clock     clock.Clock
+	finClient     finpb.FinanceServiceClient
+	imageUC       image.ImageUseCase
+	kafkaProducer kafkautils.KafkaProducer
+	clock         clock.Clock
 }
 
-func NewHandler(finClient finpb.FinanceServiceClient, imageUC image.ImageUseCase, clck clock.Clock) *Handler {
-	return &Handler{finClient: finClient, imageUC: imageUC, clock: clck}
+func NewHandler(finClient finpb.FinanceServiceClient, imageUC image.ImageUseCase, kafkaProducer kafkautils.KafkaProducer, clck clock.Clock) *Handler {
+	return &Handler{finClient: finClient, imageUC: imageUC, kafkaProducer: kafkaProducer, clock: clck}
 }
 
 func (h *Handler) getUserID(r *http.Request) (int, bool) {
@@ -37,6 +48,16 @@ func (h *Handler) parseIDFromURL(r *http.Request, paramName string) (int, error)
 	vars := mux.Vars(r)
 	idStr := vars[paramName]
 	return strconv.Atoi(idStr)
+}
+
+func (h *Handler) checkCSVHeaders(headers []string) error {
+	expected := []string{"date", "category_name", "account_id", "sum-expense", "to", "sum-income", "description"}
+	for i := range headers {
+		if headers[i] != expected[i] {
+			return errors.New("invalid file headers")
+		}
+	}
+	return nil
 }
 
 // func OperationInListToResponse(op models.OperationInList) models.OperationInListResponse {
@@ -82,8 +103,10 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	urlQueries := r.URL.Query()
+
 	// ops, err := h.opUC.GetAccountOperations(r.Context(), accID)
-	ops, err := h.finClient.GetOperationsByAccount(r.Context(), AccountAndUserIDToProtoID(accID, id))
+	ops, err := h.finClient.GetOperationsByAccount(r.Context(), ProtoGetOperationsRequest(id, accID, urlQueries))
 	if err != nil {
 		_, ok := status.FromError(err)
 		log := logger.FromContext(r.Context())
@@ -102,8 +125,7 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Преобразуем операции в OperationResponse
-	var operationsResponse []models.OperationInListResponse
+	operationsResponse := []models.OperationInListResponse{}
 	if ops != nil {
 		for _, op := range ops.Operations {
 			operationsResponse = append(operationsResponse, MapOperationInListToResponse(op))
@@ -143,6 +165,7 @@ func (h *Handler) GetAccountOperations(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.ErrorResponse "Внутренняя ошибка сервера (INTERNAL_ERROR, DATABASE_ERROR)"
 // @Router /operations/account/{acc_id} [post]
 func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
+	log := logger.FromContext(r.Context())
 	id, ok := h.getUserID(r)
 	if !ok {
 		httputils.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
@@ -171,7 +194,6 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 	op, err := h.finClient.CreateOperation(r.Context(), CreateOperationRequestToProto(req, id, accID))
 	if err != nil {
 		st, ok := status.FromError(err)
-		log := logger.FromContext(r.Context())
 		if !ok {
 			if log != nil {
 				log.Error("grpc CreateOperation unknown error", "error", err)
@@ -186,11 +208,23 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 			}
 			httputils.ConflictError(w, r, "Счет не найден", models.ErrCodeAccountNotFound)
 			return
+		case codes.FailedPrecondition:
+			if log != nil {
+				log.Error("grpc CreateOperation exists error", "error", err)
+			}
+			httputils.Error(w, r, "Баланс счета не может быть отрицательным", http.StatusBadRequest)
+			return
 		case codes.PermissionDenied:
 			if log != nil {
 				log.Error("grpc CreateOperation exists error", "error", err)
 			}
 			httputils.ConflictError(w, r, "Доступ запрещен", models.ErrCodeForbidden)
+			return
+		case codes.InvalidArgument:
+			if log != nil {
+				log.Error("grpc CreateOperation invalid argument error", "error", err)
+			}
+			httputils.ConflictError(w, r, "Некорректные данные", models.ErrCodeInvalidData)
 			return
 		default:
 			if log != nil {
@@ -202,6 +236,57 @@ func (h *Handler) CreateOperation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	operationResponse := ProtoOperationToResponse(op)
+
+	var ctgLogo string
+	ctgDTO := models.CategoryWithStats{}
+	if operationResponse.CategoryID != 0 {
+		ctg, err := h.finClient.GetCategory(r.Context(), category.UserAndCtegoryIDToProto(id, operationResponse.CategoryID))
+		if err != nil {
+			st, ok := status.FromError(err)
+			if !ok {
+				if log != nil {
+					log.Error("grpc CreateCategory unknown error", "error", err)
+				}
+				httputils.InternalError(w, r, "failed to get category")
+				return
+			}
+			switch st.Code() {
+			case codes.NotFound:
+				if log != nil {
+					log.Error("grpc GetCategory invalid arg", "error", err)
+				}
+				httputils.Error(w, r, "failed to get category", http.StatusBadRequest)
+				return
+			default:
+				if log != nil {
+					log.Error("grpc GetCategory error", "error", err)
+				}
+				httputils.InternalError(w, r, "failed to get category")
+				return
+			}
+
+		}
+		ctgLogo, err = h.imageUC.GetImageURL(r.Context(), ctg.Category.LogoHashedId)
+		if err != nil {
+			httputils.InternalError(w, r, "Ошибка получения операций")
+			return
+		}
+
+		ctgDTO = category.CategoryWithStatsToAPI(ctg)
+	}
+
+	transactionSearch := OperationResponseToSearch(operationResponse, ctgDTO, ctgLogo)
+	transactionSearch.Action = models.WRITE
+
+	data, _ := transactionSearch.MarshalJSON()
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: models.TRANSACTIONS}); err != nil {
+		httputils.InternalError(w, r, "Failed to create opeartion")
+		if log != nil {
+			log.Error("kafka CreateCategory unknown error", "error", err)
+		}
+		return
+	}
+
 	httputils.Created(w, r, operationResponse)
 }
 
@@ -295,6 +380,7 @@ func (h *Handler) GetOperationByID(w http.ResponseWriter, r *http.Request) {
 // @Router /operations/account/{acc_id}/operation/{op_id} [put]
 func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 	id, ok := h.getUserID(r)
+	log := logger.FromContext(r.Context())
 	if !ok {
 		httputils.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
 		return
@@ -332,7 +418,6 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 	op, err := h.finClient.UpdateOperation(r.Context(), UpdateOperationRequestToProto(req, id, accID, opID))
 	if err != nil {
 		st, ok := status.FromError(err)
-		log := logger.FromContext(r.Context())
 		if !ok {
 			if log != nil {
 				log.Error("grpc UpdateOperation unknown error", "error", err)
@@ -353,6 +438,12 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 			}
 			httputils.ConflictError(w, r, "Доступ запрещен", models.ErrCodeForbidden)
 			return
+		case codes.FailedPrecondition:
+			if log != nil {
+				log.Error("grpc CreateOperation exists error", "error", err)
+			}
+			httputils.Error(w, r, "Баланс счета не может быть отрицательным", http.StatusBadRequest)
+			return
 		default:
 			if log != nil {
 				log.Error("grpc UpdateOperation error", "error", err)
@@ -363,6 +454,59 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	operationResponse := ProtoOperationToResponse(op)
+	var ctgLogo string
+	ctgDTO := models.CategoryWithStats{}
+
+	if operationResponse.CategoryID != 0 {
+		ctg, err := h.finClient.GetCategory(r.Context(), category.UserAndCtegoryIDToProto(id, operationResponse.CategoryID))
+		if err != nil {
+			st, ok := status.FromError(err)
+			if !ok {
+				if log != nil {
+					log.Error("grpc CreateCategory unknown error", "error", err)
+				}
+				httputils.InternalError(w, r, "failed update operation")
+				return
+			}
+			switch st.Code() {
+			case codes.NotFound:
+				if log != nil {
+					log.Error("grpc GetCategory invalid arg", "error", err)
+				}
+				httputils.Error(w, r, "failed to update operation", http.StatusBadRequest)
+				return
+			default:
+				if log != nil {
+					log.Error("grpc GetCategory error", "error", err)
+				}
+				httputils.InternalError(w, r, "failed to update operation")
+				return
+			}
+
+		}
+
+		ctgLogo, err = h.imageUC.GetImageURL(r.Context(), ctg.Category.LogoHashedId)
+		if err != nil {
+			httputils.InternalError(w, r, "Ошибка получения операций")
+			return
+		}
+
+		ctgDTO = category.CategoryWithStatsToAPI(ctg)
+	}
+
+	transactionSearch := OperationResponseToSearch(operationResponse, ctgDTO, ctgLogo)
+	transactionSearch.Action = models.UPDATE
+
+	// data, _ := json.Marshal(transactionSearch)
+	data, _ := transactionSearch.MarshalJSON()
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: models.TRANSACTIONS}); err != nil {
+		httputils.InternalError(w, r, "Failed to update opeartion")
+		if log != nil {
+			log.Error("kafka GetCategory unknown error", "error", err)
+		}
+		return
+	}
+
 	httputils.Success(w, r, operationResponse)
 }
 
@@ -383,6 +527,7 @@ func (h *Handler) UpdateOperation(w http.ResponseWriter, r *http.Request) {
 // @Router /operations/account/{acc_id}/operation/{op_id} [delete]
 func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 	id, ok := h.getUserID(r)
+	log := logger.FromContext(r.Context())
 	if !ok {
 		httputils.UnauthorizedError(w, r, "Требуется авторизация", models.ErrCodeUnauthorized)
 		return
@@ -403,7 +548,6 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 	op, err := h.finClient.DeleteOperation(r.Context(), OperationAndUserIDToProtoID(opID, accID, id))
 	if err != nil {
 		st, ok := status.FromError(err)
-		log := logger.FromContext(r.Context())
 		if !ok {
 			if log != nil {
 				log.Error("grpc DeleteOperation unknown error", "error", err)
@@ -424,6 +568,12 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 			}
 			httputils.ConflictError(w, r, "Доступ запрещен", models.ErrCodeForbidden)
 			return
+		case codes.FailedPrecondition:
+			if log != nil {
+				log.Error("grpc DeleteOperation balance error", "error", err)
+			}
+			httputils.Error(w, r, "Баланс счета не может быть отрицательным", http.StatusBadRequest)
+			return
 		default:
 			if log != nil {
 				log.Error("grpc DeleteOperation error", "error", err)
@@ -434,5 +584,277 @@ func (h *Handler) DeleteOperation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	operationResponse := ProtoOperationToResponse(op)
+	transactionSearch := OperationResponseToSearchDelete(operationResponse)
+	transactionSearch.Action = models.DELETE
+
+	// data, _ := json.Marshal(transactionSearch)
+	data, _ := transactionSearch.MarshalJSON()
+	if err = h.kafkaProducer.WriteMessages(r.Context(), kafkautils.KafkaMessage{Payload: data, Type: models.TRANSACTIONS}); err != nil {
+		httputils.InternalError(w, r, "Failed to delete opeartion")
+		if log != nil {
+			log.Error("kafka DeleteOperation unknown error", "error", err)
+		}
+		return
+	}
 	httputils.Success(w, r, operationResponse)
+}
+
+func (h *Handler) UploadCVSData(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.getUserID(r)
+	log := logger.FromContext(r.Context())
+	if !ok {
+		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		httputils.Error(w, r, "Failed to upload file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	if !strings.HasSuffix(strings.ToLower(header.Filename), ".csv") {
+		httputils.Error(w, r, "File must have .csv extension", http.StatusBadRequest)
+		return
+	}
+
+	reader := csv.NewReader(file)
+	headers, err := reader.Read()
+	if err != nil {
+		httputils.Error(w, r, "Failed to read file", http.StatusBadRequest)
+		return
+	}
+	err = h.checkCSVHeaders(headers)
+	if err != nil {
+		httputils.Error(w, r, "Invalid file headers", http.StatusBadRequest)
+		return
+	}
+
+	var reqs []models.CreateOperationRequest
+	var accID int
+
+	for {
+		row, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			if log != nil {
+				log.Error("Failed to read file", "error", err)
+			}
+
+			errMsg := fmt.Sprintf("Failed to read file: %v", err)
+			httputils.Error(w, r, errMsg, http.StatusBadRequest)
+			return
+		}
+
+		var ctgID int
+		categoryName := row[1]
+		accountIDText := row[2]
+		if categoryName != "" {
+			ctg, err := h.finClient.GetCategoryByName(r.Context(), category.UserIDCategoryNameToProto(userID, categoryName))
+			if err != nil {
+				st, ok := status.FromError(err)
+				if !ok {
+					if log != nil {
+						log.Error("grpc CreateCategory unknown error", "error", err)
+					}
+					httputils.InternalError(w, r, "failed get category")
+					return
+				}
+				switch st.Code() {
+				case codes.NotFound:
+					if log != nil {
+						log.Error("grpc GetCategory invalid arg", "error", err)
+					}
+					createdCtg, err := h.finClient.CreateCategory(r.Context(), category.CategoryCreateRequestToProto(userID, models.CreateCategoryRequest{Name: categoryName}))
+					if err != nil {
+						if log != nil {
+							log.Error("grpc CreateCategory error", "error", err)
+						}
+						continue
+					}
+					ctg, err = h.finClient.GetCategoryByName(r.Context(), category.UserIDCategoryNameToProto(userID, createdCtg.Name))
+					if err != nil {
+						_, ok = status.FromError(err)
+						if !ok {
+							if log != nil {
+								log.Error("grpc CreateCategory unknown error", "error", err)
+							}
+							httputils.InternalError(w, r, "failed create category")
+							return
+						}
+						if log != nil {
+							log.Error("grpc GetCategory error", "error", err)
+						}
+						continue
+					}
+				default:
+					if log != nil {
+						log.Error("grpc GetCategory error", "error", err)
+					}
+					continue
+				}
+
+			}
+			ctgID = int(ctg.Category.Id)
+		}
+
+		accID, _ = strconv.Atoi(accountIDText)
+
+		opType := "expense"
+		incomeSum := row[5]
+		if incomeSum != "" {
+			opType = "income"
+		}
+
+		sum, err := strconv.ParseFloat(row[3], 64)
+		if err != nil || sum == 0 {
+			sum, _ = strconv.ParseFloat(row[5], 64)
+		}
+
+		date := row[0]
+		t, err := time.Parse("2006-01-02", date)
+		if err != nil {
+			httputils.InternalError(w, r, "failed parse date")
+			return
+		}
+
+		req := models.CreateOperationRequest{
+			AccountID:   accID,
+			CategoryID:  &ctgID,
+			Type:        models.OperationType(opType),
+			Name:        row[4],
+			Description: row[6],
+			Sum:         sum,
+			Date:        &t,
+		}
+		lg.Printf("req: %v", req)
+		reqs = append(reqs, req)
+	}
+
+	createdOps, _ := ProcessCSV(r.Context(), reqs, userID, accID, h.finClient)
+
+	if len(createdOps) == 0 {
+		httputils.Error(w, r, "Failed to create operations", http.StatusBadRequest)
+		return
+	}
+
+	for _, op := range createdOps {
+		var ctgLogo string
+		var ctgDTO models.CategoryWithStats
+
+		if op.CategoryID != 0 {
+			ctg, err := h.finClient.GetCategory(r.Context(),
+				category.UserAndCtegoryIDToProto(userID, op.CategoryID),
+			)
+			if err == nil {
+				ctgLogo, _ = h.imageUC.GetImageURL(r.Context(), ctg.Category.LogoHashedId)
+				ctgDTO = category.CategoryWithStatsToAPI(ctg)
+			}
+		}
+
+		searchObj := OperationResponseToSearch(op, ctgDTO, ctgLogo)
+		searchObj.Action = models.WRITE
+
+		// data, _ := json.Marshal(searchObj)
+		data, _ := searchObj.MarshalJSON()
+
+		_ = h.kafkaProducer.WriteMessages(
+			r.Context(),
+			kafkautils.KafkaMessage{
+				Payload: data,
+				Type:    models.TRANSACTIONS,
+			},
+		)
+	}
+
+	httputils.Created(w, r, "Данные успешно загружены")
+}
+
+func (h *Handler) GetCSVData(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.getUserID(r)
+	log := logger.FromContext(r.Context())
+	if !ok {
+		httputils.Error(w, r, "User not authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	accs, err := h.finClient.GetAccountsByUser(r.Context(), account.UserIDToProtoID(userID))
+	if err != nil {
+		_, ok := status.FromError(err)
+		if !ok {
+			if log != nil {
+				log.Error("grpc GetAccountsByUser unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to get accounts")
+			return
+		}
+		if log != nil {
+			log.Error("grpc GetAccountsByUser error", "error", err)
+		}
+		httputils.InternalError(w, r, "failed to get account")
+		return
+	}
+
+	accountsDTO := account.AccountResponseListProtoToApi(accs, userID)
+
+	w.Header().Set("Content-Type", "text/csv")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"operations.csv\"")
+
+	writer := csv.NewWriter(w)
+	defer writer.Flush()
+
+	writer.Write([]string{
+		"date",
+		"category_name",
+		"account_id",
+		"sum-expense",
+		"to",
+		"sum-income",
+		"description",
+	})
+
+	for _, acc := range accountsDTO.Accounts {
+		opsResp, err := h.finClient.GetOperationsByAccount(r.Context(), ProtoGetOperationsRequest(userID, acc.ID, r.URL.Query()))
+		if err != nil {
+			if log != nil {
+				log.Error("grpc GetOperationsByAccount error", "error", err)
+			}
+			continue
+		}
+		for _, op := range opsResp.Operations {
+			date := ""
+			if op.Date != nil {
+				date = op.Date.AsTime().Format("2006-01-02")
+			}
+			var (
+				categoryName string
+				sumExpense   string
+				sumIncome    string
+				toField      string
+			)
+			if op.Type == "expense" {
+				categoryName = op.CategoryName
+				sumExpense = fmt.Sprintf("%.2f", op.Sum)
+				sumIncome = "0"
+				toField = op.Name
+			} else {
+				categoryName = ""
+				sumExpense = "0"
+				sumIncome = fmt.Sprintf("%.2f", op.Sum)
+				toField = op.Name
+			}
+			writer.Write([]string{
+				date,
+				categoryName,
+				strconv.Itoa(int(op.AccountId)),
+				sumExpense,
+				toField,
+				sumIncome,
+				op.Description,
+			})
+		}
+	}
 }

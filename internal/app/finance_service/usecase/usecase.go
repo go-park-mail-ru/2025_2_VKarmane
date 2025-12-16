@@ -2,6 +2,9 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
+	"log"
+	"time"
 
 	pkgerrors "github.com/pkg/errors"
 
@@ -81,16 +84,140 @@ func (uc *UseCase) DeleteAccount(ctx context.Context, userID, accountID int) (*f
 	return account, nil
 }
 
-// Operation methods
-func (uc *UseCase) GetOperationsByAccount(ctx context.Context, accountID int) (*finpb.ListOperationsResponse, error) {
+func (uc *UseCase) AddUserToAccount(ctx context.Context, userLogin string, accountID int) (*finpb.SharingsResponse, error) {
 	log := logger.FromContext(ctx)
-	operations, err := uc.financeService.GetOperationsByAccount(ctx, accountID)
+	sharing, err := uc.financeService.AddUserToAccount(ctx, userLogin, accountID)
 	if err != nil {
 		if log != nil {
-			log.Error("Failed to get operations for account", "error", err, "account_id", accountID)
+			log.Error("Failed to add user to account", "error", err, "user_login", userLogin, "account_id", accountID)
+		}
+		return nil, pkgerrors.Wrap(err, "finance.AddUserToAccounnt")
+	}
+	return sharing, nil
+}
+
+func (uc *UseCase) GetOperationsByAccount(
+	ctx context.Context,
+	accountID int, categoryIDs []int,
+	opName, opType, accType, date string,
+) (*finpb.ListOperationsResponse, error) {
+
+	log.Printf("opName: %q opType: %q accType: %q date: %q",
+		opName, opType, accType, date,
+	)
+	log := logger.FromContext(ctx)
+
+	boolQuery := map[string]interface{}{
+		"must": []interface{}{
+			map[string]interface{}{
+				"term": map[string]interface{}{
+					"account_id": accountID,
+				},
+			},
+		},
+		"must_not": []interface{}{
+			map[string]interface{}{
+				"term": map[string]interface{}{
+					"status": "reverted",
+				},
+			},
+		},
+	}
+
+	if len(categoryIDs) != 0 {
+		boolQuery["filter"] = []interface{}{
+			map[string]interface{}{
+				"terms": map[string]interface{}{
+					"category_id": categoryIDs,
+				},
+			},
+		}
+	}
+
+	if opName != "" {
+		boolQuery["should"] = []interface{}{
+			map[string]interface{}{
+				"wildcard": map[string]interface{}{
+					"name": map[string]interface{}{
+						"value": "*" + opName + "*",
+					},
+				},
+			},
+		}
+		boolQuery["minimum_should_match"] = 1
+	}
+
+	if opType != "" {
+		if boolQuery["filter"] == nil {
+			boolQuery["filter"] = []interface{}{}
+		}
+		boolQuery["filter"] = append(boolQuery["filter"].([]interface{}),
+			map[string]interface{}{
+				"term": map[string]interface{}{
+					"type": opType,
+				},
+			},
+		)
+	}
+
+	if accType != "" {
+		if boolQuery["filter"] == nil {
+			boolQuery["filter"] = []interface{}{}
+		}
+		boolQuery["filter"] = append(boolQuery["filter"].([]interface{}),
+			map[string]interface{}{
+				"term": map[string]interface{}{
+					"account_type": accType,
+				},
+			},
+		)
+	}
+
+	if date != "" {
+		t, err := time.Parse(time.RFC3339Nano, date)
+		if err == nil {
+			start := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+			end := time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 999999999, t.Location())
+
+			rangeFilter := map[string]interface{}{
+				"range": map[string]interface{}{
+					"date": map[string]interface{}{
+						"gte": start.Format(time.RFC3339Nano),
+						"lte": end.Format(time.RFC3339Nano),
+					},
+				},
+			}
+
+			if boolQuery["filter"] == nil {
+				boolQuery["filter"] = []interface{}{rangeFilter}
+			} else {
+				boolQuery["filter"] = append(boolQuery["filter"].([]interface{}), rangeFilter)
+			}
+		}
+	}
+
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": boolQuery,
+		},
+		"sort": []map[string]interface{}{
+			{
+				"date": map[string]interface{}{
+					"order": "desc",
+				},
+			},
+		},
+	}
+
+	body, _ := json.Marshal(query)
+	operations, err := uc.financeService.GetOperationsByAccount(ctx, body)
+	if err != nil {
+		if log != nil {
+			log.Error("Failed to get operations", "error", err, "account_id", accountID)
 		}
 		return nil, pkgerrors.Wrap(err, "finance.GetOperationsByAccount")
 	}
+
 	return operations, nil
 }
 
@@ -191,6 +318,18 @@ func (uc *UseCase) GetCategoryByID(ctx context.Context, userID, categoryID int) 
 	return category, nil
 }
 
+func (uc *UseCase) GetCategoryByName(ctx context.Context, userID int, categoryName string) (*finpb.CategoryWithStats, error) {
+	log := logger.FromContext(ctx)
+	category, err := uc.financeService.GetCategoryByName(ctx, userID, categoryName)
+	if err != nil {
+		if log != nil {
+			log.Error("Failed to get category by name", "error", err, "user_id", userID, "category_name", categoryName)
+		}
+		return nil, pkgerrors.Wrap(err, "finance.GetCategoryByName")
+	}
+	return category, nil
+}
+
 func (uc *UseCase) UpdateCategory(ctx context.Context, category finmodels.Category) (*finpb.Category, error) {
 	log := logger.FromContext(ctx)
 	updatedCategory, err := uc.financeService.UpdateCategory(ctx, category)
@@ -213,4 +352,16 @@ func (uc *UseCase) DeleteCategory(ctx context.Context, userID, categoryID int) e
 		return pkgerrors.Wrap(err, "finance.DeleteCategory")
 	}
 	return nil
+}
+
+func (uc *UseCase) GetCategoriesReport(ctx context.Context, req finmodels.CategoryReportRequest) (*finpb.CategoryReportResponse, error) {
+	log := logger.FromContext(ctx)
+	report, err := uc.financeService.GetCategoriesReport(ctx, req)
+	if err != nil {
+		if log != nil {
+			log.Error("Failed to get report", "error", err, "user_id", req.UserID)
+		}
+		return nil, pkgerrors.Wrap(err, "finance.GetCategoriesReport")
+	}
+	return report, nil
 }

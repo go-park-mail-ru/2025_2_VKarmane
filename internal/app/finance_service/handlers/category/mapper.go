@@ -1,8 +1,12 @@
 package category
 
 import (
+	"net/url"
+	"time"
+
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func UserIDToProtoID(userID int) *finpb.UserID {
@@ -63,6 +67,13 @@ func UserAndCtegoryIDToProto(userID, ctgID int) *finpb.CategoryRequest {
 	}
 }
 
+func UserIDCategoryNameToProto(userID int, categoryName string) *finpb.CategoryByNameRequest {
+	return &finpb.CategoryByNameRequest{
+		UserId:       int32(userID),
+		CategoryName: categoryName,
+	}
+}
+
 func CategoryUpdateRequestToProto(userID, ctgID int, req models.UpdateCategoryRequest) *finpb.UpdateCategoryRequest {
 	return &finpb.UpdateCategoryRequest{
 		UserId:       int32(userID),
@@ -71,4 +82,60 @@ func CategoryUpdateRequestToProto(userID, ctgID int, req models.UpdateCategoryRe
 		Description:  req.Description,
 		LogoHashedId: req.LogoHashedID,
 	}
+}
+
+func CategoryToUpdateSearch(ctg *models.Category) models.UpdateCategoryInOperationSearch {
+	return models.UpdateCategoryInOperationSearch{
+		CategoryID:           ctg.ID,
+		CategoryName:         ctg.Name,
+		CategoryLogo:         ctg.LogoURL,
+		CategoryLogoHashedID: ctg.LogoHashedID,
+	}
+}
+
+func CreateCategoryReportRequestToProto(userID int, q url.Values) *finpb.CategoryReportRequest {
+	startStr := q.Get("start")
+	endStr := q.Get("end")
+
+	var start, end time.Time
+	var err error
+
+	if startStr != "" {
+		start, err = time.Parse("2006-01-02", startStr)
+		if err != nil {
+			start = time.Time{}
+		}
+	}
+
+	if endStr != "" {
+		end, err = time.Parse("2006-01-02", endStr)
+		if err != nil {
+			end = time.Time{}
+		}
+	}
+
+	return &finpb.CategoryReportRequest{
+		UserId: int32(userID),
+		Start:  timestamppb.New(start),
+		End:    timestamppb.New(end),
+	}
+}
+
+func ProtoToCategoryReport(resp *finpb.CategoryReportResponse) models.CategoryReport {
+	result := models.CategoryReport{
+		Categories: make([]models.CategoryInReport, 0, len(resp.GetCategories())),
+		Start:      resp.GetStart().AsTime(),
+		End:        resp.GetEnd().AsTime(),
+	}
+
+	for _, c := range resp.GetCategories() {
+		result.Categories = append(result.Categories, models.CategoryInReport{
+			CategoryID:     int(c.CategoryId),
+			CategoryName:   c.CategoryName,
+			OperationCount: int(c.OperationsCount),
+			TotalSum:       c.TotalSum,
+		})
+	}
+
+	return result
 }

@@ -5,11 +5,15 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	gomock "go.uber.org/mock/gomock"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
+	finerrors "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/errors"
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/mocks"
-	"github.com/stretchr/testify/assert"
-	gomock "go.uber.org/mock/gomock"
 )
 
 func TestFinanceServer_CreateAccount(t *testing.T) {
@@ -68,8 +72,9 @@ func TestFinanceServer_UpdateAccount(t *testing.T) {
 
 	mockUC := mocks.NewMockFinanceUseCase(ctrl)
 	server := NewFinanceServer(mockUC)
+	balance := 12.
 
-	req := &finpb.UpdateAccountRequest{UserId: 1, AccountId: 1, Balance: 12.0}
+	req := &finpb.UpdateAccountRequest{UserId: 1, AccountId: 1, Balance: &balance}
 	expected := &finpb.Account{Id: 1, Balance: 12.0}
 
 	mockUC.EXPECT().
@@ -77,8 +82,8 @@ func TestFinanceServer_UpdateAccount(t *testing.T) {
 		DoAndReturn(func(_ context.Context, req finmodels.UpdateAccountRequest) (*finpb.Account, error) {
 			assert.Equal(t, 1, req.UserID)
 			assert.Equal(t, 1, req.AccountID)
-			assert.Equal(t, 12.0, req.Balance)
-			return &finpb.Account{Id: int32(req.AccountID), Balance: req.Balance}, nil
+			assert.Equal(t, &balance, req.Balance)
+			return &finpb.Account{Id: int32(req.AccountID), Balance: *req.Balance}, nil
 		})
 
 	resp, err := server.UpdateAccount(context.Background(), req)
@@ -177,4 +182,66 @@ func TestFinanceServer_UpdateCategory(t *testing.T) {
 	resp, err := server.UpdateCategory(context.Background(), req)
 	assert.NoError(t, err)
 	assert.Equal(t, expected.Name, resp.Name)
+}
+
+func TestFinanceServer_GetAccountsByUser_ErrorMap(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockFinanceUseCase(ctrl)
+	server := NewFinanceServer(mockUC)
+
+	mockUC.EXPECT().GetAccountsByUser(gomock.Any(), 1).Return(nil, finerrors.ErrAccountNotFound)
+
+	resp, err := server.GetAccountsByUser(context.Background(), &finpb.UserID{UserId: 1})
+	assert.Nil(t, resp)
+	st, _ := status.FromError(err)
+	assert.Equal(t, codes.NotFound, st.Code())
+}
+
+func TestFinanceServer_CreateOperation_Error(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockFinanceUseCase(ctrl)
+	server := NewFinanceServer(mockUC)
+
+	mockUC.EXPECT().
+		CreateOperation(gomock.Any(), gomock.AssignableToTypeOf(finmodels.CreateOperationRequest{}), 2).
+		Return(nil, finerrors.ErrForbidden)
+
+	resp, err := server.CreateOperation(context.Background(), &finpb.CreateOperationRequest{AccountId: 2})
+	assert.Nil(t, resp)
+	st, _ := status.FromError(err)
+	assert.Equal(t, codes.PermissionDenied, st.Code())
+}
+
+func TestFinanceServer_GetCategory_NotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockFinanceUseCase(ctrl)
+	server := NewFinanceServer(mockUC)
+
+	mockUC.EXPECT().GetCategoryByID(gomock.Any(), 1, 2).Return(nil, finerrors.ErrCategoryNotFound)
+
+	resp, err := server.GetCategory(context.Background(), &finpb.CategoryRequest{UserId: 1, CategoryId: 2})
+	assert.Nil(t, resp)
+	st, _ := status.FromError(err)
+	assert.Equal(t, codes.NotFound, st.Code())
+}
+
+func TestFinanceServer_GetCategoriesByUser_Internal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockUC := mocks.NewMockFinanceUseCase(ctrl)
+	server := NewFinanceServer(mockUC)
+
+	mockUC.EXPECT().GetCategoriesByUser(gomock.Any(), 1).Return(nil, errors.New("boom"))
+
+	resp, err := server.GetCategoriesByUser(context.Background(), &finpb.UserID{UserId: 1})
+	assert.Nil(t, resp)
+	st, _ := status.FromError(err)
+	assert.Equal(t, codes.Internal, st.Code())
 }

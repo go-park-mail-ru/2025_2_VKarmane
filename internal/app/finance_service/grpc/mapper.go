@@ -8,19 +8,28 @@ import (
 )
 
 func protoToCreateAccountRequest(req *finpb.CreateAccountRequest) finmodels.CreateAccountRequest {
+	var description string
+	if req.Description != nil {
+		description = *req.Description
+	}
+
 	return finmodels.CreateAccountRequest{
-		UserID:     int(req.UserId),
-		Balance:    req.Balance,
-		Type:       req.Type,
-		CurrencyID: int(req.CurrencyId),
+		UserID:      int(req.UserId),
+		Balance:     req.Balance,
+		Type:        req.Type,
+		CurrencyID:  int(req.CurrencyId),
+		Name:        req.Name,
+		Description: description,
 	}
 }
 
 func protoToUpdateAccountRequest(req *finpb.UpdateAccountRequest) finmodels.UpdateAccountRequest {
 	return finmodels.UpdateAccountRequest{
-		UserID:    int(req.UserId),
-		AccountID: int(req.AccountId),
-		Balance:   req.Balance,
+		UserID:      int(req.UserId),
+		AccountID:   int(req.AccountId),
+		Balance:     req.Balance,
+		Name:        req.Name,
+		Description: req.Description,
 	}
 }
 
@@ -121,4 +130,20 @@ func protoToUpdateCategoryRequest(req *finpb.UpdateCategoryRequest) finmodels.Up
 		Description:  description,
 		LogoHashedID: logoHashedID,
 	}
+}
+
+func protoToCategoryRequest(req *finpb.CategoryReportRequest) finmodels.CategoryReportRequest {
+	return finmodels.CategoryReportRequest{
+		UserID: int(req.UserId),
+		Start:  req.Start.AsTime(),
+		End:    req.End.AsTime(),
+	}
+}
+
+func CategoryIDsInt(ids []int32) []int {
+	intIds := make([]int, len(ids))
+	for _, id := range ids {
+		intIds = append(intIds, int(id))
+	}
+	return intIds
 }

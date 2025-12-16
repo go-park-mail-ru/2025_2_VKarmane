@@ -29,15 +29,18 @@ func TestGetAccountByID_Success(t *testing.T) {
 	userID := 2
 	created := time.Now()
 	updated := time.Now()
-	rows := sqlmock.NewRows([]string{"_id", "balance", "account_type", "currency_id", "created_at", "updated_at"}).
-		AddRow(accountID, 100.0, "cash", 1, created, updated)
-
 	mock.ExpectQuery(regexp.QuoteMeta(`
-		SELECT a._id, a.balance, a.account_type, a.currency_id, a.created_at, a.updated_at
-		FROM account a
-		JOIN sharings s ON a._id = s.account_id
-		WHERE s.user_id = $1 AND a._id = $2
-	`)).WithArgs(userID, accountID).WillReturnRows(rows)
+    SELECT a._id, a.balance, a.account_type, a.currency_id, a.created_at, a.updated_at,
+           a.account_name, a.account_description
+    FROM account a
+    JOIN sharings s ON a._id = s.account_id
+    WHERE s.user_id = $1 AND a._id = $2
+`)).
+		WithArgs(userID, accountID).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"_id", "balance", "account_type", "currency_id",
+			"created_at", "updated_at", "account_name", "account_description",
+		}).AddRow(accountID, 100.0, "cash", 1, created, updated, "name", "desc"))
 
 	acc, err := repo.GetAccountByID(context.Background(), userID, accountID)
 	require.NoError(t, err)
@@ -50,11 +53,14 @@ func TestGetAccountByID_NotFound(t *testing.T) {
 	defer close()
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
-		SELECT a._id, a.balance, a.account_type, a.currency_id, a.created_at, a.updated_at
-		FROM account a
-		JOIN sharings s ON a._id = s.account_id
-		WHERE s.user_id = $1 AND a._id = $2
-	`)).WithArgs(1, 2).WillReturnError(sql.ErrNoRows)
+    SELECT a._id, a.balance, a.account_type, a.currency_id, a.created_at, a.updated_at,
+           a.account_name, a.account_description
+    FROM account a
+    JOIN sharings s ON a._id = s.account_id
+    WHERE s.user_id = $1 AND a._id = $2
+	`)).
+		WithArgs(1, 2).
+		WillReturnError(sql.ErrNoRows)
 
 	_, err := repo.GetAccountByID(context.Background(), 1, 2)
 	require.ErrorIs(t, err, serviceerrors.ErrAccountNotFound)
@@ -67,17 +73,24 @@ func TestGetAccountsByUser(t *testing.T) {
 	userID := 1
 	created := time.Now()
 	updated := time.Now()
-	rows := sqlmock.NewRows([]string{"_id", "balance", "account_type", "currency_id", "created_at", "updated_at"}).
-		AddRow(1, 100.0, "cash", 1, created, updated).
-		AddRow(2, 200.0, "card", 2, created, updated)
+
+	rows := sqlmock.NewRows([]string{
+		"_id", "balance", "account_type", "currency_id",
+		"created_at", "updated_at", "account_name", "account_description",
+	}).
+		AddRow(1, 100.0, "cash", 1, created, updated, "Cash Wallet", "My cash").
+		AddRow(2, 200.0, "card", 2, created, updated, "Bank Card", "My card")
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
-		SELECT a._id, a.balance, a.account_type, a.currency_id, a.created_at, a.updated_at
+		SELECT a._id, a.balance, a.account_type, a.currency_id, 
+		       a.created_at, a.updated_at, a.account_name, a.account_description
 		FROM account a
 		JOIN sharings s ON a._id = s.account_id
 		WHERE s.user_id = $1
-		ORDER BY a.created_at DESC
-	`)).WithArgs(userID).WillReturnRows(rows)
+		ORDER BY a.balance DESC, a.created_at DESC
+	`)).
+		WithArgs(userID).
+		WillReturnRows(rows)
 
 	accs, err := repo.GetAccountsByUser(context.Background(), userID)
 	require.NoError(t, err)
@@ -91,50 +104,74 @@ func TestCreateAccount_Success(t *testing.T) {
 	defer close()
 
 	userID := 1
-	account := models.Account{Balance: 100, Type: "cash", CurrencyID: 1}
+	account := models.Account{
+		Balance:    100,
+		Type:       "cash",
+		CurrencyID: 1,
+		Name:       "My Account",
+	}
 	created := time.Now()
 	updated := time.Now()
 
 	// mock insert account
 	mock.ExpectQuery(regexp.QuoteMeta(`
-		INSERT INTO account (balance, account_type, currency_id, created_at, updated_at)
-		VALUES ($1, $2, $3, NOW(), NOW())
-		RETURNING _id, created_at, updated_at
+		INSERT INTO account (account_name, account_description, balance, account_type, currency_id, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+		RETURNING _id, created_at, updated_at, account_name, account_description
 	`)).
-		WithArgs(account.Balance, account.Type, account.CurrencyID).
-		WillReturnRows(sqlmock.NewRows([]string{"_id", "created_at", "updated_at"}).AddRow(5, created, updated))
+		WithArgs(
+			account.Name,
+			account.Description,
+			account.Balance,
+			account.Type,
+			account.CurrencyID,
+		).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"_id", "created_at", "updated_at", "account_name", "account_description",
+		}).AddRow(5, created, updated, account.Name, account.Description))
 
 	// mock insert into sharings
 	mock.ExpectExec(regexp.QuoteMeta(`
 		INSERT INTO sharings (account_id, user_id, created_at, updated_at)
 		VALUES ($1, $2, NOW(), NOW())
-	`)).WithArgs(5, userID).WillReturnResult(sqlmock.NewResult(1, 1))
+	`)).
+		WithArgs(5, userID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 
 	acc, err := repo.CreateAccount(context.Background(), account, userID)
 	require.NoError(t, err)
 	require.Equal(t, 5, acc.ID)
 	require.Equal(t, 100.0, acc.Balance)
+	require.Equal(t, account.Name, acc.Name)
+	require.Equal(t, account.Description, acc.Description)
 }
 
 func TestUpdateAccount_Success(t *testing.T) {
 	repo, mock, close := setupDB(t)
 	defer close()
+	balance := 500.
+	name := "beba"
+	desrc := "descr"
 
-	req := models.UpdateAccountRequest{UserID: 1, AccountID: 2, Balance: 500}
+	req := models.UpdateAccountRequest{UserID: 1, AccountID: 2, Balance: &balance, Name: &name, Description: &desrc}
 	created := time.Now()
 	updated := time.Now()
 
 	mock.ExpectQuery(regexp.QuoteMeta(`
-		UPDATE account a
-		SET 
-			balance = COALESCE($1, a.balance),
-			updated_at = NOW()
-		FROM sharings s
-		WHERE a._id = s.account_id AND s.user_id = $2 AND a._id = $3
-		RETURNING a._id, a.balance, a.account_type, a.currency_id, a.created_at, a.updated_at
-	`)).WithArgs(req.Balance, req.UserID, req.AccountID).
-		WillReturnRows(sqlmock.NewRows([]string{"_id", "balance", "account_type", "currency_id", "created_at", "updated_at"}).
-			AddRow(req.AccountID, req.Balance, "cash", 1, created, updated))
+    UPDATE account a
+    SET 
+        balance = COALESCE($1, a.balance),
+        account_name = COALESCE($2, a.account_name),
+        account_description = COALESCE($3, a.account_description),
+        updated_at = NOW()
+    FROM sharings s
+    WHERE a._id = s.account_id AND s.user_id = $4 AND a._id = $5
+    RETURNING a._id, a.account_name, a.account_description, a.balance, a.account_type, a.currency_id, a.created_at, a.updated_at
+`)).
+		WithArgs(req.Balance, req.Name, req.Description, req.UserID, req.AccountID).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"_id", "account_name", "account_description", "balance", "account_type", "currency_id", "created_at", "updated_at",
+		}).AddRow(req.AccountID, "", "", req.Balance, "cash", 1, created, updated))
 
 	acc, err := repo.UpdateAccount(context.Background(), req)
 	require.NoError(t, err)

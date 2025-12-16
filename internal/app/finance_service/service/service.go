@@ -1,8 +1,12 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"io"
 
+	"github.com/elastic/go-elasticsearch/v8"
 	finmodels "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/models"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
@@ -10,12 +14,14 @@ import (
 
 type Service struct {
 	repo  FinanceRepository
+	es    *elasticsearch.Client
 	clock clock.Clock
 }
 
-func NewService(repo FinanceRepository, clck clock.Clock) *Service {
+func NewService(repo FinanceRepository, es *elasticsearch.Client, clck clock.Clock) *Service {
 	return &Service{
 		repo:  repo,
+		es:    es,
 		clock: clck,
 	}
 }
@@ -47,11 +53,13 @@ func (s *Service) GetAccountByID(ctx context.Context, userID, accountID int) (*f
 
 func (s *Service) CreateAccount(ctx context.Context, req finmodels.CreateAccountRequest) (*finpb.Account, error) {
 	account := finmodels.Account{
-		Balance:    req.Balance,
-		Type:       req.Type,
-		CurrencyID: req.CurrencyID,
-		CreatedAt:  s.clock.Now(),
-		UpdatedAt:  s.clock.Now(),
+		Balance:     req.Balance,
+		Type:        req.Type,
+		Name:        req.Name,
+		CurrencyID:  req.CurrencyID,
+		Description: &req.Description,
+		CreatedAt:   s.clock.Now(),
+		UpdatedAt:   s.clock.Now(),
 	}
 
 	createdAcc, err := s.repo.CreateAccount(ctx, account, req.UserID)
@@ -78,21 +86,46 @@ func (s *Service) DeleteAccount(ctx context.Context, userID, accountID int) (*fi
 	return accountToProto(deletedAcc), nil
 }
 
+func (s *Service) AddUserToAccount(ctx context.Context, userLogin string, accountID int) (*finpb.SharingsResponse, error) {
+	sh, err := s.repo.AddUserToAccount(ctx, userLogin, accountID)
+	if err != nil {
+		return nil, err
+	}
+	return SharingToProto(sh), nil
+}
+
 // Operation methods
-func (s *Service) GetOperationsByAccount(ctx context.Context, accountID int) (*finpb.ListOperationsResponse, error) {
-	operations, err := s.repo.GetOperationsByAccount(ctx, accountID)
+func (s *Service) GetOperationsByAccount(ctx context.Context, req []byte) (*finpb.ListOperationsResponse, error) {
+	res, err := s.es.Search(
+		s.es.Search.WithContext(context.Background()),
+		s.es.Search.WithIndex("transactions"),
+		s.es.Search.WithBody(bytes.NewReader(req)),
+		s.es.Search.WithTrackTotalHits(true),
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	protoOps := make([]*finpb.OperationInList, 0, len(operations))
-	for _, op := range operations {
-		protoOps = append(protoOps, operationInListToProto(op))
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
 	}
 
-	return &finpb.ListOperationsResponse{
-		Operations: protoOps,
-	}, nil
+	var esResp finmodels.ElasticsearchResponse
+	if err := (&esResp).UnmarshalJSON(body); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal ES: %w", err)
+	}
+
+	result := &finpb.ListOperationsResponse{}
+
+	for _, hit := range esResp.Hits.Hits {
+		op := convertToOperation(hit.Source)
+		result.Operations = append(result.Operations, op)
+	}
+
+	return result, nil
 }
 
 func (s *Service) GetOperationByID(ctx context.Context, accID, opID int) (*finpb.Operation, error) {
@@ -132,21 +165,21 @@ func (s *Service) CreateOperation(ctx context.Context, req finmodels.CreateOpera
 	}
 
 	// Update account balance
-	account, err := s.repo.GetAccountByID(ctx, req.UserID, accountID)
-	if err != nil {
-		return nil, err
-	}
+	// account, err := s.repo.GetAccountByID(ctx, req.UserID, accountID)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	var newBalance float64
-	if req.Type == finmodels.OperationIncome {
-		newBalance = account.Balance + req.Sum
-	} else {
-		newBalance = account.Balance - req.Sum
-	}
+	// var newBalance float64
+	// if req.Type == finmodels.OperationIncome {
+	// 	newBalance = account.Balance + req.Sum
+	// } else {
+	// 	newBalance = account.Balance - req.Sum
+	// }
 
-	if err := s.repo.UpdateAccountBalance(ctx, accountID, newBalance); err != nil {
-		return nil, err
-	}
+	// if err := s.repo.UpdateAccountBalance(ctx, accountID, newBalance); err != nil {
+	// 	return nil, err
+	// }
 
 	return operationToProto(createdOp), nil
 }
@@ -236,6 +269,19 @@ func (s *Service) GetCategoryByID(ctx context.Context, userID, categoryID int) (
 	return CategoryWithStatsToProto(category, stats), nil
 }
 
+func (s *Service) GetCategoryByName(ctx context.Context, userID int, categoryName string) (*finpb.CategoryWithStats, error) {
+	category, err := s.repo.GetCategoryByName(ctx, userID, categoryName)
+	if err != nil {
+		return nil, err
+	}
+	stats, err := s.repo.GetCategoryStats(ctx, userID, category.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return CategoryWithStatsToProto(category, stats), nil
+}
+
 func (s *Service) UpdateCategory(ctx context.Context, category finmodels.Category) (*finpb.Category, error) {
 	if err := s.repo.UpdateCategory(ctx, category); err != nil {
 		return nil, err
@@ -251,4 +297,12 @@ func (s *Service) UpdateCategory(ctx context.Context, category finmodels.Categor
 
 func (s *Service) DeleteCategory(ctx context.Context, userID, categoryID int) error {
 	return s.repo.DeleteCategory(ctx, userID, categoryID)
+}
+
+func (s *Service) GetCategoriesReport(ctx context.Context, req finmodels.CategoryReportRequest) (*finpb.CategoryReportResponse, error) {
+	ctgs, err := s.repo.GetCategoriesReport(ctx, req.UserID, req.Start, req.End)
+	if err != nil {
+		return nil, err
+	}
+	return ReportToProto(ctgs, req.Start, req.End), nil
 }

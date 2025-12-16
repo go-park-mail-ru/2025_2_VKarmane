@@ -72,7 +72,7 @@ func (h *Handler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accountsDTO := AccountResponseListProtoToApit(accounts, userID)
+	accountsDTO := AccountResponseListProtoToApi(accounts, userID)
 	httputils.Success(w, r, accountsDTO)
 }
 
@@ -282,3 +282,53 @@ func (h *Handler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	accDTO := ProtoAccountToApi(acc)
 	httputils.Success(w, r, accDTO)
 }
+
+func (h *Handler) AddUserToAccount(w http.ResponseWriter, r *http.Request) {
+	var req models.AddUserToAccountRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httputils.ValidationError(w, r, "Некорректный формат данных", "body")
+		return
+	}
+	sharing, err := h.finClient.AddUserToAccounnt(r.Context(), UserLoginIDtoProtoID(req.UserLogin, req.AccountID))
+	if err != nil {
+		st, ok := status.FromError(err)
+		log := logger.FromContext(r.Context())
+		if !ok {
+			if log != nil {
+				log.Error("grpc AddUserToAccount unknown error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to add user to account")
+			return
+		}
+		switch st.Code() {
+		case codes.NotFound:
+			if log != nil {
+				log.Error("grpc AddUserToAccount not found error", "error", err)
+			}
+			httputils.Error(w, r, "Счет или пользователь не найден", http.StatusBadRequest)
+			return
+		case codes.FailedPrecondition:
+			if log != nil {
+				log.Error("grpc AddUserToAccount private error", "error", err)
+			}
+			httputils.Error(w, r, "Нельзя добавить пользователя к приватному счету", http.StatusBadRequest)
+			return
+		case codes.AlreadyExists:
+			if log != nil {
+				log.Error("grpc AddUserToAccount exists error", "error", err)
+			}
+			httputils.ConflictError(w, r, "Пользователь уже привязан к счету", models.ErrCodeSharingExists)
+			return
+		default:
+			if log != nil {
+				log.Error("grpc AddUserToAccount error", "error", err)
+			}
+			httputils.InternalError(w, r, "failed to add user to account")
+			return
+		}
+	}
+	sharingDTO := SharingProtoToApi(sharing)
+	httputils.Created(w, r, sharingDTO)
+
+}
+

@@ -16,6 +16,13 @@ const (
 	OperationReverted OperationStatus = "reverted"
 )
 
+type AccountType string
+
+const (
+	AccountShared  AccountType = "shared"
+	AccountPrivate AccountType = "private"
+)
+
 type Operation struct {
 	ID           int
 	AccountID    int
@@ -23,6 +30,7 @@ type Operation struct {
 	CategoryName string
 	Type         OperationType
 	Status       OperationStatus
+	AccountType  AccountType
 	Description  string
 	ReceiptURL   string
 	Name         string
@@ -44,6 +52,7 @@ type OperationInList struct {
 	CategoryLogo         string
 	Sum                  float64
 	CurrencyID           int
+	AccountType          string
 	CreatedAt            time.Time
 	Date                 time.Time
 }

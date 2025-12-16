@@ -11,7 +11,6 @@ func ProtoBudgetToApi(bdg *budgpb.Budget) budgmodels.Budget {
 	return budgmodels.Budget{
 		ID:          int(bdg.Id),
 		UserID:      int(bdg.UserId),
-		CategoryID:  int(bdg.CategoryId),
 		Amount:      bdg.Sum,
 		Actual:      bdg.Actual,
 		CurrencyID:  int(bdg.CurrencyId),
@@ -25,7 +24,6 @@ func ProtoBudgetToApi(bdg *budgpb.Budget) budgmodels.Budget {
 
 func ProtoCreateRequestToModel(req *budgpb.CreateBudgetRequest) (budgmodels.CreateBudgetRequest, int) {
 	return budgmodels.CreateBudgetRequest{
-		CategoryID:  int(req.CategoryId),
 		Amount:      req.Sum,
 		Description: req.Description,
 		CreatedAt:   req.CreatedAt.AsTime(),

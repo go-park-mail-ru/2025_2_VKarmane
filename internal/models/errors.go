@@ -16,6 +16,7 @@ const (
 
 	ErrCodeBudgetExists     ErrorCode = "BUDGET_EXISTS"
 	ErrCodeCategoryExists   ErrorCode = "CATEGORY_EXISTS"
+	ErrCodeSharingExists    ErrorCode = "SHARING_EXISTS"
 	ErrCodeCategoryNotFound ErrorCode = "CATEGORY_NOT_FOUND"
 
 	ErrCodeUserNotFound       ErrorCode = "USER_NOT_FOUND"
@@ -36,6 +37,8 @@ const (
 	ErrCodeBudgetNotFound      ErrorCode = "BUDGET_NOT_FOUND"
 	ErrCodeAccountNotFound     ErrorCode = "ACCOUNT_NOT_FOUND"
 	ErrCodeTransactionNotFound ErrorCode = "OPERATION_NOT_FOUND"
+	ErrCodeNegaticeBalance     ErrorCode = "NEGATIVE_BALANCE"
+	ErrCodePrivateAccount      ErrorCode = "PRIVATE_ACCOUNT"
 
 	ErrCodeInvalidAmount   ErrorCode = "INVALID_AMOUNT"
 	ErrCodeInvalidCurrency ErrorCode = "INVALID_CURRENCY"

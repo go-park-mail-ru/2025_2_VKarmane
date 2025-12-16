@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/service"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 )
 
 type UseCase struct {

@@ -76,7 +76,9 @@ func MapPgAccountError(err error) error {
 	case NotNullViolation:
 		return serviceerrors.ErrInvalidData
 	case CheckViolation:
-		return serviceerrors.ErrInvalidData
+		return serviceerrors.ErrNegativeBalance
+	case UniqueViolation:
+		return serviceerrors.ErrSharingExists
 	default:
 		return err
 	}

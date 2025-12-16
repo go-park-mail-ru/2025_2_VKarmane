@@ -32,3 +32,16 @@ type CategoryWithStats struct {
 	Category
 	OperationsCount int
 }
+
+type CategoryReportRequest struct {
+	UserID int
+	Start  time.Time
+	End    time.Time
+}
+
+type CategoryInReport struct {
+	CategoryID     int
+	CategoryName   string
+	OperationCount int
+	TotalSum       float64
+}

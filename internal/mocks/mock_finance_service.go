@@ -42,6 +42,21 @@ func (m *MockFinanceService) EXPECT() *MockFinanceServiceMockRecorder {
 	return m.recorder
 }
 
+// AddUserToAccount mocks base method.
+func (m *MockFinanceService) AddUserToAccount(ctx context.Context, userLogin string, accountID int) (*proto.SharingsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddUserToAccount", ctx, userLogin, accountID)
+	ret0, _ := ret[0].(*proto.SharingsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddUserToAccount indicates an expected call of AddUserToAccount.
+func (mr *MockFinanceServiceMockRecorder) AddUserToAccount(ctx, userLogin, accountID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUserToAccount", reflect.TypeOf((*MockFinanceService)(nil).AddUserToAccount), ctx, userLogin, accountID)
+}
+
 // CreateAccount mocks base method.
 func (m *MockFinanceService) CreateAccount(ctx context.Context, req models.CreateAccountRequest) (*proto.Account, error) {
 	m.ctrl.T.Helper()
@@ -176,6 +191,21 @@ func (mr *MockFinanceServiceMockRecorder) GetCategoriesByUser(ctx, userID any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoriesByUser", reflect.TypeOf((*MockFinanceService)(nil).GetCategoriesByUser), ctx, userID)
 }
 
+// GetCategoriesReport mocks base method.
+func (m *MockFinanceService) GetCategoriesReport(ctx context.Context, req models.CategoryReportRequest) (*proto.CategoryReportResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategoriesReport", ctx, req)
+	ret0, _ := ret[0].(*proto.CategoryReportResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategoriesReport indicates an expected call of GetCategoriesReport.
+func (mr *MockFinanceServiceMockRecorder) GetCategoriesReport(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoriesReport", reflect.TypeOf((*MockFinanceService)(nil).GetCategoriesReport), ctx, req)
+}
+
 // GetCategoriesWithStatsByUser mocks base method.
 func (m *MockFinanceService) GetCategoriesWithStatsByUser(ctx context.Context, userID int) (*proto.ListCategoriesWithStatsResponse, error) {
 	m.ctrl.T.Helper()
@@ -206,6 +236,21 @@ func (mr *MockFinanceServiceMockRecorder) GetCategoryByID(ctx, userID, categoryI
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryByID", reflect.TypeOf((*MockFinanceService)(nil).GetCategoryByID), ctx, userID, categoryID)
 }
 
+// GetCategoryByName mocks base method.
+func (m *MockFinanceService) GetCategoryByName(ctx context.Context, userID int, categoryName string) (*proto.CategoryWithStats, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategoryByName", ctx, userID, categoryName)
+	ret0, _ := ret[0].(*proto.CategoryWithStats)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategoryByName indicates an expected call of GetCategoryByName.
+func (mr *MockFinanceServiceMockRecorder) GetCategoryByName(ctx, userID, categoryName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategoryByName", reflect.TypeOf((*MockFinanceService)(nil).GetCategoryByName), ctx, userID, categoryName)
+}
+
 // GetOperationByID mocks base method.
 func (m *MockFinanceService) GetOperationByID(ctx context.Context, accID, opID int) (*proto.Operation, error) {
 	m.ctrl.T.Helper()
@@ -222,18 +267,18 @@ func (mr *MockFinanceServiceMockRecorder) GetOperationByID(ctx, accID, opID any)
 }
 
 // GetOperationsByAccount mocks base method.
-func (m *MockFinanceService) GetOperationsByAccount(ctx context.Context, accountID int) (*proto.ListOperationsResponse, error) {
+func (m *MockFinanceService) GetOperationsByAccount(ctx context.Context, req []byte) (*proto.ListOperationsResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOperationsByAccount", ctx, accountID)
+	ret := m.ctrl.Call(m, "GetOperationsByAccount", ctx, req)
 	ret0, _ := ret[0].(*proto.ListOperationsResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetOperationsByAccount indicates an expected call of GetOperationsByAccount.
-func (mr *MockFinanceServiceMockRecorder) GetOperationsByAccount(ctx, accountID any) *gomock.Call {
+func (mr *MockFinanceServiceMockRecorder) GetOperationsByAccount(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOperationsByAccount", reflect.TypeOf((*MockFinanceService)(nil).GetOperationsByAccount), ctx, accountID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOperationsByAccount", reflect.TypeOf((*MockFinanceService)(nil).GetOperationsByAccount), ctx, req)
 }
 
 // UpdateAccount mocks base method.

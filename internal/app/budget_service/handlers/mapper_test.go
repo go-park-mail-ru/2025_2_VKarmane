@@ -22,7 +22,6 @@ func TestBudgetToAPI(t *testing.T) {
 	protoBdg := &bdgpb.Budget{
 		Id:          1,
 		UserId:      10,
-		CategoryId:  20,
 		CurrencyId:  30,
 		Sum:         100.50,
 		Description: "Test budget",
@@ -36,7 +35,6 @@ func TestBudgetToAPI(t *testing.T) {
 
 	assert.Equal(t, 1, apiBdg.ID)
 	assert.Equal(t, 10, apiBdg.UserID)
-	assert.Equal(t, 20, apiBdg.CategoryID)
 	assert.Equal(t, 30, apiBdg.CurrencyID)
 	assert.Equal(t, 100.50, apiBdg.Amount)
 	assert.Equal(t, "Test budget", apiBdg.Description)
@@ -74,7 +72,6 @@ func TestModelCreateReqtoProtoReq(t *testing.T) {
 	fixed := clock.FixedClock{FixedTime: fixedTime}
 	now := fixed.FixedTime
 	req := models.CreateBudgetRequest{
-		CategoryID:  1,
 		Amount:      100,
 		Description: "Test",
 		CreatedAt:   now,
@@ -84,7 +81,6 @@ func TestModelCreateReqtoProtoReq(t *testing.T) {
 
 	protoReq := ModelCreateReqtoProtoReq(req, 42)
 	assert.Equal(t, int32(42), protoReq.UserID)
-	assert.Equal(t, int32(1), protoReq.CategoryId)
 	assert.Equal(t, 100.0, protoReq.Sum)
 	assert.Equal(t, "Test", protoReq.Description)
 	assert.Equal(t, now, protoReq.CreatedAt.AsTime())

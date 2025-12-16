@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS currency (
 -- ========================================================
 CREATE TABLE IF NOT EXISTS account (
     _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    account_name TEXT NOT NULL CHECK (LENGTH(account_name) <= 30),
+    account_description TEXT,
     balance DECIMAL(10,2) NOT NULL DEFAULT 0.00 CHECK (balance >= 0),
     account_type TEXT NOT NULL DEFAULT 'default' CHECK (LENGTH(account_type) <= 30),
     currency_id INT REFERENCES currency(_id) ON DELETE SET NULL,
@@ -81,7 +83,7 @@ CREATE TABLE IF NOT EXISTS operation (
     operation_name TEXT NOT NULL CHECK (LENGTH(operation_name) <= 50),
     operation_description TEXT CHECK (LENGTH(operation_description) <= 100),
     receipt_url TEXT CHECK (LENGTH(receipt_url) <= 200),
-    sum DECIMAL(10,2) NOT NULL CHECK (sum > 0),
+    sum DECIMAL(11,2) NOT NULL CHECK (sum > 0),
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -91,7 +93,6 @@ CREATE TABLE IF NOT EXISTS operation (
 CREATE TABLE IF NOT EXISTS budget (
     _id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id INT NOT NULL REFERENCES "user"(_id) ON DELETE CASCADE,
-    category_id INT NOT NULL REFERENCES category(_id) ON DELETE CASCADE,
     currency_id INT NOT NULL REFERENCES currency(_id) ON DELETE CASCADE,
     amount DECIMAL(10,2) NOT NULL CHECK (amount >= 0),
     budget_description TEXT CHECK (LENGTH(budget_description) <= 80),
@@ -100,7 +101,7 @@ CREATE TABLE IF NOT EXISTS budget (
     closed_at TIMESTAMPTZ,
     period_start DATE NOT NULL,
     period_end DATE NOT NULL,
-    UNIQUE (user_id, category_id, currency_id, period_start, period_end)
+    UNIQUE (user_id, currency_id, period_start, period_end)
 );
 
 -- ========================================================

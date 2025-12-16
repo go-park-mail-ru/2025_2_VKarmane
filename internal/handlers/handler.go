@@ -15,6 +15,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/clock"
+	kafkautils "github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/kafka"
 )
 
 type Handler struct {
@@ -28,20 +29,20 @@ type Handler struct {
 	registrator     *Registrator
 }
 
-func NewHandler(uc *usecase.UseCase, logger logger.Logger, authClient authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient, finClient finpb.FinanceServiceClient) *Handler {
+func NewHandler(uc *usecase.UseCase, logger logger.Logger, authClient authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient, finClient finpb.FinanceServiceClient, kafkaProducer kafkautils.KafkaProducer) *Handler {
 	realClock := clock.RealClock{}
 	return &Handler{
 		balanceHandler:  balance.NewHandler(finClient, realClock),
 		budgetHandler:   budget.NewHandler(realClock, budgetClient),
 		authHandler:     auth.NewHandler(realClock, logger, authClient),
-		opHandler:       operation.NewHandler(finClient, uc.ImageUC, realClock),
-		categoryHandler: category.NewHandler(finClient, uc.ImageUC),
+		opHandler:       operation.NewHandler(finClient, uc.ImageUC, kafkaProducer, realClock),
+		categoryHandler: category.NewHandler(finClient, uc.ImageUC, kafkaProducer),
 		profileHandler:  profile.NewHandler(uc.ImageUC, authClient),
 		logger:          logger,
 		registrator:     NewRegistrator(uc, logger),
 	}
 }
 
-func (h *Handler) Register(publicRouter *mux.Router, protectedRouter *mux.Router, authCleint authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient, finClient finpb.FinanceServiceClient) {
-	h.registrator.RegisterAll(publicRouter, protectedRouter, h.registrator.uc, h.logger, authCleint, budgetClient, finClient)
+func (h *Handler) Register(publicRouter *mux.Router, protectedRouter *mux.Router, authCleint authpb.AuthServiceClient, budgetClient bdgpb.BudgetServiceClient, finClient finpb.FinanceServiceClient, kafkaProducer kafkautils.KafkaProducer) {
+	h.registrator.RegisterAll(publicRouter, protectedRouter, h.registrator.uc, h.logger, authCleint, budgetClient, finClient, kafkaProducer)
 }

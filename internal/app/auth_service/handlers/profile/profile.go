@@ -11,10 +11,10 @@ import (
 	"google.golang.org/grpc/status"
 
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/proto"
+	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/logger"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/models"
-	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/usecase"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils"
 	httputils "github.com/go-park-mail-ru/2025_2_VKarmane/pkg/http"
 )

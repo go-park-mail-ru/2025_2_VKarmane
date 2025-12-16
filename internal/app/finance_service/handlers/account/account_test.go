@@ -110,15 +110,16 @@ func TestUpdateAccount_Forbidden(t *testing.T) {
 
 	mockClient := mocks.NewMockFinanceServiceClient(ctrl)
 	handler := NewHandler(mockClient, clock.RealClock{})
+	balance := 100.0
 
-	body, _ := json.Marshal(models.UpdateAccountRequest{Balance: 100})
+	body, _ := json.Marshal(models.UpdateAccountRequest{Balance: &balance})
 
 	mockClient.EXPECT().
 		UpdateAccount(gomock.Any(),
 			&finpb.UpdateAccountRequest{
 				UserId:    1,
 				AccountId: 5,
-				Balance:   100,
+				Balance:   &balance,
 			},
 		).
 		Return(nil, status.Error(codes.PermissionDenied, "forbidden"))
@@ -215,12 +216,13 @@ func TestUpdateAccount_Success(t *testing.T) {
 	h := NewHandler(mockClient, clock.RealClock{})
 
 	body, _ := json.Marshal(map[string]interface{}{"balance": 999})
+	balance := 999.
 
 	mockClient.EXPECT().
 		UpdateAccount(gomock.Any(), &finpb.UpdateAccountRequest{
 			UserId:    10,
 			AccountId: 5,
-			Balance:   999,
+			Balance:   &balance,
 		}).
 		Return(&finpb.Account{Id: 5, Balance: 999, Type: "debit", CurrencyId: 1}, nil)
 

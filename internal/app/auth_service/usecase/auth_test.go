@@ -101,7 +101,7 @@ func TestService_Login_InvalidPassword(t *testing.T) {
 
 	req := authmodels.LoginRequest{
 		Login:    "testuser",
-		Password: "wrongpassword", 
+		Password: "wrongpassword",
 	}
 
 	repo.EXPECT().GetUserByLogin(gomock.Any(), "testuser").Return(user, nil)

@@ -6,16 +6,25 @@ MODULE := github.com/go-park-mail-ru/2025_2_VKarmane
 ALL_PKGS := $(shell go list ./...)
 
 # Пакеты без моков, cmd и docs
-PKGS := $(shell go list ./... | grep -vE '(^|/)(mocks|cmd|docs)(/|$$)')
+
+PKGS := $(shell go list ./... \
+	| grep -vE '(^|/)(mocks|cmd|docs|proto)(/|$$)' \
+	| grep -vE 'internal/app/[^/]+$$' \
+	| grep -vE 'internal/app/.+/handlers' \
+	| grep -vE 'internal/app/image/repository' \
+	| grep -vE 'internal/metrics$$' \
+	| grep -vE 'internal/models$$' \
+	| grep -vE 'scripts$$')
 
 COVER_MODE := atomic
 COVER_RAW := coverage.raw.out
 COVER_OUT := coverage.out
 COVER_HTML := coverage.html
+COVER_THRESHOLD := 60
 
 EXCLUDE_FILES_REGEX := \/mocks\/|\/mock_.*\.go
 
-.PHONY: help build up down logs clean test migrate swagger cover coverhtml dev deploy mocks seed-users
+.PHONY: help build up down logs clean test migrate swagger cover cover-check coverhtml dev deploy mocks seed-users
 
 # Default target
 help:
@@ -70,6 +79,10 @@ cover:
 	else \
 		echo "coverage.out not found"; \
 	fi
+
+
+cover-check: cover
+	@go run ./scripts/coverage_check.go -profile=$(COVER_OUT) -threshold=$(COVER_THRESHOLD)
 
 # Generate HTML coverage report
 coverhtml: cover

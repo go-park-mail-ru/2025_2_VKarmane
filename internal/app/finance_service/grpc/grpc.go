@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
-	"log"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -151,6 +151,26 @@ func (s *FinanceServerImpl) CreateOperation(ctx context.Context, req *finpb.Crea
 	return operation, nil
 }
 
+func (s *FinanceServerImpl) AddUserToAccounnt(ctx context.Context, req *finpb.AddToAccountReqeust) (*finpb.SharingsResponse, error) {
+	sharing, err := s.financeUC.AddUserToAccount(ctx, req.UserLogin, int(req.AccountId))
+	if err != nil {
+		logger := logger.FromContext(ctx)
+		for targetErr, resp := range finerrors.ErrorMap {
+			if errors.Is(err, targetErr) {
+				if logger != nil {
+					logger.Error("Failed to add user to account", "error", err)
+				}
+				return nil, status.Error(resp.Code, resp.Msg)
+			}
+		}
+		if logger != nil {
+			logger.Error("Failed to add user to account, internal error", "error", err)
+		}
+		return nil, status.Error(codes.Internal, string(models.ErrCodeAccountNotFound))
+	}
+	return sharing, nil
+}
+
 func (s *FinanceServerImpl) GetOperation(ctx context.Context, req *finpb.OperationRequest) (*finpb.Operation, error) {
 	operation, err := s.financeUC.GetOperationByID(ctx, int(req.AccountId), int(req.OperationId))
 	if err != nil {
@@ -171,10 +191,18 @@ func (s *FinanceServerImpl) GetOperation(ctx context.Context, req *finpb.Operati
 	return operation, nil
 }
 
-func (s *FinanceServerImpl) GetOperationsByAccount(ctx context.Context, req *finpb.AccountRequest) (*finpb.ListOperationsResponse, error) {
-	operations, err := s.financeUC.GetOperationsByAccount(ctx, int(req.AccountId))
+func (s *FinanceServerImpl) GetOperationsByAccount(ctx context.Context, req *finpb.OperationsByAccountAndFiltersRequest) (*finpb.ListOperationsResponse, error) {
+	logger := logger.FromContext(ctx)
+
+	var date string
+	if req.Date != nil {
+		date = req.Date.AsTime().Format(time.RFC3339Nano)
+	} else {
+		date = ""
+	}
+
+	operations, err := s.financeUC.GetOperationsByAccount(ctx, int(req.AccountId), CategoryIDsInt(req.CategoryIds), req.Name, req.OperationType, req.AccountType, date)
 	if err != nil {
-		logger := logger.FromContext(ctx)
 		for targetErr, resp := range finerrors.ErrorMap {
 			if errors.Is(err, targetErr) {
 				if logger != nil {
@@ -255,12 +283,17 @@ func (s *FinanceServerImpl) CreateCategory(ctx context.Context, req *finpb.Creat
 }
 
 func (s *FinanceServerImpl) GetCategory(ctx context.Context, req *finpb.CategoryRequest) (*finpb.CategoryWithStats, error) {
-
 	category, err := s.financeUC.GetCategoryByID(ctx, int(req.UserId), int(req.CategoryId))
 	if err != nil {
-		log.Println(err.Error())
+		logger := logger.FromContext(ctx)
 		if errors.Is(err, finerrors.ErrCategoryNotFound) {
+			if logger != nil {
+				logger.Error("Failed to get category", "error", err)
+			}
 			return nil, status.Error(codes.NotFound, "category not found")
+		}
+		if logger != nil {
+			logger.Error("Failed to get category, internal error", "error", err)
 		}
 		return nil, status.Error(codes.Internal, "internal error")
 	}
@@ -273,6 +306,24 @@ func (s *FinanceServerImpl) GetCategoriesByUser(ctx context.Context, req *finpb.
 		return nil, status.Error(codes.Internal, "internal error")
 	}
 	return categories, nil
+}
+
+func (s *FinanceServerImpl) GetCategoryByName(ctx context.Context, req *finpb.CategoryByNameRequest) (*finpb.CategoryWithStats, error) {
+	category, err := s.financeUC.GetCategoryByName(ctx, int(req.UserId), req.CategoryName)
+	if err != nil {
+		logger := logger.FromContext(ctx)
+		if errors.Is(err, finerrors.ErrCategoryNotFound) {
+			if logger != nil {
+				logger.Error("Failed to get category", "error", err)
+			}
+			return nil, status.Error(codes.NotFound, "category not found")
+		}
+		if logger != nil {
+			logger.Error("Failed to get category, internal error", "error", err)
+		}
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+	return category, nil
 }
 
 func (s *FinanceServerImpl) GetCategoriesWithStatsByUser(ctx context.Context, req *finpb.UserID) (*finpb.ListCategoriesWithStatsResponse, error) {
@@ -330,6 +381,26 @@ func (s *FinanceServerImpl) DeleteCategory(ctx context.Context, req *finpb.Categ
 		return nil, status.Error(codes.Internal, string(models.ErrCodeInternalError))
 	}
 	return &finpb.Category{}, nil
+}
+
+func (s *FinanceServerImpl) GetCategoriesReport(ctx context.Context, req *finpb.CategoryReportRequest) (*finpb.CategoryReportResponse, error) {
+	report, err := s.financeUC.GetCategoriesReport(ctx, protoToCategoryRequest(req))
+	if err != nil {
+		logger := logger.FromContext(ctx)
+		for targetErr, resp := range finerrors.ErrorMap {
+			if errors.Is(err, targetErr) {
+				if logger != nil {
+					logger.Error("Failed to get report", "error", err)
+				}
+				return nil, status.Error(resp.Code, resp.Msg)
+			}
+		}
+		if logger != nil {
+			logger.Error("Failed to get report, internal error", "error", err)
+		}
+		return nil, status.Error(codes.Internal, string(models.ErrCodeInternalError))
+	}
+	return report, nil
 }
 
 func getStringValue(s *string) string {

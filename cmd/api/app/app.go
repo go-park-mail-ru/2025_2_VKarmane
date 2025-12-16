@@ -13,6 +13,10 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/segmentio/kafka-go"
+	httpSwagger "github.com/swaggo/http-swagger"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	image "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/image/repository"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/handlers"
@@ -20,13 +24,11 @@ import (
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/service"
 	"github.com/go-park-mail-ru/2025_2_VKarmane/internal/usecase"
+	kafkautils "github.com/go-park-mail-ru/2025_2_VKarmane/internal/utils/kafka"
 
 	authpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/auth_service/proto"
 	bdgpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/budget_service/proto"
 	finpb "github.com/go-park-mail-ru/2025_2_VKarmane/internal/app/finance_service/proto"
-	httpSwagger "github.com/swaggo/http-swagger"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func Run() error {
@@ -66,9 +68,15 @@ func Run() error {
 	authClient := authpb.NewAuthServiceClient(authGrpcConn)
 	bdgClient := bdgpb.NewBudgetServiceClient(bdgGrpcConn)
 	finClient := finpb.NewFinanceServiceClient(finGrpcConn)
-	if err != nil {
-		return err
+
+	kafkaWriter := &kafka.Writer{
+		Addr:         kafka.TCP(fmt.Sprintf("%s:%s", config.KafkaProducerHost, config.KafkaProducerPort)),
+		Topic:        "transactions",
+		Balancer:     &kafka.LeastBytes{},
+		RequiredAcks: kafka.RequireAll,
+		Async:        false,
 	}
+	kafkaProducer := kafkautils.NewKafkaWriterWrapper(kafkaWriter)
 
 	imageStorage, err := image.NewMinIOStorage(
 		fmt.Sprintf("%s:%s", config.MinIO.Endpoint, config.MinIO.Port),
@@ -83,7 +91,7 @@ func Run() error {
 
 	serviceInstance := service.NewService(config.JWTSecret, imageStorage)
 	usecaseInstance := usecase.NewUseCase(serviceInstance, config.JWTSecret)
-	handler := handlers.NewHandler(usecaseInstance, appLogger, authClient, bdgClient, finClient)
+	handler := handlers.NewHandler(usecaseInstance, appLogger, authClient, bdgClient, finClient, kafkaProducer)
 
 	r := mux.NewRouter()
 
@@ -119,7 +127,7 @@ func Run() error {
 	protected.Use(middleware.CSRFMiddleware(config.JWTSecret))
 	protected.Use(middleware.AuthMiddleware(config.JWTSecret))
 
-	handler.Register(public, protected, authClient, bdgClient, finClient)
+	handler.Register(public, protected, authClient, bdgClient, finClient, kafkaProducer)
 
 	// Swagger документация
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
