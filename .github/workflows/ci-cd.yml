@@ -8,53 +8,53 @@ on:
 
 jobs:
   test:
-    name: 🧪 Go tests
+    name: Go tests
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📦 Checkout
+    - name: Checkout
       uses: actions/checkout@v4
 
-    - name: 🧰 Setup Go
+    - name: Setup Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.22'
 
-    - name: 📥 Download deps
+    - name: Download deps
       run: go mod download
 
-    - name: 🧪 Run tests
+    - name: Run tests
       run: go test ./... -v
 
   deploy:
-    name: 🚀 Deploy
+    name: Deploy
     needs: test
     runs-on: ubuntu-latest
 
     if: github.event_name == 'push'
 
     steps:
-    - name: 📦 Checkout
+    - name: Checkout
       uses: actions/checkout@v4
 
-    - name: 🔐 Setup SSH
+    - name: Setup SSH
       uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: 🔎 Test SSH
+    - name: Test SSH
       run: |
         ssh -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH OK"
 
-    - name: 📤 Upload project
+    - name: Upload project
       run: |
         rsync -az --delete \
           --exclude='.git' \
           ./ \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/ubuntu/vkarmane
 
-    - name: 📝 Create .env
+    - name: Create .env
       run: |
         ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
         cat > /home/ubuntu/vkarmane/.env << 'EOT'
@@ -100,7 +100,7 @@ jobs:
         EOT
         EOF
 
-    - name: 🚀 Docker compose up
+    - name: Docker compose up
       run: |
         ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
         cd /home/ubuntu/vkarmane
