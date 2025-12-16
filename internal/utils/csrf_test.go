@@ -12,7 +12,7 @@ import (
 
 func TestGenerateAndValidateCSRF(t *testing.T) {
 	fixedClock := clock.FixedClock{
-		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.Local),
+		FixedTime: time.Date(2025, 10, 22, 19, 0, 0, 0, time.UTC),
 	}
 
 	token, err := GenerateCSRF(fixedClock.FixedTime, "secret")
