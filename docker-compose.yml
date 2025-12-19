@@ -13,6 +13,7 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./logs/postgresql:/var/lib/postgresql/data/log
       - ./migrations:/docker-entrypoint-initdb.d
       - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
       - ./docker/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
@@ -20,6 +21,11 @@ services:
     networks:
       - vkarmane-network
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vkarmane -d vkarmane"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   minio:
     image: minio/minio:latest
@@ -112,7 +118,31 @@ services:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
       - "--storage.path=/alertmanager"
       - "--cluster.listen-address=:9095"
-    
+
+  pgbadger:
+    image: dalibo/pgbadger:latest
+    container_name: vkarmane-pgbadger
+    volumes:
+      - ./logs/postgresql:/var/log/postgresql:ro
+      - ./reports/pgbadger:/reports
+    networks:
+      - vkarmane-network
+    command: >
+      sh -c "
+        if [ -d /var/log/postgresql ] && [ \"$$(ls -A /var/log/postgresql/*.log 2>/dev/null)\" ]; then
+          pgbadger -o /reports/report.html
+          -f stderr
+          --prefix '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+          /var/log/postgresql/*.log
+          && echo 'Report generated at /reports/report.html'
+        else
+          echo 'No PostgreSQL log files found in /var/log/postgresql'
+          echo 'Make sure PostgreSQL is running and generating logs'
+          exit 1
+        fi
+      "
+    profiles:
+      - tools
   auth_service:
     build:
       context: .
@@ -248,7 +278,6 @@ volumes:
   alertmanager_data:
   grafana_data:
   postgres_data:
-  postgres_logs:
   minio_data:
 
 networks:

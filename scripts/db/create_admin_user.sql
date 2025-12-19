@@ -40,3 +40,4 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 
 COMMENT ON ROLE vkarmane_admin IS 'Административная учетная запись для администрирования БД VKarmane (без SUPERUSER).';
 
+

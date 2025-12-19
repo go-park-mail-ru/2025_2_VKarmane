@@ -16,3 +16,5 @@ ssl/
 .DS_Store
 coverage.out
 coverage.html
+reports/pgbadger/*.html
+reports/pgbadger/*.json

@@ -23,7 +23,7 @@ COVER_THRESHOLD := 60
 
 EXCLUDE_FILES_REGEX := \/mocks\/|\/mock_.*\.go
 
-.PHONY: help build up down logs clean test migrate swagger cover cover-check coverhtml dev deploy mocks seed-users
+.PHONY: help build up down logs clean test migrate swagger cover cover-check coverhtml dev deploy mocks seed-users pgbadger
 
 # Default target
 help:
@@ -42,6 +42,7 @@ help:
 	@echo "  mocks     - Generate mocks using gomock"
 	@echo "  deploy    - Production deployment"
 	@echo "  seed-users - Seed test users with accounts"
+	@echo "  pgbadger  - Generate PostgreSQL log analysis report"
 
 # Build Docker images
 build:
@@ -133,4 +134,11 @@ seed-users:
 	@echo "Seeding test users with accounts..."
 	@go run scripts/seed_test_users.go
 	@echo "Seed completed!"
+
+# Generate PostgreSQL log analysis report using pgbadger
+pgbadger:
+	@echo "Generating PostgreSQL log analysis report..."
+	@mkdir -p reports/pgbadger logs/postgresql
+	@docker-compose --profile tools run --rm pgbadger
+	@echo "pgBadger report generated successfully at reports/pgbadger/report.html"
 	
